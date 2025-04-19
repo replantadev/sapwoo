@@ -6,9 +6,9 @@ Plugin Name: SAP Woo Sync
 
 Description: Sincroniza pedidos de WooCommerce con SAP Business One.
 
-Version: 1.0
+Version: 1.0.0
+Author: Replanta Dev
 
-Author: Luisja
 
 */
 
@@ -42,6 +42,21 @@ require_once SAPWC_PATH . 'includes/class-api-client.php';
 
 require_once SAPWC_PATH . 'includes/class-sap-sync.php';
 require_once SAPWC_PATH . 'includes/class-logger.php';
+
+
+// Actualizaciones automáticas desde GitHub
+require_once SAPWC_PATH . 'lib/plugin-update-checker/plugin-update-checker.php';
+
+$updateChecker = Puc_v4_Factory::buildUpdateChecker(
+    'https://github.com/replantadev/sapwoo/',
+    __FILE__,
+    'sapwoo'
+);
+
+// Opcional: si tu repositorio es privado
+// $updateChecker->setAuthentication('GITHUB_TOKEN_AQUI');
+
+$updateChecker->setBranch('main');
 
 
 register_activation_hook(__FILE__, 'sapwc_create_log_table');
