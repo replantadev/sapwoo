@@ -45,7 +45,9 @@ require_once SAPWC_PATH . 'includes/class-logger.php';
 
 
 // Actualizaciones automáticas desde GitHub
-require_once SAPWC_PATH . 'lib/plugin-update-checker/plugin-update-checker.php';
+require_once SAPWC_PATH . 'plugin-update-checker/plugin-update-checker.php';
+
+
 
 $updateChecker = Puc_v4_Factory::buildUpdateChecker(
     'https://github.com/replantadev/sapwoo/',
@@ -53,10 +55,28 @@ $updateChecker = Puc_v4_Factory::buildUpdateChecker(
     'sapwoo'
 );
 
-// Opcional: si tu repositorio es privado
+// Cuando lo hagamos privado
 // $updateChecker->setAuthentication('GITHUB_TOKEN_AQUI');
 
 $updateChecker->setBranch('main');
+
+// Verificar si WooCommerce está activo
+add_action('admin_init', function () {
+    if (!class_exists('WooCommerce')) {
+        add_action('admin_notices', function () {
+            echo '<div class="notice notice-error"><p><strong>SAP Woo Sync</strong> requiere que <strong>WooCommerce</strong> esté instalado y activo.</p></div>';
+        });
+
+        // Desactivar el plugin si WooCommerce no está activo
+        deactivate_plugins(plugin_basename(__FILE__));
+    }
+});
+
+
+
+
+
+
 
 
 register_activation_hook(__FILE__, 'sapwc_create_log_table');
