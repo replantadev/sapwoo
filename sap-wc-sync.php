@@ -3,7 +3,7 @@
 Plugin Name: SAP Woo Sync
 Plugin URI: https://replanta.es
 Description: Sincroniza pedidos de WooCommerce con SAP Business One.
-Version: 1.2.4
+Version: 1.2.5
 Author: Replanta Dev
 Author URI: https://replanta.es
 License: GPLv2 or later
@@ -22,7 +22,8 @@ define('SAPWC_PLUGIN_URL', plugin_dir_url(__FILE__));
 
 // Cargar archivos necesarios
 add_action('plugins_loaded', 'sapwc_load_dependencies');
-function sapwc_load_dependencies() {
+function sapwc_load_dependencies()
+{
     require_once SAPWC_PLUGIN_PATH . 'admin/class-settings-page.php';
     require_once SAPWC_PLUGIN_PATH . 'admin/class-sync-options-page.php';
     require_once SAPWC_PLUGIN_PATH . 'admin/class-failed-orders-page.php';
@@ -70,7 +71,8 @@ add_action('admin_init', function () {
 
 // Crear tabla de logs al activar el plugin
 register_activation_hook(__FILE__, 'sapwc_create_log_table');
-function sapwc_create_log_table() {
+function sapwc_create_log_table()
+{
     global $wpdb;
     $table = $wpdb->prefix . 'sapwc_logs';
     $charset_collate = $wpdb->get_charset_collate();
@@ -155,7 +157,8 @@ add_action('wp_ajax_sapwc_test_connection', function () {
     if ($login['success']) {
         wp_send_json_success(__('✅ Conexión correcta con SAP.', 'sapwoo'));
     } else {
-        wp_send_json_error(['message' => __('❌ Error de SAP: ', 'sapwoo') . $login['message']]);    }
+        wp_send_json_error(['message' => __('❌ Error de SAP: ', 'sapwoo') . $login['message']]);
+    }
 });
 
 
@@ -203,8 +206,12 @@ add_action('manage_shop_order_posts_custom_column', function ($column, $post_id)
 
 add_action('admin_enqueue_scripts', function ($hook) {
     $screen = get_current_screen();
+
+
     $is_sap_page = strpos($hook, 'sapwc') !== false || strpos($screen->id, 'sapwc') !== false;
     wp_enqueue_style('dashicons');
+
+    wp_enqueue_script('underscore');
     // Cargar siempre que estemos en el admin
     wp_enqueue_script('sapwc-admin', SAPWC_PLUGIN_URL . 'assets/js/admin.js', ['jquery'], time(), true);
     wp_localize_script('sapwc-admin', 'sapwc_ajax', [
@@ -227,7 +234,8 @@ add_action('admin_enqueue_scripts', function ($hook) {
 
 add_action('sapwc_cron_sync_orders', 'sapwc_cron_sync_orders_callback');
 
-function sapwc_cron_sync_orders_callback() {
+function sapwc_cron_sync_orders_callback()
+{
     if (get_option('sapwc_sync_orders_auto') !== '1') return;
 
     $conn = sapwc_get_active_connection();
@@ -300,7 +308,7 @@ add_action('admin_bar_menu', function ($wp_admin_bar) {
     } else {
         $client = new SAPWC_API_Client($conn['url']);
         $login  = $client->login($conn['user'], $conn['pass'], $conn['db'], $conn['ssl'] ?? false);
-    
+
         $status_icon = $login['success'] ? '<span class="dashicons dashicons-yes" style="font-family: dashicons;color:green"></span>' : '<span class="dashicons dashicons-no-alt" style="font-family: dashicons;color:red"></span>';
         $status_msg = $login['success'] ? __('Conectado a SAP', 'sapwoo') : __('Error de conexión', 'sapwoo');
     }
@@ -348,9 +356,13 @@ add_action('admin_bar_menu', function ($wp_admin_bar) {
 
 
 //Funcion de conexiones:
-
-
-function sapwc_get_active_connection() {
+/**
+ * Obtiene la conexión activa de SAP desde las opciones del plugin.
+ *
+ * @return array|null La conexión activa o null si no está configurada.
+ */
+function sapwc_get_active_connection()
+{
     $all_connections = get_option('sapwc_connections', []);
     $index = get_option('sapwc_connection_index', 0);
 
@@ -367,12 +379,50 @@ function sapwc_get_active_connection() {
     }
 
     if (empty($connection['url']) || empty($connection['user']) || empty($connection['pass']) || empty($connection['db'])) {
-        error_log(__('❌ Conexión activa incompleta: ', 'sapwoo') . print_r($connection, true));        return null;
+        error_log(__('❌ Conexión activa incompleta: ', 'sapwoo') . print_r($connection, true));
+        return null;
     }
 
     return $connection;
 }
+//Fucion de query de pedidos de SAP
+function sapwc_build_orders_query()
+{
+    $mode = get_option('sapwc_mode', 'ecommerce');
+    $query_info = [
+        'mode' => $mode,
+        'query' => '',
+        'params' => [],
+    ];
 
+    if ($mode === 'ecommerce') {
+        $peninsula = sanitize_text_field(get_option('sapwc_cardcode_peninsula', 'WNAD PENINSULA'));
+        $canarias  = sanitize_text_field(get_option('sapwc_cardcode_canarias', 'WNAD CANARIAS'));
+
+        $query_info['params'] = compact('peninsula', 'canarias');
+        $query_info['query'] = "/Orders?\$filter=(CardCode eq '$peninsula' or CardCode eq '$canarias')&\$orderby=DocEntry desc&\$top=50&\$select=DocEntry,DocNum,DocDate,CardCode,DocTotal,Comments";
+    } elseif ($mode === 'b2b') {
+        $filter_type  = get_option('sapwc_customer_filter_type', 'starts');
+        $filter_value = sanitize_text_field(trim(get_option('sapwc_customer_filter_value', '')));
+
+        $query_info['params'] = compact('filter_type', 'filter_value');
+
+        if (!empty($filter_value)) {
+            $query_info['query'] = $filter_type === 'starts'
+                ? "/Orders?\$filter=startswith(CardCode,'$filter_value')&\$orderby=DocEntry desc&\$top=50&\$select=DocEntry,DocNum,DocDate,CardCode,DocTotal,Comments"
+                : "/Orders?\$filter=contains(CardCode,'$filter_value')&\$orderby=DocEntry desc&\$top=50&\$select=DocEntry,DocNum,DocDate,CardCode,DocTotal,Comments";
+        } else {
+            $query_info['query'] = "/Orders?\$orderby=DocEntry desc&\$top=50&\$select=DocEntry,DocNum,DocDate,CardCode,DocTotal,Comments";
+        }
+    } else {
+        $query_info['query'] = "/Orders?\$orderby=DocEntry desc&\$top=50&\$select=DocEntry,DocNum,DocDate,CardCode,DocTotal,Comments";
+    }
+
+    return $query_info;
+}
+
+
+// AJAX para enviar pedidos a SAP
 add_action('wp_ajax_sapwc_send_orders', function () {
     check_ajax_referer('sapwc_nonce', 'nonce');
 
@@ -417,11 +467,12 @@ add_action('wp_ajax_sapwc_send_orders', function () {
 
 
 //mostrar solo si hay stock o agotado por producto, no las unidades en frontend:
-add_filter( 'woocommerce_get_availability_text', 'custom_availability_text', 10, 2 );
-function custom_availability_text( $availability, $product ) {
-    if ( $product->is_in_stock() ) {
-        return __( 'En stock', 'woocommerce' );
+add_filter('woocommerce_get_availability_text', 'custom_availability_text', 10, 2);
+function custom_availability_text($availability, $product)
+{
+    if ($product->is_in_stock()) {
+        return __('En stock', 'woocommerce');
     } else {
-        return __( 'Agotado', 'woocommerce' );
+        return __('Agotado', 'woocommerce');
     }
 }

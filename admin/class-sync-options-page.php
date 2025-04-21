@@ -124,38 +124,50 @@ class SAPWC_Sync_Options_Page
                             <th scope="row">🧪 Verificación de productos B2B</th>
                             <td>
                                 <?php
+                                // Recuperar todos los productos y variaciones publicados
                                 $productos_b2b = get_posts([
                                     'post_type'   => ['product', 'product_variation'],
                                     'post_status' => 'publish',
                                     'numberposts' => -1,
-                                    'meta_query'  => [['key' => '_sku', 'compare' => 'EXISTS']],
+                                    'meta_query'  => [
+                                        ['key' => '_sku', 'compare' => 'EXISTS'], // Asegurarse de que tengan SKU
+                                    ],
                                 ]);
 
-                                $errores = [];
-
-                                foreach ($productos_b2b as $prod) {
-                                    $id = $prod->ID;
-                                    $title = get_the_title($id);
-                                    $missing = [];
-
-                                    if (!get_post_meta($id, '_sku', true)) $missing[] = 'SKU';
-                                    if (!get_post_meta($id, 'almacen', true)) $missing[] = 'almacén';
-                                    if (!get_post_meta($id, 'pvp', true)) $missing[] = 'PVP';
-
-                                    if (!empty($missing)) {
-                                        $errores[] = "$title (falta: " . implode(', ', $missing) . ")";
-                                    }
-                                }
-
-                                if (empty($errores)) {
-                                    echo '<p><strong style="color:green;">✅ Todos los productos tienen los campos necesarios.</strong></p>';
+                                if (empty($productos_b2b)) {
+                                    // Si no hay productos publicados
+                                    echo '<p><strong style="color:red;">❌ No hay productos publicados para verificar.</strong></p>';
                                 } else {
-                                    echo '<p><strong style="color:red;">❌ ' . count($errores) . ' productos con errores:</strong></p>';
-                                    echo '<ul>';
-                                    foreach ($errores as $error) {
-                                        echo '<li>🔸 ' . esc_html($error) . '</li>';
+                                    $errores = [];
+
+                                    // Verificar cada producto
+                                    foreach ($productos_b2b as $prod) {
+                                        $id = $prod->ID;
+                                        $title = get_the_title($id);
+                                        $missing = [];
+
+                                        // Verificar campos adicionales
+                                        if (!get_post_meta($id, '_sku', true)) $missing[] = '_sku';
+                                        if (!get_post_meta($id, 'almacen', true)) $missing[] = 'almacen';
+                                        if (!get_post_meta($id, 'pvp', true)) $missing[] = 'pvp';
+
+                                        // Si faltan campos, añadir a la lista de errores
+                                        if (!empty($missing)) {
+                                            $errores[] = "$title (falta: " . implode(', ', $missing) . ")";
+                                        }
                                     }
-                                    echo '</ul>';
+
+                                    // Mostrar resultados
+                                    if (empty($errores)) {
+                                        echo '<p><strong style="color:green;">✅ Todos los productos tienen los campos necesarios.</strong></p>';
+                                    } else {
+                                        echo '<p><strong style="color:red;">❌ ' . count($errores) . ' productos con errores:</strong></p>';
+                                        echo '<ul>';
+                                        foreach ($errores as $error) {
+                                            echo '<li>🔸 ' . esc_html($error) . '</li>';
+                                        }
+                                        echo '</ul>';
+                                    }
                                 }
                                 ?>
                                 <p class="description">Campos necesarios para modo B2B: <code>_sku</code>, <code>almacen</code>, <code>pvp</code></p>
@@ -581,9 +593,6 @@ add_action('admin_init', function () {
 
     register_setting('sapwc_sync_settings', 'sapwc_customer_filter_type');
     register_setting('sapwc_sync_settings', 'sapwc_customer_filter_value');
-   
-
-
 });
 
 function sapwc_cron_sync_stock_callback()

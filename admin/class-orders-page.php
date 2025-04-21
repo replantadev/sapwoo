@@ -10,6 +10,19 @@ class SAPWC_Orders_Page
         ]);
 
         echo '<div class="wrap"><h1>Pedidos en procesamiento</h1>';
+        $query_data = sapwc_build_orders_query();
+        echo '<p><strong>🔎 Modo actual:</strong> ' . esc_html(strtoupper($query_data['mode'])) . '</p>';
+        if ($query_data['mode'] === 'ecommerce') {
+            echo '<p><strong>🧾 Clientes usados:</strong> ' .
+                esc_html($query_data['params']['peninsula']) . ' y ' .
+                esc_html($query_data['params']['canarias']) . '</p>';
+        } elseif ($query_data['mode'] === 'b2b') {
+            echo '<p><strong>🔤 Filtro:</strong> ' .
+                esc_html($query_data['params']['filter_type']) . ' <code>' .
+                esc_html($query_data['params']['filter_value']) . '</code></p>';
+        }
+        echo '<details><summary>📄 Ver consulta SAP</summary><code style="display:block;margin-top:5px;">' . esc_html($query_data['query']) . '</code></details>';
+
         echo '<button id="sapwc-send-orders" class="button button-primary">🛫 Enviar todos a SAP</button>';
         echo '<span id="sapwc-connection-status" style="margin-left: 1em; font-weight: bold;">Conectando...</span>';
         echo '<p id="sapwc-send-result" style="font-weight: bold; margin-top: 1em;"></p>';
@@ -61,30 +74,29 @@ class SAPWC_Orders_Page
     }
 
     private static function inline_js()
-{
+    {
 ?>
-    <script>
-        jQuery(document).ready(function($) {
-            function testConnection() {
-                $.post(ajaxurl, {
-                    action: 'sapwc_test_connection',
-                    nonce: sapwc_ajax.nonce
-                }, function(response) {
-                    const el = $('#sapwc-connection-status');
-                    if (response.success) {
-                        el.text('🟢 Conexión OK');
-                    } else {
-                        el.text('🔴 Conexión fallida');
-                    }
-                });
-            }
+        <script>
+            jQuery(document).ready(function($) {
+                function testConnection() {
+                    $.post(ajaxurl, {
+                        action: 'sapwc_test_connection',
+                        nonce: sapwc_ajax.nonce
+                    }, function(response) {
+                        const el = $('#sapwc-connection-status');
+                        if (response.success) {
+                            el.text('🟢 Conexión OK');
+                        } else {
+                            el.text('🔴 Conexión fallida');
+                        }
+                    });
+                }
 
-            testConnection(); // se lanza al cargar
-        });
-    </script>
+                testConnection(); // se lanza al cargar
+            });
+        </script>
 <?php
-}
-
+    }
 }
 
 
@@ -104,9 +116,13 @@ add_action('wp_ajax_sapwc_get_sap_orders', function () {
     }
 
 
-    $query = "/Orders?\$filter=(CardCode eq 'WNAD PENINSULA' or CardCode eq 'WNAD CANARIAS')&\$orderby=DocDate desc&\$top=10";
+    $query_data = sapwc_build_orders_query();
+    $query = $query_data['query'];
     $response = $client->get($query);
-    error_log('[SAP WC] Consulta usada: ' . $query);
+    //error_log('[SAPWC Orders Page] Consulta usada: ' . $query);
+
+    $response = $client->get($query);
+    //error_log('[SAP WC] Consulta usada: ' . $query);
     //error_log('[SAP WC] Respuesta: ' . print_r($response, true));
     if (!isset($response['value'])) {
         wp_send_json_error('Error al obtener los pedidos de SAP');
