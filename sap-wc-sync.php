@@ -3,7 +3,7 @@
 Plugin Name: SAP Woo Sync
 Plugin URI: https://replanta.es
 Description: Sincroniza pedidos de WooCommerce con SAP Business One.
-Version: 1.2.2
+Version: 1.2.3
 Author: Replanta Dev
 Author URI: https://replanta.es
 License: GPLv2 or later
@@ -295,19 +295,20 @@ add_action('admin_bar_menu', function ($wp_admin_bar) {
     // Prueba rápida de conexión (opcionalmente podrías cachear)
     $conn = sapwc_get_active_connection();
     if (!$conn) {
-        $status_icon = '<span class="dashicons dashicons-no-alt"></span>';
+        $status_icon = '<span class="dashicons dashicons-no-alt" style="font-family: dashicons;color:red"></span>';
         $status_msg  = __('No configurada', 'sapwoo');
     } else {
         $client = new SAPWC_API_Client($conn['url']);
         $login  = $client->login($conn['user'], $conn['pass'], $conn['db'], $conn['ssl'] ?? false);
     
-        $status_icon = $login['success'] ? '<span class="dashicons dashicons-yes"></span>' : '<span class="dashicons dashicons-no-alt"></span>';
+        $status_icon = $login['success'] ? '<span class="dashicons dashicons-yes" style="font-family: dashicons;color:green"></span>' : '<span class="dashicons dashicons-no-alt" style="font-family: dashicons;color:red"></span>';
         $status_msg = $login['success'] ? __('Conectado a SAP', 'sapwoo') : __('Error de conexión', 'sapwoo');
     }
 
+    $title = '<span class="dashicons dashicons-update" style="font-family: dashicons; margin: 0 5px;"></span>';
     $wp_admin_bar->add_node([
         'id'    => 'sapwc_status',
-        'title' => "🔄 SAP Woo $status_icon",
+        'title' => " $title SAP Woo $status_icon",
         'href'  => admin_url('admin.php?page=sapwc-settings'),
         'meta'  => ['title' => 'Estado SAP Woo Sync']
     ]);

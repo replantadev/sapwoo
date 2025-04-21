@@ -6,17 +6,16 @@ class SAPWC_SAP_Orders_Table
 
     public static function render_table_block()
     {
-        echo '<h2 style="margin-top: 3em;">📝 Últimos pedidos en SAP (Clientes Web) <span id="sapwc-status-indicator" style="margin-left: 10px;">🔴</span></h2>';
-
+        echo '<h2 style="margin-top: 3em;">' . esc_html__('📝 Últimos pedidos en SAP (Clientes Web)', 'sapwoo') . ' <span id="sapwc-status-indicator" style="margin-left: 10px;">🔴</span></h2>';
         echo '<table class="widefat striped" id="sapwc-sap-orders-table" style="margin-top: 1em; width:100%">';
         echo '<thead><tr>
-        <th>DocEntry</th>
-        <th>DocNum</th>
-        <th>Fecha</th>
-        <th>Cliente</th>
-        <th>Total</th>
-        <th>Comentarios</th>
-    </tr></thead><tbody></tbody></table>';
+            <th>' . esc_html__('DocEntry', 'sapwoo') . '</th>
+            <th>' . esc_html__('DocNum', 'sapwoo') . '</th>
+            <th>' . esc_html__('Fecha', 'sapwoo') . '</th>
+            <th>' . esc_html__('Cliente', 'sapwoo') . '</th>
+            <th>' . esc_html__('Total', 'sapwoo') . '</th>
+            <th>' . esc_html__('Comentarios', 'sapwoo') . '</th>
+        </tr></thead><tbody></tbody></table>';
         self::inline_js(); // esto es vital
     }
 
@@ -29,7 +28,8 @@ class SAPWC_SAP_Orders_Table
                 // Inicializa el botón de búsqueda y el campo de texto
 
                 function refreshSAPOrders(searchValue = '') {
-                    $('#sapwc-status-indicator').text('🟠');
+                    $('#sapwc-status-indicator').html('<span class="dashicons dashicons-update" style="color: orange;"></span>');
+
                     const $table = $('#sapwc-sap-orders-table');
 
                     $table.find('tbody').html('<tr><td colspan="6">Cargando pedidos desde SAP...</td></tr>');
@@ -49,21 +49,21 @@ class SAPWC_SAP_Orders_Table
                         data: data,
                         success: function(response) {
                             if (response.success) {
-                                $('#sapwc-status-indicator').text('🟢');
-
+                                $('#sapwc-status-indicator').html('<span class="dashicons dashicons-yes" style="color: green;"></span>');
+                                $table.find('tbody').html('<tr><td colspan="6">Cargando pedidos desde SAP...</td></tr>');
                                 const rows = response.data
                                     .filter(order => order.DocEntry && order.DocDate && order.DocNum) // seguridad extra
                                     .map(order => {
                                         const [year, month, day] = order.DocDate.split('-');
                                         const formattedDate = `${day}/${month}/${year}`;
                                         return `<tr>
-                            <td>${order.DocEntry}</td>
-                            <td>${order.DocNum}</td>
-                            <td>${formattedDate}</td>
-                            <td>${order.CardCode}</td>
-                            <td>${parseFloat(order.DocTotal).toFixed(2)} €</td>
-                            <td>${order.Comments || ''}</td>
-                        </tr>`;
+                                        <td>${_.escape(order.DocEntry)}</td>
+                                        <td>${_.escape(order.DocNum)}</td>
+                                        <td>${_.escape(formattedDate)}</td>
+                                        <td>${_.escape(order.CardCode)}</td>
+                                        <td>${_.escape(parseFloat(order.DocTotal).toFixed(2))} €</td>
+                                        <td>${_.escape(order.Comments || '')}</td>
+                                    </tr>`;
                                     }).join('');
 
                                 $table.find('tbody').html(rows || '<tr><td colspan="6">No se encontraron resultados.</td></tr>');
@@ -85,12 +85,12 @@ class SAPWC_SAP_Orders_Table
                                 });
 
                             } else {
-                                $('#sapwc-status-indicator').text('🔴');
+                                $('#sapwc-status-indicator').html('<span class="dashicons dashicons-no-alt" style="color: red;"></span>');
                                 $table.find('tbody').html('<tr><td colspan="6">Error: ' + response.data + '</td></tr>');
                             }
                         },
                         error: function() {
-                            $('#sapwc-status-indicator').text('🔴');
+                            $('#sapwc-status-indicator').html('<span class="dashicons dashicons-no-alt" style="color: red;"></span>');
                             $table.find('tbody').html('<tr><td colspan="6">Error de red al contactar con SAP.</td></tr>');
                         }
                     });
@@ -121,23 +121,23 @@ class SAPWC_SAP_Orders_Table
     }
 }
 
-// Hook AJAX
+// Hook para manejar solicitudes AJAX y obtener pedidos desde SAP
 add_action('wp_ajax_sapwc_get_sap_orders', function () {
     check_ajax_referer('sapwc_nonce', 'nonce');
 
     $conn = sapwc_get_active_connection();
     if (!$conn) {
-        wp_send_json_error(['message' => '❌ No hay conexión activa con SAP.']);
+        wp_send_json_error(['message' => __('❌ No hay conexión activa con SAP.', 'sapwoo')]);
     }
 
     $client = new SAPWC_API_Client($conn['url']);
     $login  = $client->login($conn['user'], $conn['pass'], $conn['db'], $conn['ssl'] ?? false);
 
     if (!$login['success']) {
-        wp_send_json_error(['message' => '❌ Error al conectar con SAP: ' . $login['message']]);
+        wp_send_json_error(['message' => __('❌ Error al conectar con SAP: ', 'sapwoo') . $login['message']]);
     }
 
-    $search = sanitize_text_field($_POST['search'] ?? '');
+    $search = esc_sql(sanitize_text_field($_POST['search'] ?? ''));
 
     $mode = get_option('sapwc_mode', 'ecommerce');
 
