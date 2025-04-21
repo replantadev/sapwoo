@@ -3,10 +3,30 @@
 
 class SAPWC_SAP_Orders_Table
 {
-
     public static function render_table_block()
     {
-        echo '<h2 style="margin-top: 3em;">' . esc_html__('📝 Últimos pedidos en SAP (Clientes Web)', 'sapwoo') . ' <span id="sapwc-status-indicator" style="margin-left: 10px;">🔴</span></h2>';
+        $mode = get_option('sapwc_mode', 'ecommerce');
+        $message = '';
+
+        if ($mode === 'ecommerce') {
+            $name_peninsula = get_option('sapwc_cardname_peninsula', 'CLIENTEWEBNAD PENINSULA');
+            $name_canarias = get_option('sapwc_cardname_canarias', 'CLIENTEWEBNAD CANARIAS');
+
+            $message = "📝 Últimos pedidos de: <strong>$name_peninsula</strong> y <strong>$name_canarias</strong>.";
+        } else {
+            $filter_type = get_option('sapwc_customer_filter_type', 'starts');
+            $filter_value = get_option('sapwc_customer_filter_value', '');
+
+            if ($filter_value) {
+                $message = $filter_type === 'starts'
+                    ? "📝 Últimos pedidos de clientes que empiezan por <code>$filter_value</code>"
+                    : "📝 Últimos pedidos de clientes que contienen <code>$filter_value</code>";
+            } else {
+                $message = "📝 No se ha definido un filtro de clientes. <a href='" . admin_url('options-general.php?page=sapwc-sync-settings') . "'>Definir ahora</a>";
+            }
+        }
+
+        echo '<h2 style="margin-top: 3em;">' . $message . ' <span id="sapwc-status-indicator" style="margin-left: 10px;">🔴</span></h2>';
         echo '<table class="widefat striped" id="sapwc-sap-orders-table" style="margin-top: 1em; width:100%">';
         echo '<thead><tr>
             <th>' . esc_html__('DocEntry', 'sapwoo') . '</th>
@@ -16,47 +36,34 @@ class SAPWC_SAP_Orders_Table
             <th>' . esc_html__('Total', 'sapwoo') . '</th>
             <th>' . esc_html__('Comentarios', 'sapwoo') . '</th>
         </tr></thead><tbody></tbody></table>';
-        self::inline_js(); // esto es vital
+        self::inline_js();
     }
-
 
     private static function inline_js()
     {
 ?>
         <script>
             jQuery(document).ready(function($) {
-                // Inicializa el botón de búsqueda y el campo de texto
-
-                function refreshSAPOrders(searchValue = '') {
+                function refreshSAPOrders() {
                     $('#sapwc-status-indicator').html('<span class="dashicons dashicons-update" style="color: orange;"></span>');
-
                     const $table = $('#sapwc-sap-orders-table');
-
                     $table.find('tbody').html('<tr><td colspan="6">Cargando pedidos desde SAP...</td></tr>');
-
-                    let data = {
-                        action: 'sapwc_get_sap_orders',
-                        nonce: sapwc_ajax.nonce
-                    };
-
-                    if (searchValue) {
-                        data.search = searchValue;
-                    }
 
                     $.ajax({
                         url: sapwc_ajax.ajax_url,
                         method: 'POST',
-                        data: data,
+                        data: {
+                            action: 'sapwc_get_sap_orders',
+                            nonce: sapwc_ajax.nonce
+                        },
                         success: function(response) {
                             if (response.success) {
                                 $('#sapwc-status-indicator').html('<span class="dashicons dashicons-yes" style="color: green;"></span>');
-                                $table.find('tbody').html('<tr><td colspan="6">Cargando pedidos desde SAP...</td></tr>');
-                                const rows = response.data
-                                    .filter(order => order.DocEntry && order.DocDate && order.DocNum) // seguridad extra
-                                    .map(order => {
-                                        const [year, month, day] = order.DocDate.split('-');
-                                        const formattedDate = `${day}/${month}/${year}`;
-                                        return `<tr>
+
+                                const rows = response.data.map(order => {
+                                    const [year, month, day] = order.DocDate.split('-');
+                                    const formattedDate = `${day}/${month}/${year}`;
+                                    return `<tr>
                                         <td>${_.escape(order.DocEntry)}</td>
                                         <td>${_.escape(order.DocNum)}</td>
                                         <td>${_.escape(formattedDate)}</td>
@@ -64,20 +71,16 @@ class SAPWC_SAP_Orders_Table
                                         <td>${_.escape(parseFloat(order.DocTotal).toFixed(2))} €</td>
                                         <td>${_.escape(order.Comments || '')}</td>
                                     </tr>`;
-                                    }).join('');
+                                }).join('');
 
                                 $table.find('tbody').html(rows || '<tr><td colspan="6">No se encontraron resultados.</td></tr>');
 
-                                // Destruir DataTable si ya existe
                                 if ($.fn.DataTable.isDataTable($table)) {
                                     $table.DataTable().clear().destroy();
                                 }
 
-                                // Inicializar DataTables de nuevo
                                 $table.DataTable({
-                                    order: [
-                                        [0, 'desc']
-                                    ],
+                                    order: [[0, 'desc']],
                                     pageLength: 10,
                                     language: {
                                         url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/es-ES.json'
@@ -96,30 +99,14 @@ class SAPWC_SAP_Orders_Table
                     });
                 }
 
-
-                $('#sapwc-refresh-sap-table').on('click', function() {
-                    refreshSAPOrders(); // carga normal
-                    location.reload();
-                });
-
-                $('#sapwc-search-btn').on('click', function() {
-                    const searchVal = $('#sapwc-search-numatcard').val().trim();
-                    if (searchVal) {
-                        refreshSAPOrders(searchVal);
-                    }
-                });
-
-                $('#sapwc-refresh-sap-table').on('click', function() {
-                    refreshSAPOrders(); // Ya lo tienes
-                    location.reload(); // Esto recarga la tabla superior de Woo
-                });
-
                 refreshSAPOrders();
             });
         </script>
 <?php
     }
 }
+
+
 
 // Hook para manejar solicitudes AJAX y obtener pedidos desde SAP
 add_action('wp_ajax_sapwc_get_sap_orders', function () {
@@ -137,14 +124,11 @@ add_action('wp_ajax_sapwc_get_sap_orders', function () {
         wp_send_json_error(['message' => __('❌ Error al conectar con SAP: ', 'sapwoo') . $login['message']]);
     }
 
-    $search = esc_sql(sanitize_text_field($_POST['search'] ?? ''));
+   
 
     $mode = get_option('sapwc_mode', 'ecommerce');
 
-    if ($search) {
-        // Modo búsqueda manual (NumAtCard)
-        $query = "/Orders?\$filter=NumAtCard eq '$search'&\$orderby=DocEntry desc&\$select=DocEntry,DocNum,DocDate,CardCode,DocTotal,Comments";
-    } else {
+   
         if ($mode === 'ecommerce') {
             // Recupera clientes ecommerce
             $peninsula = sanitize_text_field(get_option('sapwc_cardcode_peninsula', 'WNAD PENINSULA'));
@@ -171,7 +155,7 @@ add_action('wp_ajax_sapwc_get_sap_orders', function () {
             // fallback por si acaso
             $query = "/Orders?\$orderby=DocEntry desc&\$top=50&\$select=DocEntry,DocNum,DocDate,CardCode,DocTotal,Comments";
         }
-    }
+    
 
 
     $response = $client->get($query);
