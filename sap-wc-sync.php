@@ -3,7 +3,7 @@
 Plugin Name: SAP Woo Sync
 Plugin URI: https://replanta.es
 Description: Sincroniza pedidos de WooCommerce con SAP Business One.
-Version: 1.2.5
+Version: 1.2.6
 Author: Replanta Dev
 Author URI: https://replanta.es
 License: GPLv2 or later
@@ -385,7 +385,6 @@ function sapwc_get_active_connection()
 
     return $connection;
 }
-//Fucion de query de pedidos de SAP
 function sapwc_build_orders_query()
 {
     $mode = get_option('sapwc_mode', 'ecommerce');
@@ -393,6 +392,7 @@ function sapwc_build_orders_query()
         'mode' => $mode,
         'query' => '',
         'params' => [],
+        'filter_after_php' => false,
     ];
 
     if ($mode === 'ecommerce') {
@@ -408,9 +408,17 @@ function sapwc_build_orders_query()
         $query_info['params'] = compact('filter_type', 'filter_value');
 
         if (!empty($filter_value)) {
-            $query_info['query'] = $filter_type === 'starts'
-                ? "/Orders?\$filter=startswith(CardCode,'$filter_value')&\$orderby=DocEntry desc&\$top=50&\$select=DocEntry,DocNum,DocDate,CardCode,DocTotal,Comments"
-                : "/Orders?\$filter=contains(CardCode,'$filter_value')&\$orderby=DocEntry desc&\$top=50&\$select=DocEntry,DocNum,DocDate,CardCode,DocTotal,Comments";
+            if ($filter_type === 'starts' || $filter_type === 'prefix_numbers') {
+                // En ambos casos usamos startswith en SAP
+                $query_info['query'] = "/Orders?\$filter=startswith(CardCode,'$filter_value')&\$orderby=DocEntry desc&\$top=50&\$select=DocEntry,DocNum,DocDate,CardCode,DocTotal,Comments";
+
+                // En prefix_numbers, luego filtramos en PHP
+                if ($filter_type === 'prefix_numbers') {
+                    $query_info['filter_after_php'] = true;
+                }
+            } elseif ($filter_type === 'contains') {
+                $query_info['query'] = "/Orders?\$filter=contains(CardCode,'$filter_value')&\$orderby=DocEntry desc&\$top=50&\$select=DocEntry,DocNum,DocDate,CardCode,DocTotal,Comments";
+            }
         } else {
             $query_info['query'] = "/Orders?\$orderby=DocEntry desc&\$top=50&\$select=DocEntry,DocNum,DocDate,CardCode,DocTotal,Comments";
         }
@@ -420,6 +428,7 @@ function sapwc_build_orders_query()
 
     return $query_info;
 }
+
 
 
 // AJAX para enviar pedidos a SAP

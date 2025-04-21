@@ -10,18 +10,36 @@ class SAPWC_Orders_Page
         ]);
 
         echo '<div class="wrap"><h1>Pedidos en procesamiento</h1>';
+        // Coloca esto justo después de: echo '<div class="wrap"><h1>Pedidos en procesamiento</h1>';
         $query_data = sapwc_build_orders_query();
-        echo '<p><strong>🔎 Modo actual:</strong> ' . esc_html(strtoupper($query_data['mode'])) . '</p>';
+        $mode_label = strtoupper($query_data['mode']) === 'B2B' ? 'B2B (clientes individuales)' : 'Ecommerce (cliente genérico)';
+        echo '<div class="notice notice-info" style="padding: 15px 20px; margin: 20px 0;">';
+        echo '<p><strong>🔍 Modo actual:</strong> ' . esc_html($mode_label) . '</p>';
+
         if ($query_data['mode'] === 'ecommerce') {
-            echo '<p><strong>🧾 Clientes usados:</strong> ' .
-                esc_html($query_data['params']['peninsula']) . ' y ' .
-                esc_html($query_data['params']['canarias']) . '</p>';
+            echo '<p><strong>🧾 Clientes consultados:</strong> ';
+            echo '<code>' . esc_html($query_data['params']['peninsula']) . '</code> y ';
+            echo '<code>' . esc_html($query_data['params']['canarias']) . '</code></p>';
         } elseif ($query_data['mode'] === 'b2b') {
-            echo '<p><strong>🔤 Filtro:</strong> ' .
-                esc_html($query_data['params']['filter_type']) . ' <code>' .
-                esc_html($query_data['params']['filter_value']) . '</code></p>';
+          ;
+            $type_label = '';
+
+            if ($query_data['params']['filter_type'] === 'starts') {
+                $type_label = 'que empiezan por';
+            } elseif ($query_data['params']['filter_type'] === 'contains') {
+                $type_label = 'que contienen';
+            } elseif ($query_data['params']['filter_type'] === 'prefix_numbers') {
+                $type_label = 'que comienzan con el prefijo seguido de números';
+            }
+
+            echo '<p><strong>🔤 Filtro aplicado:</strong> Mostrar clientes ' . esc_html($type_label) . ' <code>' . esc_html($query_data['params']['filter_value']) . '</code></p>';
         }
-        echo '<details><summary>📄 Ver consulta SAP</summary><code style="display:block;margin-top:5px;">' . esc_html($query_data['query']) . '</code></details>';
+
+        echo '<details style="margin-top: 10px;"><summary style="cursor: pointer;">📄 Ver consulta SAP</summary>';
+        echo '<pre style="white-space: pre-wrap; word-break: break-word; background: #f6f8fa; padding: 10px; margin-top: 8px; border-left: 3px solid #2271b1;">';
+        echo esc_html($query_data['query']);
+        echo '</pre></details>';
+        echo '</div>';
 
         echo '<button id="sapwc-send-orders" class="button button-primary">🛫 Enviar todos a SAP</button>';
         echo '<span id="sapwc-connection-status" style="margin-left: 1em; font-weight: bold;">Conectando...</span>';
@@ -100,37 +118,6 @@ class SAPWC_Orders_Page
 }
 
 
-add_action('wp_ajax_sapwc_get_sap_orders', function () {
-    check_ajax_referer('sapwc_nonce', 'nonce');
-
-    $conn = sapwc_get_active_connection();
-    if (!$conn) {
-        wp_send_json_error(['message' => '❌ No hay conexión activa con SAP.']);
-    }
-
-    $client = new SAPWC_API_Client($conn['url']);
-    $login  = $client->login($conn['user'], $conn['pass'], $conn['db'], $conn['ssl'] ?? false);
-
-    if (!$login['success']) {
-        wp_send_json_error(['message' => '❌ Error al conectar con SAP: ' . $login['message']]);
-    }
-
-
-    $query_data = sapwc_build_orders_query();
-    $query = $query_data['query'];
-    $response = $client->get($query);
-    //error_log('[SAPWC Orders Page] Consulta usada: ' . $query);
-
-    $response = $client->get($query);
-    //error_log('[SAP WC] Consulta usada: ' . $query);
-    //error_log('[SAP WC] Respuesta: ' . print_r($response, true));
-    if (!isset($response['value'])) {
-        wp_send_json_error('Error al obtener los pedidos de SAP');
-    }
-
-    wp_send_json_success($response['value']);
-    wp_die();
-});
 
 
 add_action('wp_ajax_sapwc_send_order', function () {

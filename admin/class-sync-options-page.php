@@ -183,6 +183,8 @@ class SAPWC_Sync_Options_Page
                                 <select name="sapwc_customer_filter_type">
                                     <option value="starts" <?php selected($filter_type, 'starts'); ?>>CardCode empieza con...</option>
                                     <option value="contains" <?php selected($filter_type, 'contains'); ?>>CardCode contiene...</option>
+                                    <option value="prefix_numbers" <?php selected($filter_type, 'prefix_numbers'); ?>>CardCode comienza con prefijo y números...</option>
+
                                 </select>
                                 <input type="text" name="sapwc_customer_filter_value" value="<?php echo esc_attr($filter_value); ?>" class="regular-text" placeholder="Ej: WNAD">
                                 <p class="description">Filtra los clientes a sincronizar y mostrar en la tabla según su <code>CardCode</code>.</p>

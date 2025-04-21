@@ -129,14 +129,21 @@ add_action('wp_ajax_sapwc_get_sap_orders', function () {
     $query_data = sapwc_build_orders_query();
     $query = $query_data['query'];
     $response = $client->get($query);
-    error_log('[SAPWC] Modo: ' . $query_data['mode']);
-    error_log('[SAPWC] Consulta usada: ' . $query);
-    error_log('[SAPWC] Parámetros: ' . print_r($query_data['params'], true));
-
+ 
     if (!isset($response['value'])) {
         wp_send_json_error('Error al obtener los pedidos de SAP');
     }
-    
+    // Filtro extra si se usa prefix_numbers
+    if (!empty($query_data['filter_after_php']) && $query_data['filter_after_php'] === true) {
+        $prefix = $query_data['params']['filter_value'];
+        $response['value'] = array_filter($response['value'], function ($order) use ($prefix) {
+            $suffix = substr($order['CardCode'], strlen($prefix));
+            return ctype_digit($suffix); // Solo números después del prefijo
+        });
+
+        // Reindexar array
+        $response['value'] = array_values($response['value']);
+    }
     wp_send_json_success($response['value']);
     wp_die();
 });
