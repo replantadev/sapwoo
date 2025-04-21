@@ -1,53 +1,44 @@
 <?php
-
 /*
-
 Plugin Name: SAP Woo Sync
 Plugin URI: https://replanta.es
 Description: Sincroniza pedidos de WooCommerce con SAP Business One.
-Version: 1.2.0
+Version: 1.2.1
 Author: Replanta Dev
 Author URI: https://replanta.es
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 Text Domain: sapwoo
 Domain Path: /languages
-
 */
 
+if (!defined('ABSPATH')) {
+    exit; // Evitar acceso directo
+}
 
-
-if (!defined('ABSPATH')) exit;
-
-
+// Definir constantes
+define('SAPWC_PLUGIN_PATH', plugin_dir_path(__FILE__));
+define('SAPWC_PLUGIN_URL', plugin_dir_url(__FILE__));
 
 // Cargar archivos necesarios
-
-define('SAPWC_PATH', plugin_dir_path(__FILE__));
-
-define('SAPWC_URL', plugin_dir_url(__FILE__));
-
-
-
-require_once SAPWC_PATH . 'admin/class-settings-page.php';
-require_once SAPWC_PATH . 'admin/class-sync-options-page.php';
-require_once SAPWC_PATH . 'admin/class-failed-orders-page.php';
-require_once SAPWC_PATH . 'admin/class-logs-page.php';
-
-
-require_once SAPWC_PATH . 'admin/class-orders-page.php';
-
-require_once SAPWC_PATH . 'admin/class-mapping-page.php';
-
-require_once SAPWC_PATH . 'admin/class-sap-orders-table.php';
-
-require_once SAPWC_PATH . 'includes/class-api-client.php';
-
-require_once SAPWC_PATH . 'includes/class-sap-sync.php';
-require_once SAPWC_PATH . 'includes/class-logger.php';
+add_action('plugins_loaded', 'sapwc_load_dependencies');
+function sapwc_load_dependencies() {
+    require_once SAPWC_PLUGIN_PATH . 'admin/class-settings-page.php';
+    require_once SAPWC_PLUGIN_PATH . 'admin/class-sync-options-page.php';
+    require_once SAPWC_PLUGIN_PATH . 'admin/class-failed-orders-page.php';
+    require_once SAPWC_PLUGIN_PATH . 'admin/class-logs-page.php';
+    require_once SAPWC_PLUGIN_PATH . 'admin/class-orders-page.php';
+    require_once SAPWC_PLUGIN_PATH . 'admin/class-mapping-page.php';
+    require_once SAPWC_PLUGIN_PATH . 'admin/class-sap-orders-table.php';
+    require_once SAPWC_PLUGIN_PATH . 'includes/class-api-client.php';
+    require_once SAPWC_PLUGIN_PATH . 'includes/class-sap-sync.php';
+    require_once SAPWC_PLUGIN_PATH . 'includes/class-logger.php';
+}
 
 // Actualizaciones automáticas desde GitHub
-require_once SAPWC_PATH . 'vendor/autoload.php';
+if (file_exists(SAPWC_PLUGIN_PATH . 'vendor/autoload.php')) {
+    require_once SAPWC_PLUGIN_PATH . 'vendor/autoload.php';
+}
 
 use YahnisElsts\PluginUpdateChecker\v5\PucFactory;
 
@@ -57,8 +48,10 @@ $updateChecker = PucFactory::buildUpdateChecker(
     'sapwoo'
 );
 
-// Si el repositorio es privado, agrega autenticación
-// $updateChecker->setAuthentication('GITHUB_TOKEN_AQUI');
+// Si el repositorio es privado, agrega autenticación de forma segura
+if (defined('SAPWC_GITHUB_TOKEN')) {
+    $updateChecker->setAuthentication(SAPWC_GITHUB_TOKEN);
+}
 
 // Configurar la rama principal
 $updateChecker->setBranch('main');
@@ -67,18 +60,17 @@ $updateChecker->setBranch('main');
 add_action('admin_init', function () {
     if (!class_exists('WooCommerce')) {
         add_action('admin_notices', function () {
-            echo '<div class="notice notice-error"><p><strong>SAP Woo Sync</strong> requiere que <strong>WooCommerce</strong> esté instalado y activo.</p></div>';
+            echo '<div class="notice notice-error"><p><strong>' . esc_html__('SAP Woo Sync', 'sapwoo') . '</strong> ' . esc_html__('requiere que', 'sapwoo') . ' <strong>' . esc_html__('WooCommerce', 'sapwoo') . '</strong> ' . esc_html__('esté instalado y activo.', 'sapwoo') . '</p></div>';
         });
 
         // Desactivar el plugin si WooCommerce no está activo
         deactivate_plugins(plugin_basename(__FILE__));
     }
 });
+
 // Crear tabla de logs al activar el plugin
 register_activation_hook(__FILE__, 'sapwc_create_log_table');
-
-function sapwc_create_log_table()
-{
+function sapwc_create_log_table() {
     global $wpdb;
     $table = $wpdb->prefix . 'sapwc_logs';
     $charset_collate = $wpdb->get_charset_collate();
@@ -96,20 +88,22 @@ function sapwc_create_log_table()
     require_once ABSPATH . 'wp-admin/includes/upgrade.php';
     dbDelta($sql);
 }
+
+// Configuración inicial al activar el plugin
 register_activation_hook(__FILE__, function () {
     if (get_option('sapwc_connection_index') === false) {
         update_option('sapwc_connection_index', 0);
     }
 });
 
-
+// Menú de administración
 add_action('admin_menu', function () {
     $capability = 'edit_others_shop_orders';
 
     // Menú principal
     add_menu_page(
-        'SAP Woo Sync',
-        'SAP Woo',
+        __('SAP Woo Sync', 'sapwoo'),
+        __('SAP Woo', 'sapwoo'),
         $capability,
         'sapwc-settings',
         null,
@@ -118,29 +112,28 @@ add_action('admin_menu', function () {
     );
 
     // Submenús compartidos
-    add_submenu_page('sapwc-settings', 'Pedidos Woo', 'Pedidos Woo', $capability, 'sapwc-orders', ['SAPWC_Orders_Page', 'render']);
-    add_submenu_page('sapwc-settings', 'Mapeo de Campos', 'Mapeo de Campos', $capability, 'sapwc-mapping', ['SAPWC_Mapping_Page', 'render']);
-    add_submenu_page('sapwc-settings', 'Sincronización', 'Sincronización', $capability, 'sapwc-sync-options', ['SAPWC_Sync_Options_Page', 'render']);
-    //add_submenu_page('sapwc-settings', 'Extensiones SAP', 'Extensiones', $capability, 'sapwc-extensions', ['SAPWC_Extensions_Page', 'render']);
-    add_submenu_page('sapwc-settings', 'Pedidos Fallidos', 'Pedidos Fallidos', $capability, 'sapwc-failed-orders', ['SAPWC_Failed_Orders_Page', 'render']);
+    add_submenu_page('sapwc-settings', __('Pedidos Woo', 'sapwoo'), __('Pedidos Woo', 'sapwoo'), $capability, 'sapwc-orders', ['SAPWC_Orders_Page', 'render']);
+    add_submenu_page('sapwc-settings', __('Mapeo de Campos', 'sapwoo'), __('Mapeo de Campos', 'sapwoo'), $capability, 'sapwc-mapping', ['SAPWC_Mapping_Page', 'render']);
+    add_submenu_page('sapwc-settings', __('Sincronización', 'sapwoo'), __('Sincronización', 'sapwoo'), $capability, 'sapwc-sync-options', ['SAPWC_Sync_Options_Page', 'render']);
+    add_submenu_page('sapwc-settings', __('Pedidos Fallidos', 'sapwoo'), __('Pedidos Fallidos', 'sapwoo'), $capability, 'sapwc-failed-orders', ['SAPWC_Failed_Orders_Page', 'render']);
 
     // Solo admins: Credenciales y Logs
     if (current_user_can('manage_options')) {
-        add_submenu_page('sapwc-settings', 'Credenciales SAP', 'Credenciales SAP', 'manage_options', 'sapwc-settings', ['SAPWC_Settings_Page', 'render']);
-        add_submenu_page('sapwc-settings', 'Logs', 'Logs', 'manage_options', 'sapwc-logs', ['SAPWC_Logs_Page', 'render']);
+        add_submenu_page('sapwc-settings', __('Credenciales SAP', 'sapwoo'), __('Credenciales SAP', 'sapwoo'), 'manage_options', 'sapwc-settings', ['SAPWC_Settings_Page', 'render']);
+        add_submenu_page('sapwc-settings', __('Logs', 'sapwoo'), __('Logs', 'sapwoo'), 'manage_options', 'sapwc-logs', ['SAPWC_Logs_Page', 'render']);
     }
 });
 
 
 add_action('admin_enqueue_scripts', function ($hook) {
     if (strpos($hook, 'sapwc') !== false) {
-        wp_enqueue_script('sapwc-admin', SAPWC_URL . 'assets/js/admin.js', ['jquery'], time(), true);
+        wp_enqueue_script('sapwc-admin', SAPWC_PLUGIN_URL . 'assets/js/admin.js', ['jquery'], time(), true);
         wp_localize_script('sapwc-admin', 'sapwc_ajax', [
             'ajax_url' => admin_url('admin-ajax.php'),
             'nonce' => wp_create_nonce('sapwc_nonce')
         ]);
-        wp_enqueue_style('sapwc-admin-style', SAPWC_URL . 'assets/css/sapwc-admin.css');
-        wp_enqueue_style('sapwc-toggle-style', SAPWC_URL . 'assets/css/sapwc-toggle.css');
+        wp_enqueue_style('sapwc-admin-style', SAPWC_PLUGIN_URL . 'assets/css/sapwc-admin.css');
+        wp_enqueue_style('sapwc-toggle-style', SAPWC_PLUGIN_URL . 'assets/css/sapwc-toggle.css');
     }
 });
 
@@ -153,17 +146,16 @@ add_action('wp_ajax_sapwc_test_connection', function () {
 
     $conn = sapwc_get_active_connection();
     if (!$conn) {
-        wp_send_json_error(['message' => '❌ No hay conexión activa configurada.']);
+        wp_send_json_error(['message' => __('❌ No hay conexión activa configurada.', 'sapwoo')]);
     }
 
     $client = new SAPWC_API_Client($conn['url']);
     $login  = $client->login($conn['user'], $conn['pass'], $conn['db'], $conn['ssl'] ?? false);
 
     if ($login['success']) {
-        wp_send_json_success('✅ Conexión correcta con SAP.');
+        wp_send_json_success(__('✅ Conexión correcta con SAP.', 'sapwoo'));
     } else {
-        wp_send_json_error(['message' => '❌ Error de SAP: ' . $login['message']]);
-    }
+        wp_send_json_error(['message' => __('❌ Error de SAP: ', 'sapwoo') . $login['message']]);    }
 });
 
 
@@ -194,7 +186,7 @@ add_action('manage_shop_order_posts_custom_column', function ($column, $post_id)
 
         if ($exported) {
 
-            echo '<span style="color:green;font-weight:bold;">✔ Enviado</span>';
+            echo '<span style="color:green;font-weight:bold;">' . esc_html__('✔ Enviado', 'sapwoo') . '</span>';
 
             if ($docentry) {
 
@@ -202,7 +194,7 @@ add_action('manage_shop_order_posts_custom_column', function ($column, $post_id)
             }
         } else {
 
-            echo '<span style="color:#999;">–</span>';
+            echo '<span style="color:#999;">' . esc_html__('–', 'sapwoo') . '</span>';
         }
     }
 }, 10, 2);
@@ -212,17 +204,17 @@ add_action('manage_shop_order_posts_custom_column', function ($column, $post_id)
 add_action('admin_enqueue_scripts', function ($hook) {
     $screen = get_current_screen();
     $is_sap_page = strpos($hook, 'sapwc') !== false || strpos($screen->id, 'sapwc') !== false;
-
+    wp_enqueue_style('dashicons');
     // Cargar siempre que estemos en el admin
-    wp_enqueue_script('sapwc-admin', SAPWC_URL . 'assets/js/admin.js', ['jquery'], time(), true);
+    wp_enqueue_script('sapwc-admin', SAPWC_PLUGIN_URL . 'assets/js/admin.js', ['jquery'], time(), true);
     wp_localize_script('sapwc-admin', 'sapwc_ajax', [
         'ajax_url' => admin_url('admin-ajax.php'),
         'nonce' => wp_create_nonce('sapwc_nonce')
     ]);
 
     if ($is_sap_page) {
-        wp_enqueue_style('sapwc-admin-style', SAPWC_URL . 'assets/css/sapwc-admin.css');
-        wp_enqueue_style('sapwc-toggle-style', SAPWC_URL . 'assets/css/sapwc-toggle.css');
+        wp_enqueue_style('sapwc-admin-style', SAPWC_PLUGIN_URL . 'assets/css/sapwc-admin.css');
+        wp_enqueue_style('sapwc-toggle-style', SAPWC_PLUGIN_URL . 'assets/css/sapwc-toggle.css');
         wp_enqueue_script('datatables-js', 'https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js', ['jquery'], null, true);
         wp_enqueue_style('datatables-css', 'https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css');
     }
@@ -240,14 +232,14 @@ function sapwc_cron_sync_orders_callback() {
 
     $conn = sapwc_get_active_connection();
     if (!$conn) {
-        error_log('[SAPWC Cron] ❌ No hay conexión activa configurada.');
+        error_log(__('❌ No hay conexión activa configurada.', 'sapwoo'));
         return;
     }
 
     $client = new SAPWC_API_Client($conn['url']);
     $login  = $client->login($conn['user'], $conn['pass'], $conn['db'], $conn['ssl'] ?? false);
     if (!$login['success']) {
-        error_log('[SAPWC Cron] ❌ Error de conexión: ' . $login['message']);
+        error_log(__('❌ Error de conexión: ', 'sapwoo') . $login['message']);
         return;
     }
 
@@ -283,7 +275,7 @@ function sapwc_cron_sync_orders_callback() {
         update_option('sapwc_orders_last_docentry', $last_docentry);
     }
 
-    error_log("[SAPWC Cron] Enviados: $sent | Ya enviados: $skipped | Errores: $errors");
+    error_log(sprintf(__('Enviados: %d | Ya enviados: %d | Errores: %d', 'sapwoo'), $sent, $skipped, $errors));
     SAPWC_Logger::log(null, 'cron', 'info', "Finalizó sync automática. Enviados: $sent | Saltados: $skipped | Errores: $errors");
 }
 
@@ -303,13 +295,14 @@ add_action('admin_bar_menu', function ($wp_admin_bar) {
     // Prueba rápida de conexión (opcionalmente podrías cachear)
     $conn = sapwc_get_active_connection();
     if (!$conn) {
-        $status_icon = '🔴';
-        $status_msg  = 'No configurada';
+        $status_icon = '<span class="dashicons dashicons-no-alt"></span>';
+        $status_msg  = __('No configurada', 'sapwoo');
     } else {
         $client = new SAPWC_API_Client($conn['url']);
         $login  = $client->login($conn['user'], $conn['pass'], $conn['db'], $conn['ssl'] ?? false);
-        $status_icon = $login['success'] ? '🟢' : '🔴';
-        $status_msg  = $login['success'] ? 'Conectado a SAP' : 'Error de conexión';
+    
+        $status_icon = $login['success'] ? '<span class="dashicons dashicons-yes"></span>' : '<span class="dashicons dashicons-no-alt"></span>';
+        $status_msg = $login['success'] ? __('Conectado a SAP', 'sapwoo') : __('Error de conexión', 'sapwoo');
     }
 
     $wp_admin_bar->add_node([
@@ -361,7 +354,7 @@ function sapwc_get_active_connection() {
     $index = get_option('sapwc_connection_index', 0);
 
     if (!isset($all_connections[$index])) {
-        error_log('❌ No hay conexión activa configurada en SAP Woo Sync.');
+        error_log(__('❌ No hay conexión activa configurada en SAP Woo Sync.', 'sapwoo'));
         return null;
     }
 
@@ -373,8 +366,7 @@ function sapwc_get_active_connection() {
     }
 
     if (empty($connection['url']) || empty($connection['user']) || empty($connection['pass']) || empty($connection['db'])) {
-        error_log('❌ Conexión activa incompleta: ' . print_r($connection, true));
-        return null;
+        error_log(__('❌ Conexión activa incompleta: ', 'sapwoo') . print_r($connection, true));        return null;
     }
 
     return $connection;
@@ -385,13 +377,13 @@ add_action('wp_ajax_sapwc_send_orders', function () {
 
     $conn = sapwc_get_active_connection();
     if (!$conn) {
-        wp_send_json_error('❌ No hay conexión activa con SAP.');
+        wp_send_json_error(__('❌ No hay conexión activa con SAP.', 'sapwoo'));
     }
 
     $client = new SAPWC_API_Client($conn['url']);
     $login  = $client->login($conn['user'], $conn['pass'], $conn['db'], $conn['ssl'] ?? false);
     if (!$login['success']) {
-        wp_send_json_error('❌ Error al conectar con SAP: ' . $login['message']);
+        wp_send_json_error(__('❌ Error al conectar con SAP: ', 'sapwoo') . $login['message']);
     }
 
     $sync = new SAPWC_Sync_Handler($client);
@@ -416,7 +408,7 @@ add_action('wp_ajax_sapwc_send_orders', function () {
     }
 
     wp_send_json_success([
-        'message' => 'Pedidos sincronizados correctamente.',
+        'message' => __('Pedidos sincronizados correctamente.', 'sapwoo'),
         'last_sync' => current_time('mysql'),
         'last_docentry' => $last_docentry
     ]);

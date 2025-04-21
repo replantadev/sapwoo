@@ -70,6 +70,10 @@ class SAPWC_Sync_Options_Page
         $retry_failed_auto     = get_option('sapwc_retry_failed_auto', '0');
         $cron_interval         = get_option('sapwc_cron_interval', 'hourly');
         $use_price_after_vat   = get_option('sapwc_use_price_after_vat', '0');
+
+        $customer_filter_type  = get_option('sapwc_customer_filter_type', 'starts'); // "starts" o "contains"
+        $customer_filter_value = get_option('sapwc_customer_filter_value', '');
+
 ?>
         <div class="wrap sapwc-settings">
             <h1>⚙️ Configuración de Sincronización SAP</h1>
@@ -119,50 +123,61 @@ class SAPWC_Sync_Options_Page
                         <tr>
                             <th scope="row">🧪 Verificación de productos B2B</th>
                             <td>
-                                <p>Estado de los campos requeridos en los productos de WooCommerce:</p>
-                                <ul>
-                                    <?php
-                                    $productos_b2b = get_posts([
-                                        'post_type'   => ['product', 'product_variation'],
-                                        'post_status' => 'publish',
-                                        'numberposts' => 100,
-                                        'meta_query'  => [['key' => '_sku', 'compare' => 'EXISTS']],
-                                    ]);
+                                <?php
+                                $productos_b2b = get_posts([
+                                    'post_type'   => ['product', 'product_variation'],
+                                    'post_status' => 'publish',
+                                    'numberposts' => -1,
+                                    'meta_query'  => [['key' => '_sku', 'compare' => 'EXISTS']],
+                                ]);
 
-                                    $errores = 0;
-                                    foreach ($productos_b2b as $prod) {
-                                        $id = $prod->ID;
-                                        $sku = get_post_meta($id, '_sku', true);
-                                        $almacen = get_post_meta($id, 'almacen', true);
-                                        $pvp = get_post_meta($id, 'pvp', true);
+                                $errores = [];
 
-                                        $ok = true;
-                                        $detalles = [];
+                                foreach ($productos_b2b as $prod) {
+                                    $id = $prod->ID;
+                                    $title = get_the_title($id);
+                                    $missing = [];
 
-                                        if (!$sku) {
-                                            $ok = false;
-                                            $detalles[] = '❌ Sin SKU';
-                                        }
-                                        if (!$almacen) {
-                                            $ok = false;
-                                            $detalles[] = '❌ Sin almacén';
-                                        }
-                                        if (!$pvp) {
-                                            $ok = false;
-                                            $detalles[] = '⚠️ Sin PVP';
-                                        }
+                                    if (!get_post_meta($id, '_sku', true)) $missing[] = 'SKU';
+                                    if (!get_post_meta($id, 'almacen', true)) $missing[] = 'almacén';
+                                    if (!get_post_meta($id, 'pvp', true)) $missing[] = 'PVP';
 
-                                        echo '<li><strong>' . get_the_title($id) . '</strong>: ';
-                                        echo $ok ? '✅ OK' : implode(', ', $detalles);
-                                        echo '</li>';
-
-                                        if (!$ok) $errores++;
+                                    if (!empty($missing)) {
+                                        $errores[] = "$title (falta: " . implode(', ', $missing) . ")";
                                     }
-                                    ?>
-                                </ul>
-                                <p><strong><?php echo $errores === 0 ? '✅ Todo listo para sincronizar.' : "⚠️ $errores productos con errores."; ?></strong></p>
+                                }
+
+                                if (empty($errores)) {
+                                    echo '<p><strong style="color:green;">✅ Todos los productos tienen los campos necesarios.</strong></p>';
+                                } else {
+                                    echo '<p><strong style="color:red;">❌ ' . count($errores) . ' productos con errores:</strong></p>';
+                                    echo '<ul>';
+                                    foreach ($errores as $error) {
+                                        echo '<li>🔸 ' . esc_html($error) . '</li>';
+                                    }
+                                    echo '</ul>';
+                                }
+                                ?>
+                                <p class="description">Campos necesarios para modo B2B: <code>_sku</code>, <code>almacen</code>, <code>pvp</code></p>
                             </td>
                         </tr>
+                        <tr>
+                            <th scope="row">Filtro de clientes</th>
+                            <td>
+                                <?php
+                                $filter_type  = get_option('sapwc_customer_filter_type', 'starts');
+                                $filter_value = get_option('sapwc_customer_filter_value', '');
+                                ?>
+                                <select name="sapwc_customer_filter_type">
+                                    <option value="starts" <?php selected($filter_type, 'starts'); ?>>CardCode empieza con...</option>
+                                    <option value="contains" <?php selected($filter_type, 'contains'); ?>>CardCode contiene...</option>
+                                </select>
+                                <input type="text" name="sapwc_customer_filter_value" value="<?php echo esc_attr($filter_value); ?>" class="regular-text" placeholder="Ej: WNAD">
+                                <p class="description">Filtra los clientes a sincronizar y mostrar en la tabla según su <code>CardCode</code>.</p>
+                            </td>
+                        </tr>
+
+
                     <?php endif; ?>
                 </table>
 
@@ -563,6 +578,12 @@ add_action('admin_init', function () {
     register_setting('sapwc_sync_settings', 'sapwc_warehouse_tariff_map');
 
     register_setting('sapwc_sync_settings', 'sapwc_use_price_after_vat');
+
+    register_setting('sapwc_sync_settings', 'sapwc_customer_filter_type');
+    register_setting('sapwc_sync_settings', 'sapwc_customer_filter_value');
+   
+
+
 });
 
 function sapwc_cron_sync_stock_callback()

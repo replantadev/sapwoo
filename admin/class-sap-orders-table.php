@@ -139,11 +139,40 @@ add_action('wp_ajax_sapwc_get_sap_orders', function () {
 
     $search = sanitize_text_field($_POST['search'] ?? '');
 
+    $mode = get_option('sapwc_mode', 'ecommerce');
+
     if ($search) {
+        // Modo búsqueda manual (NumAtCard)
         $query = "/Orders?\$filter=NumAtCard eq '$search'&\$orderby=DocEntry desc&\$select=DocEntry,DocNum,DocDate,CardCode,DocTotal,Comments";
     } else {
-        $query = "/Orders?\$filter=(CardCode eq 'WNAD PENINSULA' or CardCode eq 'WNAD CANARIAS')&\$orderby=DocEntry desc&\$top=50&\$select=DocEntry,DocNum,DocDate,CardCode,DocTotal,Comments";
+        if ($mode === 'ecommerce') {
+            // Recupera clientes ecommerce
+            $peninsula = sanitize_text_field(get_option('sapwc_cardcode_peninsula', 'WNAD PENINSULA'));
+            $canarias  = sanitize_text_field(get_option('sapwc_cardcode_canarias', 'WNAD CANARIAS'));
+
+            $query = "/Orders?\$filter=(CardCode eq '$peninsula' or CardCode eq '$canarias')&\$orderby=DocEntry desc&\$top=50&\$select=DocEntry,DocNum,DocDate,CardCode,DocTotal,Comments";
+
+        } elseif ($mode === 'b2b') {
+            // Recupera filtro b2b (si está definido)
+            $filter_type  = get_option('sapwc_customer_filter_type', 'starts');
+            $filter_value = sanitize_text_field(trim(get_option('sapwc_customer_filter_value', '')));
+
+            if (!empty($filter_value)) {
+                if ($filter_type === 'starts') {
+                    $query = "/Orders?\$filter=startswith(CardCode,'$filter_value')&\$orderby=DocEntry desc&\$top=50&\$select=DocEntry,DocNum,DocDate,CardCode,DocTotal,Comments";
+                } else {
+                    $query = "/Orders?\$filter=contains(CardCode,'$filter_value')&\$orderby=DocEntry desc&\$top=50&\$select=DocEntry,DocNum,DocDate,CardCode,DocTotal,Comments";
+                }
+            } else {
+                // Si no hay filtro, muestra nada (o puedes mostrar todos si prefieres)
+                $query = "/Orders?\$orderby=DocEntry desc&\$top=50&\$select=DocEntry,DocNum,DocDate,CardCode,DocTotal,Comments";
+            }
+        } else {
+            // fallback por si acaso
+            $query = "/Orders?\$orderby=DocEntry desc&\$top=50&\$select=DocEntry,DocNum,DocDate,CardCode,DocTotal,Comments";
+        }
     }
+
 
     $response = $client->get($query);
 

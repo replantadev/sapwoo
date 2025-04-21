@@ -54,7 +54,7 @@ class SAPWC_Orders_Page
         echo '</tbody></table>';
 
         // Mostrar bloque SAP
-        require_once SAPWC_PATH . 'admin/class-sap-orders-table.php';
+        require_once SAPWC_PLUGIN_PATH . 'admin/class-sap-orders-table.php';
         SAPWC_SAP_Orders_Table::render_table_block();
 
         self::inline_js();
