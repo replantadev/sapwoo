@@ -168,6 +168,7 @@ class SAPWC_Sync_Handler
             update_post_meta($order->get_id(), '_sap_address_synced', '1');
 
             $order->add_order_note('✅ Pedido enviado a SAP. DocEntry: ' . $sap_id);
+            $order->update_status('processing', '✅ Pedido enviado a SAP. DocEntry: ' . $sap_id);
             $entrega_address = [
                 'Street'    => $order->get_shipping_address_1(),
                 'ZipCode'   => $order->get_shipping_postcode(),
