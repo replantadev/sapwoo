@@ -190,7 +190,7 @@ add_action('wp_ajax_sapwc_send_orders', function () {
 
 
     $orders = wc_get_orders([
-        'status' => 'processing',
+        'status' => 'processing', 'on-hold',
         'limit' => -1
     ]);
 
