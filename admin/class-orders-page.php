@@ -12,7 +12,7 @@ class SAPWC_Orders_Page
     public static function render()
     {
         $orders = wc_get_orders([
-            'status' => 'processing',
+            'status' => ['processing', 'on-hold'],
             'limit'  => 20,
         ]);
 
