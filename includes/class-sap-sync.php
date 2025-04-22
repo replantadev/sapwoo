@@ -56,6 +56,7 @@ class SAPWC_Sync_Handler
         $payload = $mode === 'b2b' ? $this->build_payload_b2b($order) : $this->build_payload_ecommerce($order);
 
         if (!$payload) {
+            SAPWC_Logger::log($order->get_id(), 'sync', 'error', '⚠️ Payload vacío o inválido. Puede deberse a falta de SKU o CardCode.');
             $this->store_order_fallback($order->get_id(), 'Error al generar el payload.');
             return ['success' => false, 'message' => 'Error al generar el payload.'];
         }
@@ -269,6 +270,10 @@ class SAPWC_Sync_Handler
                 'WarehouseCode'   => $warehouse
             ];
         }
+        if (empty($items)) {
+            SAPWC_Logger::log($order->get_id(), 'sync', 'error', 'Ningún producto válido (con SKU) encontrado para el pedido.');
+        }
+
 
         return $items;
     }
