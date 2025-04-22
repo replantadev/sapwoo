@@ -264,27 +264,43 @@ class SAPWC_Sync_Handler
             $quantity      = $item->get_quantity();
             $price_excl_tax = $quantity > 0 ? ($line_subtotal / $quantity) : 0;
 
-            // 🔍 Buscar el almacén desde metadatos del producto
+            $regular = $product->get_regular_price();
+            $discount_percent = 0;
+
+            if ($regular > 0 && $price_excl_tax < $regular) {
+                $discount_percent = round((($regular - $price_excl_tax) / $regular) * 100, 2);
+            }
+
             $almacen = $product->get_meta('almacen') ?: $product->get_meta('_almacen');
-            $warehouse = $almacen ? strtoupper(trim($almacen)) : '01'; // default '01'
+            $warehouse = $almacen ? strtoupper(trim($almacen)) : '01';
 
-            error_log("[BUILD_ITEMS] SKU: $sku_clean | ALMACÉN: $warehouse");
-
-            $items[] = [
+            $line = [
                 'ItemCode'        => $sku_clean,
                 'ItemDescription' => $product->get_name(),
                 'Quantity'        => $quantity,
                 'UnitPrice'       => round($price_excl_tax, 4),
-                'WarehouseCode'   => $warehouse
+                'WarehouseCode'   => $warehouse,
             ];
+
+            if ($discount_percent > 0) {
+                $line['UserFields'] = [
+                    'U_ARTES_DtoAR1' => $discount_percent
+                ];
+            }
+
+            error_log("[BUILD_ITEMS] SKU: $sku_clean | ALMACÉN: $warehouse | DESCUENTO: {$discount_percent}%");
+
+            $items[] = $line;
         }
+
         if (empty($items)) {
             SAPWC_Logger::log($order->get_id(), 'sync', 'error', 'Ningún producto válido (con SKU) encontrado para el pedido.');
         }
 
-
         return $items;
     }
+
+
 
 
     private function build_payload_b2b($order)
