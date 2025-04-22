@@ -26,8 +26,16 @@ class SAPWC_Sync_Handler
     public function send_order($order)
     {
         if (!isset($this->mapping['sku'], $this->mapping['name'], $this->mapping['quantity'], $this->mapping['price'])) {
+            SAPWC_Logger::log(
+                $order->get_id(),
+                'sync',
+                'error',
+                '❌ Mapeo de campos incompleto. Faltan: ' . json_encode(array_keys($this->mapping))
+            );
+            error_log('Mapeo actual: ' . print_r(get_option('sapwc_field_mapping'), true));
             return ['success' => false, 'message' => 'Mapeo de campos incompleto. Verifica los ajustes.'];
         }
+
 
         $order_number = $order->get_order_number();
 
@@ -286,7 +294,14 @@ class SAPWC_Sync_Handler
         // Obtener el card code según la opción configurada
         $meta_key = get_option('sapwc_b2b_cardcode_meta', 'user_login');
         $card_code = $meta_key === 'user_login' ? $user->user_login : get_user_meta($user->ID, $meta_key, true);
-        if (!$card_code) return false;
+        if (is_array($card_code)) {
+            $card_code = reset($card_code); // Extraer el primer valor si por alguna razón sigue siendo array
+        }
+        
+        if (!$card_code || !is_string($card_code)) {
+            SAPWC_Logger::log($order->get_id(), 'sync', 'error', 'CardCode no válido: ' . print_r($card_code, true));
+            return ['success' => false, 'message' => 'CardCode no válido para el cliente.'];
+        }
 
         // Obtener el CIF desde los metadatos del usuario
         $cif_meta_key = get_option('sapwc_b2b_cif_meta', 'nif');
