@@ -1,5 +1,12 @@
 <?php
-
+if (!defined('ABSPATH')) {
+    exit; // Evitar acceso directo
+}
+// Evitar carga directa del archivo
+if (!defined('SAPWC_PLUGIN_PATH')) {
+    define('SAPWC_PLUGIN_PATH', plugin_dir_path(__FILE__));
+}
+require_once SAPWC_PLUGIN_PATH . 'includes/helper.php';
 class SAPWC_Sync_Handler
 {
     private $client;
@@ -635,105 +642,7 @@ class SAPWC_Sync_Handler
     }
 }
 
-function get_valid_sap_state($wc_state)
-{
-    $wc_state = strtoupper(trim($wc_state));
 
-    $state_map = [
-        // Andalucía
-        'AL' => '04',
-        'CA' => '11',
-        'CO' => '14',
-        'GR' => '18',
-        'H'  => '21',
-        'JA' => '23',
-        'MA' => '29',
-        'SE' => '41',
-
-        // Aragón
-        'HU' => '22',
-        'TE' => '44',
-        'Z'  => '50',
-
-        // Asturias
-        'O'  => '33',
-        'AS' => '33',
-
-        // Islas Baleares
-        'PM' => '07',
-
-        // Canarias
-        'GC' => '35',
-        'TF' => '38',
-        'CN' => '35', // 'CN' es común en Woo para Canarias
-
-        // Cantabria
-        'S'  => '39',
-
-        // Castilla y León
-        'AV' => '05',
-        'BU' => '09',
-        'LE' => '24',
-        'P' => '34',
-        'SA' => '37',
-        'SG' => '40',
-        'SO' => '42',
-        'VA' => '47',
-        'ZA' => '49',
-
-        // Castilla-La Mancha
-        'AB' => '02',
-        'CR' => '13',
-        'CU' => '16',
-        'GU' => '19',
-        'TO' => '45',
-
-        // Cataluña
-        'B'  => '08',
-        'GI' => '17',
-        'L'  => '25',
-        'T' => '43',
-
-        // Ceuta y Melilla
-        'CE' => '51',
-        'ML' => '52',
-
-        // Comunidad Valenciana
-        'A'  => '03',
-        'CS' => '12',
-        'V'  => '46',
-
-        // Extremadura
-        'BA' => '06',
-        'CC' => '10',
-
-        // Galicia
-        'C'  => '15',
-        'LU' => '27',
-        'OR' => '32',
-        'OU' => '32',
-        'PO' => '36',
-
-        // Madrid
-        'M'  => '28',
-
-        // Murcia
-        'MU' => '30',
-
-        // Navarra
-        'NA' => '31',
-
-        // País Vasco
-        'BI' => '48',
-        'SS' => '20',
-        'VI' => '01',
-
-        // La Rioja
-        'LO' => '26'
-    ];
-
-    return $state_map[$wc_state] ?? null;
-}
 
 
 

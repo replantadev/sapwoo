@@ -1,5 +1,12 @@
 <?php
-
+if (!defined('ABSPATH')) {
+    exit; // Evitar acceso directo
+}
+// Evitar carga directa del archivo
+if (!defined('SAPWC_PLUGIN_PATH')) {
+    define('SAPWC_PLUGIN_PATH', plugin_dir_path(__FILE__));
+}
+require_once SAPWC_PLUGIN_PATH . 'includes/helper.php';
 class SAPWC_Orders_Page
 {
     public static function render()

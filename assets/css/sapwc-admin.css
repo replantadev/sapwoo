@@ -198,6 +198,7 @@ table.widefat td .sapwc-send-single {
 .sapwc-column table {
     width: 100%; /* Asegura que las tablas ocupen todo el ancho de la columna */
 }
-span.dashicons {
+button span.dashicons {
     font-family: dashicons;
-}
+    font-size: 12px;
+    vertical-align: bottom;}

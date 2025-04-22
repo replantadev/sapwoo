@@ -76,122 +76,124 @@ class SAPWC_Sync_Options_Page
 
 ?>
         <div class="wrap sapwc-settings">
-            <h1>⚙️ Configuración de Sincronización SAP</h1>
-            <?php if (!empty($missing_fields_notice)) echo $missing_fields_notice; ?>
-            <p>Configura la sincronización automática de pedidos y stock entre WooCommerce y SAP Business One.</p>
+            <h1><span class="dashicons dashicons-admin-generic"></span> <?php esc_html_e('Configuración de Sincronización SAP', 'sapwoo'); ?></h1>
+            <?php if (!empty($missing_fields_notice)) echo wp_kses_post($missing_fields_notice); ?>
+            <p><?php esc_html_e('Configura la sincronización automática de pedidos y stock entre WooCommerce y SAP Business One.', 'sapwoo'); ?></p>
 
             <form method="post" action="options.php">
                 <?php
                 if (!current_user_can('edit_others_shop_orders')) {
-                    wp_die(__('No tienes suficientes permisos para acceder a esta página.'));
+                    wp_die(esc_html__('No tienes permisos suficientes para acceder a esta página.', 'sapwoo'));
                 }
                 if (isset($_POST['_wpnonce']) && !wp_verify_nonce($_POST['_wpnonce'], 'sapwc_sync_settings')) {
-                    wp_die(__('Nonce inválido.'));
+                    wp_die(esc_html__('Nonce inválido.', 'sapwoo'));
                 }
                 settings_fields('sapwc_sync_settings');
                 do_settings_sections('sapwc_sync_settings');
                 settings_errors();
                 if (isset($_GET['settings-updated'])) {
-                    add_settings_error('sapwc_sync_settings', 'settings_updated', __('Configuración guardada.'), 'updated');
-                    echo '<div class="notice notice-success is-dismissible"><p>✅ Configuración guardada correctamente.</p></div>';
+                    add_settings_error('sapwc_sync_settings', 'settings_updated', esc_html__('Configuración guardada.', 'sapwoo'), 'updated');
+                    echo '<div class="notice notice-success is-dismissible"><p><span class="dashicons dashicons-yes"></span> ' . esc_html__('Configuración guardada exitosamente.', 'sapwoo') . '</p></div>';
                 }
                 ?>
 
                 <table class="form-table widefat striped">
                     <tr>
                         <th colspan="2">
-                            <h2>🛠️ Modo de Operación</h2>
+                            <h2><span class="dashicons dashicons-admin-tools"></span> <?php esc_html_e('Modo de Operación', 'sapwoo'); ?></h2>
                         </th>
                     </tr>
                     <tr>
-                        <th scope="row">Modo</th>
+                        <th scope="row"><?php esc_html_e('Modo', 'sapwoo'); ?></th>
                         <td>
                             <select name="sapwc_mode" id="sapwc_mode">
-                                <option value="ecommerce" <?php selected($mode, 'ecommerce'); ?>>Ecommerce (Cliente genérico)</option>
-                                <option value="b2b" <?php selected($mode, 'b2b'); ?>>B2B (Cliente individual con su CardCode)</option>
+                                <option value="ecommerce" <?php selected($mode, 'ecommerce'); ?>><?php esc_html_e('Ecommerce (Cliente Genérico)', 'sapwoo'); ?></option>
+                                <option value="b2b" <?php selected($mode, 'b2b'); ?>><?php esc_html_e('B2B (Cliente Individual con CardCode)', 'sapwoo'); ?></option>
                             </select>
                         </td>
                     </tr>
                     <?php if ($mode === 'b2b') : ?>
                         <tr>
-                            <th scope="row">Campo meta del usuario para CardCode</th>
+                            <th scope="row"><?php esc_html_e('Campo Meta de Usuario para CardCode', 'sapwoo'); ?></th>
                             <td>
-                                <input type="text" name="sapwc_b2b_cardcode_meta" value="<?php echo esc_attr($b2b_cardcode_meta); ?>" class="regular-text" placeholder="user_login, billing_company, etc">
-                                <p class="description">Meta del usuario que se usará como <code>CardCode</code>. Por defecto: <code>user_login</code></p>
+                                <input type="text" name="sapwc_b2b_cardcode_meta" value="<?php echo esc_attr($b2b_cardcode_meta); ?>" class="regular-text" placeholder="<?php esc_attr_e('user_login, billing_company, etc', 'sapwoo'); ?>">
+                                <p class="description"><?php esc_html_e('Campo meta de usuario que se usará como CardCode. Por defecto: user_login', 'sapwoo'); ?></p>
                             </td>
                         </tr>
                         <tr>
-                            <th scope="row">🧪 Verificación de productos B2B</th>
+                            <th scope="row"><span class="dashicons dashicons-search"></span> <?php esc_html_e('Verificación de Productos B2B', 'sapwoo'); ?></th>
                             <td>
                                 <?php
-                                // Recuperar todos los productos y variaciones publicados
+                                // Retrieve all published products and variations
                                 $productos_b2b = get_posts([
                                     'post_type'   => ['product', 'product_variation'],
                                     'post_status' => 'publish',
                                     'numberposts' => -1,
                                     'meta_query'  => [
-                                        ['key' => '_sku', 'compare' => 'EXISTS'], // Asegurarse de que tengan SKU
+                                        ['key' => '_sku', 'compare' => 'EXISTS'], // Ensure they have SKU
                                     ],
                                 ]);
 
                                 if (empty($productos_b2b)) {
-                                    // Si no hay productos publicados
-                                    echo '<p><strong style="color:red;">❌ No hay productos publicados para verificar.</strong></p>';
+                                    // If no products are published
+                                    echo '<p><strong style="color:red;"><span class="dashicons dashicons-warning"></span> ' . esc_html__('No hay productos publicados para verificar.', 'sapwoo') . '</strong></p>';
                                 } else {
                                     $errores = [];
 
-                                    // Verificar cada producto
+                                    // Verify each product
                                     foreach ($productos_b2b as $prod) {
                                         $id = $prod->ID;
                                         $title = get_the_title($id);
                                         $missing = [];
 
-                                        // Verificar campos adicionales
+                                        // Verify additional fields
                                         if (!get_post_meta($id, '_sku', true)) $missing[] = '_sku';
                                         if (!get_post_meta($id, 'almacen', true)) $missing[] = 'almacen';
                                         if (!get_post_meta($id, 'pvp', true)) $missing[] = 'pvp';
 
-                                        // Si faltan campos, añadir a la lista de errores
+                                        // If fields are missing, add to the error list
                                         if (!empty($missing)) {
-                                            $errores[] = "$title (falta: " . implode(', ', $missing) . ")";
+                                            $errores[] = sprintf(
+                                                '%s (%s: %s)',
+                                                esc_html($title),
+                                                esc_html__('faltan', 'sapwoo'),
+                                                esc_html(implode(', ', $missing))
+                                            );
                                         }
                                     }
 
-                                    // Mostrar resultados
+                                    // Display results
                                     if (empty($errores)) {
-                                        echo '<p><strong style="color:green;">✅ Todos los productos tienen los campos necesarios.</strong></p>';
+                                        echo '<p><strong style="color:green;"><span class="dashicons dashicons-yes"></span> ' . esc_html__('Todos los productos tienen los campos requeridos.', 'sapwoo') . '</strong></p>';
                                     } else {
-                                        echo '<p><strong style="color:red;">❌ ' . count($errores) . ' productos con errores:</strong></p>';
+                                        echo '<p><strong style="color:red;"><span class="dashicons dashicons-warning"></span> ' . esc_html(count($errores)) . ' ' . esc_html__('productos con errores:', 'sapwoo') . '</strong></p>';
                                         echo '<ul>';
                                         foreach ($errores as $error) {
-                                            echo '<li>🔸 ' . esc_html($error) . '</li>';
+                                            echo '<li><span class="dashicons dashicons-arrow-right-alt"></span> ' . esc_html($error) . '</li>';
                                         }
                                         echo '</ul>';
                                     }
                                 }
                                 ?>
-                                <p class="description">Campos necesarios para modo B2B: <code>_sku</code>, <code>almacen</code>, <code>pvp</code></p>
+                                <p class="description"><?php esc_html_e('Campos requeridos para el modo B2B: _sku, almacen, pvp', 'sapwoo'); ?></p>
                             </td>
                         </tr>
                         <tr>
-                            <th scope="row">Filtro de clientes</th>
+                            <th scope="row"><?php esc_html_e('Filtro de Clientes', 'sapwoo'); ?></th>
                             <td>
                                 <?php
                                 $filter_type  = get_option('sapwc_customer_filter_type', 'starts');
                                 $filter_value = get_option('sapwc_customer_filter_value', '');
                                 ?>
                                 <select name="sapwc_customer_filter_type">
-                                    <option value="starts" <?php selected($filter_type, 'starts'); ?>>CardCode empieza con...</option>
-                                    <option value="contains" <?php selected($filter_type, 'contains'); ?>>CardCode contiene...</option>
-                                    <option value="prefix_numbers" <?php selected($filter_type, 'prefix_numbers'); ?>>CardCode comienza con prefijo y números...</option>
-
+                                    <option value="starts" <?php selected($filter_type, 'starts'); ?>><?php esc_html_e('CardCode comienza con...', 'sapwoo'); ?></option>
+                                    <option value="contains" <?php selected($filter_type, 'contains'); ?>><?php esc_html_e('CardCode contiene...', 'sapwoo'); ?></option>
+                                    <option value="prefix_numbers" <?php selected($filter_type, 'prefix_numbers'); ?>><?php esc_html_e('CardCode comienza con prefijo y números...', 'sapwoo'); ?></option>
                                 </select>
-                                <input type="text" name="sapwc_customer_filter_value" value="<?php echo esc_attr($filter_value); ?>" class="regular-text" placeholder="Ej: WNAD">
-                                <p class="description">Filtra los clientes a sincronizar y mostrar en la tabla según su <code>CardCode</code>.</p>
+                                <input type="text" name="sapwc_customer_filter_value" value="<?php echo esc_attr($filter_value); ?>" class="regular-text" placeholder="<?php esc_attr_e('ej., WNAD', 'sapwoo'); ?>">
+                                <p class="description"><?php esc_html_e('Filtra los clientes a sincronizar y mostrar en la tabla según su CardCode.', 'sapwoo'); ?></p>
                             </td>
                         </tr>
-
-
                     <?php endif; ?>
                 </table>
 
@@ -202,105 +204,104 @@ class SAPWC_Sync_Options_Page
                         <table class="form-table widefat striped">
                             <tr>
                                 <th colspan="2">
-                                    <h2>🗁 Sincronización de Pedidos</h2>
+                                    <h2><span class="dashicons dashicons-admin-tools"></span> <?php esc_html_e('Sincronización de Pedidos', 'sapwoo'); ?></h2>
                                 </th>
                             </tr>
                             <tr>
-                                <th scope="row">Modo de sincronización</th>
+                                <th scope="row"><?php esc_html_e('Modo de Sincronización', 'sapwoo'); ?></th>
                                 <td>
                                     <label class="sapwc-toggle">
                                         <input type="checkbox" id="sapwc_sync_orders_auto" name="sapwc_sync_orders_auto" value="1" <?php checked($sync_orders_auto, '1'); ?>>
                                         <span class="slider"></span>
                                     </label>
-                                    <span style="margin-left: 1em;">Automática</span>
-
+                                    <span style="margin-left: 1em;"><?php esc_html_e('Automático', 'sapwoo'); ?></span>
                                 </td>
                             </tr>
                         </table>
 
                         <details style="margin-bottom:2em">
-                            <summary><strong>⚙️ Configuración Avanzada</strong></summary>
+                            <summary><strong><span class="dashicons dashicons-admin-generic"></span> <?php esc_html_e('Configuración Avanzada', 'sapwoo'); ?></strong></summary>
                             <table class="form-table widefat striped">
                                 <tr>
                                     <th colspan="2">
-                                        <h3>📆 Intervalo de Cron</h3>
+                                        <h3><span class="dashicons dashicons-clock"></span> <?php esc_html_e('Intervalo del Cron', 'sapwoo'); ?></h3>
                                     </th>
                                 </tr>
                                 <tr>
-                                    <th scope="row">Frecuencia</th>
+                                    <th scope="row"><?php esc_html_e('Frecuencia', 'sapwoo'); ?></th>
                                     <td>
                                         <select name="sapwc_cron_interval">
-                                            <option value="hourly" <?php selected($cron_interval, 'hourly'); ?>>Cada hora</option>
-                                            <option value="twicedaily" <?php selected($cron_interval, 'twicedaily'); ?>>Cada 12 horas</option>
-                                            <option value="daily" <?php selected($cron_interval, 'daily'); ?>>Diario</option>
+                                            <option value="hourly" <?php selected($cron_interval, 'hourly'); ?>><?php esc_html_e('Cada Hora', 'sapwoo'); ?></option>
+                                            <option value="twicedaily" <?php selected($cron_interval, 'twicedaily'); ?>><?php esc_html_e('Dos Veces al Día', 'sapwoo'); ?></option>
+                                            <option value="daily" <?php selected($cron_interval, 'daily'); ?>><?php esc_html_e('Diario', 'sapwoo'); ?></option>
                                         </select>
                                     </td>
                                 </tr>
                                 <tr>
                                     <th colspan="2">
-                                        <h3>🕓 Estado del Cron de Pedidos</h3>
+                                        <h3><span class="dashicons dashicons-update"></span> <?php esc_html_e('Estado del Cron de Pedidos', 'sapwoo'); ?></h3>
                                     </th>
                                 </tr>
                                 <tr>
-                                    <th scope="row">Próxima ejecución</th>
+                                    <th scope="row"><?php esc_html_e('Próxima Ejecución', 'sapwoo'); ?></th>
                                     <td>
                                         <?php
                                         $next = wp_next_scheduled('sapwc_cron_sync_orders');
                                         if ($next) {
-                                            echo '<strong>' . date_i18n('Y-m-d H:i:s', $next) . '</strong>';
-                                            echo ' &nbsp;<code>(' . human_time_diff(time(), $next) . ')</code>';
+                                            echo '<strong>' . esc_html(date_i18n('Y-m-d H:i:s', $next)) . '</strong>';
+                                            echo ' &nbsp;<code>(' . esc_html(human_time_diff(time(), $next)) . ')</code>';
                                         } else {
-                                            echo '<span style="color:red;">❌ No programado</span>';
+                                            echo '<span style="color:red;"><span class="dashicons dashicons-warning"></span> ' . esc_html__('No programado', 'sapwoo') . '</span>';
                                         }
                                         ?>
-                                        <p><button id="sapwc-run-cron-now" class="button">⏱️ Ejecutar ahora</button></p>
+                                        <p><button id="sapwc-run-cron-now" class="button"><span class="dashicons dashicons-controls-play"></span> <?php esc_html_e('Ejecutar Ahora', 'sapwoo'); ?></button></p>
                                     </td>
                                 </tr>
                                 <tr>
-                                    <th scope="row">Frecuencia configurada</th>
+                                    <th scope="row"><?php esc_html_e('Frecuencia Configurada', 'sapwoo'); ?></th>
                                     <td><strong><?php echo esc_html($cron_interval); ?></strong></td>
                                 </tr>
 
                                 <tr>
                                     <th colspan="2">
-                                        <h3>📁 Reintentos Automáticos</h3>
+                                        <h3><span class="dashicons dashicons-backup"></span> <?php esc_html_e('Reintentos Automáticos', 'sapwoo'); ?></h3>
                                     </th>
                                 </tr>
                                 <tr>
-                                    <th scope="row">Reintentar pedidos fallidos</th>
+                                    <th scope="row"><?php esc_html_e('Reintentar Pedidos Fallidos', 'sapwoo'); ?></th>
                                     <td>
-                                        <label><input type="checkbox" name="sapwc_retry_failed_auto" value="1" <?php checked($retry_failed_auto, '1'); ?>> Habilitar</label>
+                                        <label><input type="checkbox" name="sapwc_retry_failed_auto" value="1" <?php checked($retry_failed_auto, '1'); ?>> <?php esc_html_e('Habilitar', 'sapwoo'); ?></label>
                                     </td>
                                 </tr>
                             </table>
                         </details>
                         <table class="form-table widefat striped">
                             <tr>
-                                <th scope="row">Última sincronización</th>
+                                <th scope="row"><?php esc_html_e('Última Sincronización', 'sapwoo'); ?></th>
                                 <td><strong id="sapwc-last-sync"><?php echo esc_html($orders_last_sync); ?></strong></td>
                             </tr>
                             <tr>
-                                <th scope="row">Último DocEntry sincronizado</th>
+                                <th scope="row"><?php esc_html_e('Último DocEntry Sincronizado', 'sapwoo'); ?></th>
                                 <td><strong id="sapwc-last-docentry"><?php echo esc_html($orders_last_doc); ?></strong></td>
                             </tr>
                             <?php if ($mode === 'ecommerce') : ?>
                                 <tr>
                                     <th colspan="2">
-                                        <h3>🗽 Cliente Ecommerce (NAD)</h3>
+                                        <h3><span class="dashicons dashicons-cart"></span> <?php esc_html_e('Cliente Ecommerce (NAD)', 'sapwoo'); ?></h3>
                                     </th>
                                 </tr>
                                 <tr>
-                                    <th scope="row">Cliente Península</th>
+                                    <th scope="row"><?php esc_html_e('Cliente Península', 'sapwoo'); ?></th>
                                     <td>
-                                        <input type="text" name="sapwc_cardcode_peninsula" value="<?php echo esc_attr($cardcode_peninsula); ?>" class="regular-text" placeholder="CardCode">
-                                        <input type="text" name="sapwc_cardname_peninsula" value="<?php echo esc_attr($cardname_peninsula); ?>" class="regular-text" placeholder="Nombre">
+                                        <input type="text" name="sapwc_cardcode_peninsula" value="<?php echo esc_attr($cardcode_peninsula); ?>" class="regular-text" placeholder="<?php esc_attr_e('CardCode', 'sapwoo'); ?>">
+                                        <input type="text" name="sapwc_cardname_peninsula" value="<?php echo esc_attr($cardname_peninsula); ?>" class="regular-text" placeholder="<?php esc_attr_e('Nombre', 'sapwoo'); ?>">
                                     </td>
                                 </tr>
                                 <tr>
-                                    <th scope="row">Cliente Canarias</th>
+                                    <th scope="row"><?php esc_html_e('Cliente Islas Canarias', 'sapwoo'); ?></th>
                                     <td>
-                                        <input type="text" name="sapwc_cardcode_canarias" value="<?php echo esc_attr($cardcode_canarias); ?>" class="regular-text" placeholder="CardCode">
-                                        <input type="text" name="sapwc_cardname_canarias" value="<?php echo esc_attr($cardname_canarias); ?>" class="regular-text" placeholder="Nombre">
+                                        <input type="text" name="sapwc_cardcode_canarias" value="<?php echo esc_attr($cardcode_canarias); ?>" class="regular-text" placeholder="<?php esc_attr_e('CardCode', 'sapwoo'); ?>">
+                                        <input type="text" name="sapwc_cardname_canarias" value="<?php echo esc_attr($cardname_canarias); ?>" class="regular-text" placeholder="<?php esc_attr_e('Nombre', 'sapwoo'); ?>">
                                     </td>
                                 </tr>
                             <?php endif; ?>
@@ -310,37 +311,33 @@ class SAPWC_Sync_Options_Page
                         <table class="form-table widefat striped">
                             <tr>
                                 <th colspan="2">
-                                    <h2>📊 Sincronización de Stock y Precios</h2>
+                                    <h2><span class="dashicons dashicons-chart-bar"></span> <?php esc_html_e('Sincronización de Stock y Precios', 'sapwoo'); ?></h2>
                                 </th>
                             </tr>
                             <tr>
-                                <th scope="row">Modo de sincronización</th>
+                                <th scope="row"><?php esc_html_e('Modo de Sincronización', 'sapwoo'); ?></th>
                                 <td>
                                     <label class="sapwc-toggle">
                                         <input type="checkbox" id="sapwc_sync_stock_auto" name="sapwc_sync_stock_auto" value="1" <?php checked($sync_stock_auto, '1'); ?>>
                                         <span class="slider"></span>
                                     </label>
-                                    <span style="margin-left: 1em;">Automática</span>
+                                    <span style="margin-left: 1em;"><?php esc_html_e('Automático', 'sapwoo'); ?></span>
                                 </td>
                             </tr>
                             <tr>
-                                <th scope="row">Almacenes a sincronizar</th>
+                                <th scope="row"><?php esc_html_e('Almacenes a Sincronizar', 'sapwoo'); ?></th>
                                 <td>
-                                    <label><input type="checkbox" name="sapwc_selected_warehouses[]" value="01"
-                                            <?php checked(in_array('01', $selected_warehouses)); ?>> 01 (Principal)</label><br>
-
-                                    <label><input type="checkbox" name="sapwc_selected_warehouses[]" value="LI"
-                                            <?php checked(in_array('LI', $selected_warehouses)); ?>> LI (Liquidación)</label><br>
-
-                                    <p class="description">Selecciona los almacenes desde los cuales deseas importar stock.</p>
+                                    <label><input type="checkbox" name="sapwc_selected_warehouses[]" value="01" <?php checked(in_array('01', $selected_warehouses)); ?>> <?php esc_html_e('01 (Principal)', 'sapwoo'); ?></label><br>
+                                    <label><input type="checkbox" name="sapwc_selected_warehouses[]" value="LI" <?php checked(in_array('LI', $selected_warehouses)); ?>> <?php esc_html_e('LI (Liquidación)', 'sapwoo'); ?></label><br>
+                                    <p class="description"><?php esc_html_e('Selecciona los almacenes desde los cuales deseas importar stock.', 'sapwoo'); ?></p>
                                 </td>
                             </tr>
 
                             <tr>
-                                <th scope="row">Tarifa base (lista de precios)</th>
+                                <th scope="row"><?php esc_html_e('Tarifa Base (Lista de Precios)', 'sapwoo'); ?></th>
                                 <td>
                                     <select name="sapwc_selected_tariff" class="regular-text">
-                                        <option value="">-- Selecciona una tarifa --</option>
+                                        <option value=""><?php esc_html_e('-- Selecciona una tarifa --', 'sapwoo'); ?></option>
                                         <?php foreach ($tariffs as $tariff) : ?>
                                             <option value="<?php echo esc_attr($tariff['id']); ?>" <?php selected($selected_tariff, $tariff['id']); ?>>
                                                 <?php echo esc_html($tariff['id'] . ' - ' . $tariff['name']); ?>
@@ -348,20 +345,19 @@ class SAPWC_Sync_Options_Page
                                         <?php endforeach; ?>
                                     </select>
                                     <?php if (empty($tariffs)) : ?>
-                                        <p class="description" style="color:red;"><strong>⚠️ No se pudieron obtener las tarifas desde SAP.</strong> Verifica conexión.</p>
+                                        <p class="description" style="color:red;"><strong><span class="dashicons dashicons-warning"></span> <?php esc_html_e('No se pudieron recuperar las tarifas desde SAP. Verifica la conexión.', 'sapwoo'); ?></strong></p>
                                     <?php endif; ?>
-
-                                    <p class="description">Código de la tarifa usada como base para los precios.</p>
+                                    <p class="description"><?php esc_html_e('Código de la tarifa utilizada como base para los precios.', 'sapwoo'); ?></p>
                                 </td>
                             </tr>
 
                             <tr>
                                 <th colspan="2">
-                                    <h3>🏷️ Tarifa especial por almacén</h3>
+                                    <h3><span class="dashicons dashicons-tag"></span> <?php esc_html_e('Tarifa Especial por Almacén', 'sapwoo'); ?></h3>
                                 </th>
                             </tr>
                             <tr>
-                                <th scope="row">Almacén con tarifa distinta</th>
+                                <th scope="row"><?php esc_html_e('Almacén con Tarifa Diferente', 'sapwoo'); ?></th>
                                 <td>
                                     <?php
                                     $warehouse_tariffs_raw = get_option('sapwc_warehouse_tariff_map', []);
@@ -373,12 +369,12 @@ class SAPWC_Sync_Options_Page
                                         $warehouse_tariffs = [];
                                     }
 
-                                    $almacenes_especiales = ['LI']; // almacenes con tarifa especial opcional
+                                    $almacenes_especiales = ['LI']; // Almacenes especiales con tarifas opcionales
 
                                     foreach ($almacenes_especiales as $warehouse_code) {
-                                        echo '<label for="tariff_map_' . esc_attr($warehouse_code) . '"><strong>' . esc_html($warehouse_code) . '</strong> (Liquidación)</label><br>';
+                                        echo '<label for="tariff_map_' . esc_attr($warehouse_code) . '"><strong>' . esc_html($warehouse_code) . '</strong> (' . esc_html__('Liquidación', 'sapwoo') . ')</label><br>';
                                         echo '<select name="sapwc_warehouse_tariff_map[' . esc_attr($warehouse_code) . ']" class="regular-text" id="tariff_map_' . esc_attr($warehouse_code) . '">';
-                                        echo '<option value="">-- Usar tarifa base --</option>';
+                                        echo '<option value="">' . esc_html__('-- Usar tarifa base --', 'sapwoo') . '</option>';
                                         foreach ($tariffs as $tariff) {
                                             $selected = selected($warehouse_tariffs[$warehouse_code] ?? '', $tariff['id'], false);
                                             echo '<option value="' . esc_attr($tariff['id']) . '" ' . $selected . '>' . esc_html($tariff['id'] . ' - ' . $tariff['name']) . '</option>';
@@ -386,60 +382,63 @@ class SAPWC_Sync_Options_Page
                                         echo '</select><br><br>';
                                     }
                                     ?>
-                                    <p class="description">Puedes definir una tarifa específica para productos en el almacén <strong>LI</strong> (Liquidación). Si no se selecciona, se aplicará la tarifa base configurada arriba para todos los productos.</p>
-                                    <p class="description">La tarifa base se aplica a todos los productos sin almacén definido o con almacén <code>01</code> (principal).</p>
+                                    <p class="description"><?php esc_html_e('Puedes definir una tarifa específica para productos en el almacén LI (Liquidación). Si no se selecciona, se aplicará la tarifa base configurada arriba a todos los productos.', 'sapwoo'); ?></p>
                                 </td>
                             </tr>
 
                             <tr>
-                                <th scope="row">Precio desde SAP</th>
+                                <th scope="row"><?php esc_html_e('Precio desde SAP', 'sapwoo'); ?></th>
                                 <td>
-                                    <label><input type="checkbox" name="sapwc_use_price_after_vat" value="1" <?php checked($use_price_after_vat, '1'); ?>> Usar <code>PriceAfterVAT</code> si está disponible</label>
-                                    <p class="description">Si WooCommerce está configurado con precios con IVA incluido, marca esta opción para usar directamente <code>PriceAfterVAT</code> desde SAP.</p>
+                                    <label><input type="checkbox" name="sapwc_use_price_after_vat" value="1" <?php checked($use_price_after_vat, '1'); ?>> <?php esc_html_e('Usar PriceAfterVAT si está disponible', 'sapwoo'); ?></label>
+                                    <p class="description"><?php esc_html_e('Si WooCommerce está configurado con precios que incluyen IVA, marca esta opción para usar PriceAfterVAT directamente desde SAP.', 'sapwoo'); ?></p>
                                 </td>
                             </tr>
 
-
-                            <th scope="row">Última sincronización de stock</th>
-                            <td><strong id="sapwc-last-stock-sync"><?php echo esc_html($stock_last_sync); ?></strong></td>
+                            <tr>
+                                <th scope="row"><?php esc_html_e('Última Sincronización de Stock', 'sapwoo'); ?></th>
+                                <td><strong id="sapwc-last-stock-sync"><?php echo esc_html($stock_last_sync); ?></strong></td>
                             </tr>
                             <tr>
                                 <th colspan="2">
-                                    <h3>📦 Estado del Cron de Stock</h3>
+                                    <h3><span class="dashicons dashicons-clock"></span> <?php esc_html_e('Estado del Cron de Stock', 'sapwoo'); ?></h3>
                                 </th>
                             </tr>
                             <tr>
-                                <th scope="row">Próxima ejecución</th>
+                                <th scope="row"><?php esc_html_e('Próxima Ejecución', 'sapwoo'); ?></th>
                                 <td>
                                     <?php
                                     $next_stock = wp_next_scheduled('sapwc_cron_sync_stock');
                                     if ($next_stock) {
-                                        echo '<strong>' . date_i18n('Y-m-d H:i:s', $next_stock) . '</strong>';
-                                        echo ' &nbsp;<code>(' . human_time_diff(time(), $next_stock) . ')</code>';
+                                        echo '<strong>' . esc_html(date_i18n('Y-m-d H:i:s', $next_stock)) . '</strong>';
+                                        echo ' &nbsp;<code>(' . esc_html(human_time_diff(time(), $next_stock)) . ')</code>';
                                     } else {
-                                        echo '<span style="color:red;">❌ No programado</span>';
+                                        echo '<span style="color:red;"><span class="dashicons dashicons-warning"></span> ' . esc_html__('No programado', 'sapwoo') . '</span>';
                                     }
                                     ?>
-                                    <p><button id="sapwc-run-stock-now" class="button">📦 Ejecutar ahora</button></p>
+                                    <p><button id="sapwc-run-stock-now" class="button"><span class="dashicons dashicons-controls-play"></span> <?php esc_html_e('Ejecutar Ahora', 'sapwoo'); ?></button></p>
                                 </td>
                             </tr>
-
-
                         </table>
                     </div>
                 </div>
 
-                <?php submit_button('📂 Guardar cambios'); ?>
-            </form>
+                <?php submit_button(esc_html__('Guardar cambios', 'sapwoo'), 'primary', '', false, ['id' => 'submit-button']); ?>
+                        
+               </form>
 
             <hr>
-            <h2>🔄 Sincronización Manual</h2>
-            <p>Si necesitas forzar la sincronización de pedidos o stock, puedes hacerlo desde aquí:</p>
+            <h2><span class="dashicons dashicons-update"></span> <?php esc_html_e('Sincronización Manual', 'sapwoo'); ?></h2>
+            <p><?php esc_html_e('Si necesitas forzar la sincronización de pedidos o stock, puedes hacerlo desde aquí:', 'sapwoo'); ?></p>
             <p>
-                <button id="sapwc-sync-orders" class="button button-primary">🛫 Sincronizar Pedidos</button>
-                <!--<button id="sapwc-sync-stock" class="button button-secondary">📦 Sincronizar Stock</button>-->
-                <button id="sapwc-sync-existing" class="button button-primary">📥 Sincronizar Productos Existentes</button>
-
+                <button id="sapwc-sync-orders" class="button button-primary">
+                    <span class="dashicons dashicons-controls-repeat"></span> <?php esc_html_e('Sincronizar Pedidos', 'sapwoo'); ?>
+                </button>
+                <!--<button id="sapwc-sync-stock" class="button button-secondary">
+                    <span class="dashicons dashicons-archive"></span> <?php esc_html_e('Sincronizar Stock', 'sapwoo'); ?>
+                </button>-->
+                <button id="sapwc-sync-existing" class="button button-primary">
+                    <span class="dashicons dashicons-download"></span> <?php esc_html_e('Sincronizar Productos Existentes', 'sapwoo'); ?>
+                </button>
             </p>
             <?php
             // Hook en el render para incluir nueva sección

@@ -31,9 +31,11 @@ function sapwc_load_dependencies()
     require_once SAPWC_PLUGIN_PATH . 'admin/class-orders-page.php';
     require_once SAPWC_PLUGIN_PATH . 'admin/class-mapping-page.php';
     require_once SAPWC_PLUGIN_PATH . 'admin/class-sap-orders-table.php';
+    require_once SAPWC_PLUGIN_PATH . 'admin/class-customers-import-page.php';
     require_once SAPWC_PLUGIN_PATH . 'includes/class-api-client.php';
     require_once SAPWC_PLUGIN_PATH . 'includes/class-sap-sync.php';
     require_once SAPWC_PLUGIN_PATH . 'includes/class-logger.php';
+    require_once SAPWC_PLUGIN_PATH . 'includes/helper.php';
 }
 
 // Actualizaciones automáticas desde GitHub
@@ -117,6 +119,7 @@ add_action('admin_menu', function () {
     add_submenu_page('sapwc-settings', __('Pedidos Woo', 'sapwoo'), __('Pedidos Woo', 'sapwoo'), $capability, 'sapwc-orders', ['SAPWC_Orders_Page', 'render']);
     add_submenu_page('sapwc-settings', __('Mapeo de Campos', 'sapwoo'), __('Mapeo de Campos', 'sapwoo'), $capability, 'sapwc-mapping', ['SAPWC_Mapping_Page', 'render']);
     add_submenu_page('sapwc-settings', __('Sincronización', 'sapwoo'), __('Sincronización', 'sapwoo'), $capability, 'sapwc-sync-options', ['SAPWC_Sync_Options_Page', 'render']);
+    add_submenu_page('sapwc-settings', __('Clientes', 'sapwoo'), __('Clientes', 'sapwoo'), $capability, 'sapwc-customers', ['SAPWC_Customers_Import_Page', 'render']);
     add_submenu_page('sapwc-settings', __('Pedidos Fallidos', 'sapwoo'), __('Pedidos Fallidos', 'sapwoo'), $capability, 'sapwc-failed-orders', ['SAPWC_Failed_Orders_Page', 'render']);
 
     // Solo admins: Credenciales y Logs
@@ -355,79 +358,7 @@ add_action('admin_bar_menu', function ($wp_admin_bar) {
 }, 100);
 
 
-//Funcion de conexiones:
-/**
- * Obtiene la conexión activa de SAP desde las opciones del plugin.
- *
- * @return array|null La conexión activa o null si no está configurada.
- */
-function sapwc_get_active_connection()
-{
-    $all_connections = get_option('sapwc_connections', []);
-    $index = get_option('sapwc_connection_index', 0);
 
-    if (!isset($all_connections[$index])) {
-        error_log(__('❌ No hay conexión activa configurada en SAP Woo Sync.', 'sapwoo'));
-        return null;
-    }
-
-    $connection = $all_connections[$index];
-
-    // Asegurar que el campo 'ssl' esté seteado (por compatibilidad)
-    if (!isset($connection['ssl'])) {
-        $connection['ssl'] = false;
-    }
-
-    if (empty($connection['url']) || empty($connection['user']) || empty($connection['pass']) || empty($connection['db'])) {
-        error_log(__('❌ Conexión activa incompleta: ', 'sapwoo') . print_r($connection, true));
-        return null;
-    }
-
-    return $connection;
-}
-function sapwc_build_orders_query()
-{
-    $mode = get_option('sapwc_mode', 'ecommerce');
-    $query_info = [
-        'mode' => $mode,
-        'query' => '',
-        'params' => [],
-        'filter_after_php' => false,
-    ];
-
-    if ($mode === 'ecommerce') {
-        $peninsula = sanitize_text_field(get_option('sapwc_cardcode_peninsula', 'WNAD PENINSULA'));
-        $canarias  = sanitize_text_field(get_option('sapwc_cardcode_canarias', 'WNAD CANARIAS'));
-
-        $query_info['params'] = compact('peninsula', 'canarias');
-        $query_info['query'] = "/Orders?\$filter=(CardCode eq '$peninsula' or CardCode eq '$canarias')&\$orderby=DocEntry desc&\$top=50&\$select=DocEntry,DocNum,DocDate,CardCode,DocTotal,Comments";
-    } elseif ($mode === 'b2b') {
-        $filter_type  = get_option('sapwc_customer_filter_type', 'starts');
-        $filter_value = sanitize_text_field(trim(get_option('sapwc_customer_filter_value', '')));
-
-        $query_info['params'] = compact('filter_type', 'filter_value');
-
-        if (!empty($filter_value)) {
-            if ($filter_type === 'starts' || $filter_type === 'prefix_numbers') {
-                // En ambos casos usamos startswith en SAP
-                $query_info['query'] = "/Orders?\$filter=startswith(CardCode,'$filter_value')&\$orderby=DocEntry desc&\$top=50&\$select=DocEntry,DocNum,DocDate,CardCode,DocTotal,Comments";
-
-                // En prefix_numbers, luego filtramos en PHP
-                if ($filter_type === 'prefix_numbers') {
-                    $query_info['filter_after_php'] = true;
-                }
-            } elseif ($filter_type === 'contains') {
-                $query_info['query'] = "/Orders?\$filter=contains(CardCode,'$filter_value')&\$orderby=DocEntry desc&\$top=50&\$select=DocEntry,DocNum,DocDate,CardCode,DocTotal,Comments";
-            }
-        } else {
-            $query_info['query'] = "/Orders?\$orderby=DocEntry desc&\$top=50&\$select=DocEntry,DocNum,DocDate,CardCode,DocTotal,Comments";
-        }
-    } else {
-        $query_info['query'] = "/Orders?\$orderby=DocEntry desc&\$top=50&\$select=DocEntry,DocNum,DocDate,CardCode,DocTotal,Comments";
-    }
-
-    return $query_info;
-}
 
 
 
@@ -485,3 +416,54 @@ function custom_availability_text($availability, $product)
         return __('Agotado', 'woocommerce');
     }
 }
+
+
+//campos de usuario
+function sapwc_add_nif_dni_to_user_profile($user)
+{
+    $dni  = get_user_meta($user->ID, 'dni', true);
+    $nif  = get_user_meta($user->ID, 'nif', true);
+?>
+    <h2>🪪 Datos de Identificación</h2>
+    <table class="form-table">
+        <?php if (!empty($dni)) : ?>
+            <tr>
+                <th><label for="sapwc_dni">DNI</label></th>
+                <td>
+                    <input type="text" name="sapwc_dni" id="sapwc_dni" value="<?php echo esc_attr($dni); ?>" class="regular-text" />
+                    <p class="description">Documento Nacional de Identidad del usuario.</p>
+                </td>
+            </tr>
+        <?php endif; ?>
+        <?php if (!empty($nif)) : ?>
+            <tr>
+                <th><label for="sapwc_nif">NIF</label></th>
+                <td>
+                    <input type="text" name="sapwc_nif" id="sapwc_nif" value="<?php echo esc_attr($nif); ?>" class="regular-text" />
+                    <p class="description">Número de Identificación Fiscal del usuario.</p>
+                </td>
+            </tr>
+        <?php endif; ?>
+    </table>
+<?php
+}
+add_action('show_user_profile', 'sapwc_add_nif_dni_to_user_profile');
+add_action('edit_user_profile', 'sapwc_add_nif_dni_to_user_profile');
+
+function sapwc_save_nif_dni_from_user_profile($user_id)
+{
+    if (!current_user_can('edit_user', $user_id)) {
+        return false;
+    }
+
+    if (isset($_POST['sapwc_dni'])) {
+        update_user_meta($user_id, 'dni', sanitize_text_field($_POST['sapwc_dni']));
+    }
+
+    if (isset($_POST['sapwc_nif'])) {
+        update_user_meta($user_id, 'nif', sanitize_text_field($_POST['sapwc_nif']));
+    }
+}
+add_action('personal_options_update', 'sapwc_save_nif_dni_from_user_profile');
+add_action('edit_user_profile_update', 'sapwc_save_nif_dni_from_user_profile');
+add_action('woocommerce_save_account_details', 'sapwc_save_nif_dni_from_user_profile');
