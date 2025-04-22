@@ -3,13 +3,15 @@
 Plugin Name: SAP Woo Sync
 Plugin URI: https://replanta.es
 Description: Sincroniza pedidos de WooCommerce con SAP Business One.
-Version: 1.2.6
+Version: 1.2.7
 Author: Replanta Dev
 Author URI: https://replanta.es
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 Text Domain: sapwoo
 Domain Path: /languages
+GitHub Plugin URI: https://github.com/replantadev/sapwoo
+GitHub Branch: main
 */
 
 if (!defined('ABSPATH')) {
