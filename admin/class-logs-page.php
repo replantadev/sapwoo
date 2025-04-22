@@ -19,7 +19,9 @@ class SAPWC_Logs_Page
 
         echo '<div class="wrap"><h1>📋 Registro de Logs SAP</h1>';
 
-        echo '<p><a href="' . esc_url(admin_url('admin.php?page=sapwc-logs&sapwc_test_log=1')) . '" class="button button-primary">🧪 Insertar Log de Prueba</a></p>';
+        echo '<p><button class="button button-secondary" id="sapwc-insert-test-log">🧪 Insertar Log de Prueba</button></p>
+<div id="sapwc-test-log-message"></div>
+';
 
         echo '<table class="widefat striped"><thead><tr>
             <th>Fecha</th>
@@ -42,5 +44,37 @@ class SAPWC_Logs_Page
         }
 
         echo '</tbody></table></div>';
+
+        // Agregar el script de manera adecuada
+        ?>
+        <script>
+        jQuery(document).ready(function($) {
+            $('#sapwc-insert-test-log').on('click', function() {
+                $.post(ajaxurl, {
+                    action: 'sapwc_insert_test_log',
+                    nonce: sapwc_ajax.nonce
+                }, function(response) {
+                    if (response.success) {
+                        $('#sapwc-test-log-message').html('<div class="notice notice-success"><p>' + response.data + '</p></div>');
+                        setTimeout(() => location.reload(), 1500); // recarga para ver el log nuevo
+                    } else {
+                        $('#sapwc-test-log-message').html('<div class="notice notice-error"><p>' + response.data + '</p></div>');
+                    }
+                });
+            });
+        });
+        </script>
+        <?php
     }
 }
+
+add_action('wp_ajax_sapwc_insert_test_log', function () {
+    check_ajax_referer('sapwc_nonce', 'nonce');
+
+    if (!class_exists('SAPWC_Logger')) {
+        wp_send_json_error('Logger no está cargado.');
+    }
+
+    SAPWC_Logger::log(null, 'test', 'info', '🧪 Log de prueba manual (AJAX)');
+    wp_send_json_success('✅ Log de prueba insertado.');
+});
