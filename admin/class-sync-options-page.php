@@ -640,8 +640,42 @@ add_action('update_option_sapwc_cron_interval', function ($old, $new) {
             wp_clear_scheduled_hook('sapwc_cron_sync_orders');
         }
         wp_schedule_event(time() + 60, $new, 'sapwc_cron_sync_orders');
+
+        // También para stock 👇
+        if (wp_next_scheduled('sapwc_cron_sync_stock')) {
+            wp_clear_scheduled_hook('sapwc_cron_sync_stock');
+        }
+        wp_schedule_event(time() + 90, $new, 'sapwc_cron_sync_stock');
     }
 }, 10, 2);
+add_action('update_option_sapwc_sync_orders_auto', function ($old, $new) {
+    if ($old !== $new) {
+        if ($new === '1') {
+            if (!wp_next_scheduled('sapwc_cron_sync_orders')) {
+                wp_schedule_event(time() + 60, get_option('sapwc_cron_interval', 'hourly'), 'sapwc_cron_sync_orders');
+            }
+        } else {
+            wp_clear_scheduled_hook('sapwc_cron_sync_orders');
+        }
+    }
+}, 10, 2);
+add_action('update_option_sapwc_sync_stock_auto', function ($old, $new) {
+    if ($old !== $new) {
+        if ($new === '1') {
+            if (!wp_next_scheduled('sapwc_cron_sync_stock')) {
+                wp_schedule_event(time() + 90, get_option('sapwc_cron_interval', 'hourly'), 'sapwc_cron_sync_stock');
+            }
+        } else {
+            wp_clear_scheduled_hook('sapwc_cron_sync_stock');
+        }
+    }
+}, 10, 2);
+add_action('update_option_sapwc_orders_last_sync', function ($old, $new) {
+    if ($old !== $new) {
+        update_option('sapwc_orders_last_sync', $new);
+    }
+}, 10, 2);  
+
 
 function sapwc_sync_stock_items()
 {
