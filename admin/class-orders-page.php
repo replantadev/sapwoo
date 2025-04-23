@@ -172,55 +172,7 @@ add_action('wp_ajax_sapwc_send_order', function () {
     wp_die();
 });
 
-// AJAX: Enviar todos los pedidos sin _sap_exported a SAP
-add_action('wp_ajax_sapwc_send_orders', function () {
-    check_ajax_referer('sapwc_nonce', 'nonce');
 
-    $conn = sapwc_get_active_connection();
-    if (!$conn) {
-        wp_send_json_error(['message' => '❌ No hay conexión activa con SAP.']);
-    }
-
-    $client = new SAPWC_API_Client($conn['url']);
-    $login  = $client->login($conn['user'], $conn['pass'], $conn['db'], $conn['ssl'] ?? false);
-
-    if (!$login['success']) {
-        wp_send_json_error(['message' => '❌ Error al conectar con SAP: ' . $login['message']]);
-    }
-
-
-    $orders = wc_get_orders([
-        'status' => 'processing', 'on-hold',
-        'limit' => -1
-    ]);
-
-    require_once plugin_dir_path(__FILE__) . '../includes/class-sap-sync.php';
-    $sync = new SAPWC_Sync_Handler($client);
-
-    $sent = 0;
-    $skipped = 0;
-
-    foreach ($orders as $order) {
-        $already_sent = $order->get_meta('_sap_exported');
-        if (!in_array($already_sent, [true, '1', 1], true)) {
-            $result = $sync->send_order($order);
-
-            if ($result['success']) {
-                $sent++;
-            } else {
-                $skipped++;
-            }
-        } else {
-            $skipped++;
-        }
-    }
-
-    wp_send_json_success([
-        'message'     => "✅ Se enviaron $sent pedidos a SAP. ($skipped ya estaban enviados o fallaron)",
-        'last_sync'   => current_time('mysql')
-    ]);
-    wp_die();
-});
 
 
 
