@@ -670,11 +670,6 @@ add_action('update_option_sapwc_sync_stock_auto', function ($old, $new) {
         }
     }
 }, 10, 2);
-add_action('update_option_sapwc_orders_last_sync', function ($old, $new) {
-    if ($old !== $new) {
-        update_option('sapwc_orders_last_sync', $new);
-    }
-}, 10, 2);  
 
 
 function sapwc_sync_stock_items()
