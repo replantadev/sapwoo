@@ -622,20 +622,18 @@ add_action('wp_ajax_sapwc_force_stock_cron', function () {
     wp_send_json_success();
 });
 
-
 add_action('init', function () {
     $interval = get_option('sapwc_cron_interval', 'hourly');
 
-    if (wp_next_scheduled('sapwc_cron_sync_orders')) {
-        wp_clear_scheduled_hook('sapwc_cron_sync_orders');
+    if (!wp_next_scheduled('sapwc_cron_sync_orders')) {
+        wp_schedule_event(time() + 60, $interval, 'sapwc_cron_sync_orders');
     }
-    wp_schedule_event(time() + 60, $interval, 'sapwc_cron_sync_orders');
 
-    if (wp_next_scheduled('sapwc_cron_sync_stock')) {
-        wp_clear_scheduled_hook('sapwc_cron_sync_stock');
+    if (!wp_next_scheduled('sapwc_cron_sync_stock')) {
+        wp_schedule_event(time() + 90, $interval, 'sapwc_cron_sync_stock');
     }
-    wp_schedule_event(time() + 90, $interval, 'sapwc_cron_sync_stock');
 });
+
 add_action('update_option_sapwc_cron_interval', function ($old, $new) {
     if ($old !== $new) {
         if (wp_next_scheduled('sapwc_cron_sync_orders')) {
