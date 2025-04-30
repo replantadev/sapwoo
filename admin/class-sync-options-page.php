@@ -194,6 +194,29 @@ class SAPWC_Sync_Options_Page
                                 <p class="description"><?php esc_html_e('Filtra los clientes a sincronizar y mostrar en la tabla según su CardCode.', 'sapwoo'); ?></p>
                             </td>
                         </tr>
+                        <tr>
+                            <th scope="row"><?php esc_html_e('Comercial responsable (SAP)', 'sapwoo'); ?></th>
+                            <td>
+                                <?php
+                                $selected_employee = get_option('sapwc_sales_employee_code', '');
+                                $sales_employees = [];
+
+                                if ($conn) {
+                                    $sales_employees = $client->get('/SalesPersons?$select=SalesEmployeeCode,SalesEmployeeName');
+                                }
+                                ?>
+                                <select name="sapwc_sales_employee_code" class="regular-text">
+                                    <option value=""><?php esc_html_e('-- Selecciona un comercial --', 'sapwoo'); ?></option>
+                                    <?php foreach (($sales_employees['value'] ?? []) as $emp) : ?>
+                                        <option value="<?php echo esc_attr($emp['SalesEmployeeCode']); ?>" <?php selected($selected_employee, $emp['SalesEmployeeCode']); ?>>
+                                            <?php echo esc_html($emp['SalesEmployeeCode'] . ' - ' . $emp['SalesEmployeeName']); ?>
+                                        </option>
+                                    <?php endforeach; ?>
+                                </select>
+                                <p class="description"><?php esc_html_e('Este comercial se asignará en los pedidos B2B enviados a SAP.', 'sapwoo'); ?></p>
+                            </td>
+                        </tr>
+
                     <?php endif; ?>
                 </table>
 
@@ -423,8 +446,8 @@ class SAPWC_Sync_Options_Page
                 </div>
 
                 <?php submit_button(esc_html__('Guardar cambios', 'sapwoo'), 'primary', '', false, ['id' => 'submit-button']); ?>
-                        
-               </form>
+
+            </form>
 
             <hr>
             <h2><span class="dashicons dashicons-update"></span> <?php esc_html_e('Sincronización Manual', 'sapwoo'); ?></h2>
@@ -594,6 +617,8 @@ add_action('admin_init', function () {
 
     register_setting('sapwc_sync_settings', 'sapwc_customer_filter_type');
     register_setting('sapwc_sync_settings', 'sapwc_customer_filter_value');
+
+    register_setting('sapwc_sync_settings', 'sapwc_sales_employee_code');
 });
 
 function sapwc_cron_sync_stock_callback()

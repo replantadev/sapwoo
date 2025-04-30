@@ -341,7 +341,11 @@ class SAPWC_Sync_Handler
                 $order->get_shipping_country() . ')'
         );
 
-        $comments = "Pedido B2B $order_number | $billing_name | $shipping_full | Tel: $billing_phone | Email: $billing_email";
+        $comments = "Pedido B2B $order_number";
+        $sales_employee_id = get_option('sapwc_sales_employee_code') ?: null;
+        $u_ruta             = 'RUTA GENERICA'; // o 45 si SAP usa ID numérico
+        $u_portes           = 'P'; // Portes pagados
+       
 
         return [
             'CardCode'      => $card_code,
@@ -352,6 +356,13 @@ class SAPWC_Sync_Handler
             'NumAtCard'     => $order_number,
             'Comments'      => mb_substr($comments, 0, 254),
             'DocumentLines' => $items,
+            'SalesPersonCode'  => $sales_employee_id ? (int)$sales_employee_id : null,
+            'UserFields'       => [
+                'U_DNI'               => $billing_dni,
+                'U_ARTES_Portes'      => $u_portes,
+                'U_ARTES_Ruta'        => $u_ruta,
+              
+            ],
 
         ];
     }
