@@ -308,11 +308,10 @@ class SAPWC_Sync_Handler
     {
         $user = $order->get_user();
 
-        // Obtener el card code según la opción configurada
         $meta_key = get_option('sapwc_b2b_cardcode_meta', 'user_login');
         $card_code = $meta_key === 'user_login' ? $user->user_login : get_user_meta($user->ID, $meta_key, true);
         if (is_array($card_code)) {
-            $card_code = reset($card_code); // Extraer el primer valor si por alguna razón sigue siendo array
+            $card_code = reset($card_code);
         }
 
         if (!$card_code || !is_string($card_code)) {
@@ -320,34 +319,20 @@ class SAPWC_Sync_Handler
             return ['success' => false, 'message' => 'CardCode no válido para el cliente.'];
         }
 
-        // Obtener el CIF desde los metadatos del usuario
         $cif_meta_key = get_option('sapwc_b2b_cif_meta', 'nif');
-        $billing_dni = get_user_meta($user->ID, $cif_meta_key, true);
+        $billing_dni = trim(get_user_meta($user->ID, $cif_meta_key, true));
 
         $order_number = $order->get_order_number();
         $items = $this->build_items($order);
         if (empty($items)) return false;
 
-        $billing_name   = $order->get_formatted_billing_full_name();
-        $billing_phone  = $order->get_billing_phone();
-        $billing_email  = $order->get_billing_email();
-
-        $customer_note = trim($order->get_customer_note());
-        $shipping_full = trim(
-            $order->get_shipping_address_1() . ', ' .
-                $order->get_shipping_postcode() . ', ' .
-                $order->get_shipping_city() . ' (' .
-                $order->get_shipping_state() . ', ' .
-                $order->get_shipping_country() . ')'
-        );
-
+        $billing_name = $order->get_formatted_billing_full_name();
         $comments = "Pedido B2B $order_number";
         $sales_employee_id = get_option('sapwc_sales_employee_code') ?: null;
-        $u_ruta             = 'RUTA GENERICA'; // o 45 si SAP usa ID numérico
-        $u_portes           = 'P'; // Portes pagados
+        $u_ruta   = '45';
+        $u_portes = 'P';
 
-
-        return [
+        $payload = [
             'CardCode'      => $card_code,
             'CardName'      => $billing_name,
             'DocDate'       => current_time('Y-m-d'),
@@ -356,14 +341,21 @@ class SAPWC_Sync_Handler
             'NumAtCard'     => $order_number,
             'Comments'      => mb_substr($comments, 0, 254),
             'DocumentLines' => $items,
-        ] + ($sales_employee_id ? ['SalesPersonCode' => (int)$sales_employee_id] : []) + [
-            'UserFields'       => [
-                'U_DNI'               => $billing_dni,
-                'U_ARTES_Portes'      => $u_portes,
-                'U_ARTES_Ruta'        => $u_ruta,
-            ],
+            'U_ARTES_Portes' => $u_portes,
+            'U_ARTES_Ruta'  => $u_ruta,
         ];
+
+        if (!empty($billing_dni)) {
+            $payload['U_DNI'] = $billing_dni;
+        }
+
+        if (!empty($sales_employee_id)) {
+            $payload['SalesPersonCode'] = (int) $sales_employee_id;
+        }
+
+        return $payload;
     }
+
 
 
     private function build_payload_ecommerce($order)
