@@ -314,7 +314,7 @@ class SAPWC_Sync_Handler
         if (is_array($card_code)) {
             $card_code = reset($card_code); // Extraer el primer valor si por alguna razón sigue siendo array
         }
-        
+
         if (!$card_code || !is_string($card_code)) {
             SAPWC_Logger::log($order->get_id(), 'sync', 'error', 'CardCode no válido: ' . print_r($card_code, true));
             return ['success' => false, 'message' => 'CardCode no válido para el cliente.'];
@@ -345,7 +345,7 @@ class SAPWC_Sync_Handler
         $sales_employee_id = get_option('sapwc_sales_employee_code') ?: null;
         $u_ruta             = 'RUTA GENERICA'; // o 45 si SAP usa ID numérico
         $u_portes           = 'P'; // Portes pagados
-       
+
 
         return [
             'CardCode'      => $card_code,
@@ -356,14 +356,12 @@ class SAPWC_Sync_Handler
             'NumAtCard'     => $order_number,
             'Comments'      => mb_substr($comments, 0, 254),
             'DocumentLines' => $items,
-            'SalesPersonCode'  => $sales_employee_id ? (int)$sales_employee_id : null,
+        ] + ($sales_employee_id ? ['SalesPersonCode' => (int)$sales_employee_id] : []) + [
             'UserFields'       => [
                 'U_DNI'               => $billing_dni,
                 'U_ARTES_Portes'      => $u_portes,
                 'U_ARTES_Ruta'        => $u_ruta,
-              
             ],
-
         ];
     }
 

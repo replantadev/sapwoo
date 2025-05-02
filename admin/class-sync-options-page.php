@@ -206,7 +206,7 @@ class SAPWC_Sync_Options_Page
                                 }
                                 ?>
                                 <select name="sapwc_sales_employee_code" class="regular-text">
-                                    <option value=""><?php esc_html_e('-- Selecciona un comercial --', 'sapwoo'); ?></option>
+                                    <option value=""><?php esc_html_e('-- Autodetectar (usar comercial por defecto en SAP) --', 'sapwoo'); ?></option>
                                     <?php foreach (($sales_employees['value'] ?? []) as $emp) : ?>
                                         <option value="<?php echo esc_attr($emp['SalesEmployeeCode']); ?>" <?php selected($selected_employee, $emp['SalesEmployeeCode']); ?>>
                                             <?php echo esc_html($emp['SalesEmployeeCode'] . ' - ' . $emp['SalesEmployeeName']); ?>

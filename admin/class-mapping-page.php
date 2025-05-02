@@ -8,6 +8,11 @@ class SAPWC_Mapping_Page
             update_option('sapwc_field_mapping', $map);
             echo '<div class="updated"><p>Mapeo actualizado.</p></div>';
         }
+        wp_enqueue_script('sapwc-mapping-js', SAPWC_PLUGIN_URL . 'assets/js/mapping.js', ['jquery'], time(), true);
+        wp_localize_script('sapwc-mapping-js', 'sapwc_ajax', [
+            'ajax_url' => admin_url('admin-ajax.php'),
+            'nonce'    => wp_create_nonce('sapwc_nonce')
+        ]);
 
         $mapping = get_option('sapwc_field_mapping', []);
         $woo_fields = [
@@ -164,7 +169,7 @@ class SAPWC_Mapping_Page
                     'Accept' => 'application/xml'
                 ],
                 'timeout' => 30,
-                'sslverify' => !empty($this->conn['ssl'])
+                'sslverify' => !empty($conn['ssl'])
             ]);
 
             if (is_wp_error($response)) {
