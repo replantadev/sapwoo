@@ -230,7 +230,7 @@ class SAPWC_Sync_Options_Page
                             </td>
                         </tr>
                         <tr>
-                            <th scope="row">Titular del pedido (UserSign)</th>
+                            <th scope="row">Titular del pedido (DocumentsOwner)</th>
                             <td>
                                 <?php
                                 $users = [];

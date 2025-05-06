@@ -342,9 +342,7 @@ class SAPWC_Sync_Handler
                         'Quantity'        => $units_gifted,
                         'UnitPrice'       => 0,
                         'WarehouseCode'   => $warehouse,
-                        'UserFields'      => [
-                            'U_ARTES_CantSC' => $units_gifted
-                        ]
+                        'U_ARTES_CantSC'  => $units_gifted
                     ];
                 }
 
@@ -434,7 +432,7 @@ class SAPWC_Sync_Handler
         }
         $user_sign = get_option('sapwc_user_sign');
         if (!empty($user_sign)) {
-            $payload['UserSign'] = (int) $user_sign;
+            $payload['DocumentsOwner'] = (int) $user_sign;
         }
 
 
