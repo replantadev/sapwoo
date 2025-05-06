@@ -73,8 +73,11 @@ class SAPWC_Sync_Options_Page
 
         $customer_filter_type  = get_option('sapwc_customer_filter_type', 'starts'); // "starts" o "contains"
         $customer_filter_value = get_option('sapwc_customer_filter_value', '');
+        // ID del empleado activo en SAP
+        $selected_user_sign = get_option('sapwc_user_sign', '');
 
-?>
+
+    ?>
         <div class="wrap sapwc-settings">
             <h1><span class="dashicons dashicons-admin-generic"></span> <?php esc_html_e('Configuración de Sincronización SAP', 'sapwoo'); ?></h1>
             <?php if (!empty($missing_fields_notice)) echo wp_kses_post($missing_fields_notice); ?>
@@ -267,6 +270,7 @@ class SAPWC_Sync_Options_Page
                                         </option>
                                     <?php endforeach; ?>
                                 </select>
+
 
                                 <p class="description"><?php esc_html_e('Empleado activo que registrará el pedido en SAP (campo DocumentsOwner / OwnerCode).', 'sapwoo'); ?></p>
                             </td>
