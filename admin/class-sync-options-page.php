@@ -240,57 +240,61 @@ class SAPWC_Sync_Options_Page
                                     $client = new SAPWC_API_Client($conn['url']);
                                     $client->login($conn['user'], $conn['pass'], $conn['db'], $conn['ssl'] ?? false);
 
-                                    // Users
+                                    // Users (usuarios válidos para DocumentsOwner)
                                     $skip = 0;
                                     do {
-                                        $response = $client->get("/Users?\$select=InternalKey,UserCode,UserName&\$skip=$skip");
+                                        $response = $client->get("/Users?\$select=InternalKey,UserCode,UserName,Locked&\$skip=$skip");
                                         if (isset($response['value'])) {
-                                            $users = array_merge($users, $response['value']);
-                                            $skip += 20;
-                                        } else break;
-                                    } while (count($response['value']) === 20);
-
-                                    // SalesPersons
-                                    $skip = 0;
-                                    do {
-                                        $response = $client->get("/SalesPersons?\$select=SalesEmployeeCode,SalesEmployeeName&\$skip=$skip");
-                                        if (isset($response['value'])) {
-                                            foreach ($response['value'] as $sp) {
-                                                $sales_persons[] = [
-                                                    'InternalKey' => $sp['SalesEmployeeCode'],
-                                                    'UserCode'    => 'COM',
-                                                    'UserName'    => $sp['SalesEmployeeName']
-                                                ];
+                                            foreach ($response['value'] as $u) {
+                                                if ($u['Locked'] === 'tNO') {
+                                                    $users[] = [
+                                                        'InternalKey' => $u['InternalKey'],
+                                                        'UserCode'    => $u['UserCode'],
+                                                        'UserName'    => $u['UserName']
+                                                    ];
+                                                }
                                             }
                                             $skip += 20;
                                         } else break;
                                     } while (count($response['value']) === 20);
 
-                                    // Fusionar y evitar duplicados por nombre
-                                    $combined = $users;
-                                    foreach ($sales_persons as $sp) {
-                                        $already = array_filter($users, fn($u) => $u['UserName'] === $sp['UserName']);
-                                        if (empty($already)) $combined[] = $sp;
+                                    // SalesPersons (solo para mostrar coincidencias, no usables como titular)
+                                    $skip = 0;
+                                    do {
+                                        $response = $client->get("/SalesPersons?\$select=SalesEmployeeCode,SalesEmployeeName&\$skip=$skip");
+                                        if (isset($response['value'])) {
+                                            foreach ($response['value'] as $sp) {
+                                                $sales_persons[] = $sp['SalesEmployeeName'];
+                                            }
+                                            $skip += 20;
+                                        } else break;
+                                    } while (count($response['value']) === 20);
+
+                                    // Marcar usuarios que también son comerciales
+                                    foreach ($users as &$u) {
+                                        if (in_array($u['UserName'], $sales_persons)) {
+                                            $u['UserCode'] = 'COM+USR'; // puedes usar otro distintivo si quieres
+                                        }
                                     }
+                                    unset($u); // break ref
 
-                                    usort($combined, fn($a, $b) => strcmp($a['UserName'], $b['UserName']));
+                                    // Ordenar alfabéticamente
+                                    usort($users, fn($a, $b) => strcmp($a['UserName'], $b['UserName']));
                                 }
-
                                 ?>
+
                                 <select name="sapwc_user_sign" class="regular-text">
                                     <option value=""><?php esc_html_e('-- Sin especificar (dejar a SAP) --', 'sapwoo'); ?></option>
-                                    <?php foreach ($combined as $u) : ?>
+                                    <?php foreach ($users as $u) : ?>
                                         <option value="<?php echo esc_attr($u['InternalKey']); ?>" <?php selected($selected_user_sign, $u['InternalKey']); ?>>
                                             <?php echo esc_html("{$u['UserName']} ({$u['UserCode']})"); ?>
                                         </option>
                                     <?php endforeach; ?>
                                 </select>
 
-
-
-
-                                <p class="description"><?php esc_html_e('Usuario interno que registrará el pedido en SAP (campo UserSign).', 'sapwoo'); ?></p>
+                                <p class="description"><?php esc_html_e('Usuario interno que registrará el pedido en SAP (campo DocumentsOwner / OwnerCode).', 'sapwoo'); ?></p>
                             </td>
+
 
 
                         </tr>
