@@ -233,38 +233,59 @@ class SAPWC_Sync_Options_Page
                             <th scope="row">Titular del pedido (UserSign)</th>
                             <td>
                                 <?php
-                                $selected_user_sign = get_option('sapwc_user_sign', '');
                                 $users = [];
+                                $sales_persons = [];
 
                                 if ($conn) {
                                     $client = new SAPWC_API_Client($conn['url']);
                                     $client->login($conn['user'], $conn['pass'], $conn['db'], $conn['ssl'] ?? false);
 
-                                    $users = [];
+                                    // Users
                                     $skip = 0;
-                                    $limit = 20;
-
                                     do {
-                                        $endpoint = "/Users?\$select=InternalKey,UserCode,UserName&\$skip=$skip";
-                                        $response = $client->get($endpoint);
+                                        $response = $client->get("/Users?\$select=InternalKey,UserCode,UserName&\$skip=$skip");
+                                        if (isset($response['value'])) {
+                                            $users = array_merge($users, $response['value']);
+                                            $skip += 20;
+                                        } else break;
+                                    } while (count($response['value']) === 20);
 
-                                        if (!isset($response['value']) || empty($response['value'])) break;
+                                    // SalesPersons
+                                    $skip = 0;
+                                    do {
+                                        $response = $client->get("/SalesPersons?\$select=SalesEmployeeCode,SalesEmployeeName&\$skip=$skip");
+                                        if (isset($response['value'])) {
+                                            foreach ($response['value'] as $sp) {
+                                                $sales_persons[] = [
+                                                    'InternalKey' => $sp['SalesEmployeeCode'],
+                                                    'UserCode'    => 'COM',
+                                                    'UserName'    => $sp['SalesEmployeeName']
+                                                ];
+                                            }
+                                            $skip += 20;
+                                        } else break;
+                                    } while (count($response['value']) === 20);
 
-                                        $users = array_merge($users, $response['value']);
-                                        $skip += $limit;
-                                    } while (count($response['value']) === $limit);
+                                    // Fusionar y evitar duplicados por nombre
+                                    $combined = $users;
+                                    foreach ($sales_persons as $sp) {
+                                        $already = array_filter($users, fn($u) => $u['UserName'] === $sp['UserName']);
+                                        if (empty($already)) $combined[] = $sp;
+                                    }
 
-                                    usort($users, fn($a, $b) => strcmp($a['UserName'], $b['UserName']));
+                                    usort($combined, fn($a, $b) => strcmp($a['UserName'], $b['UserName']));
                                 }
+
                                 ?>
                                 <select name="sapwc_user_sign" class="regular-text">
                                     <option value=""><?php esc_html_e('-- Sin especificar (dejar a SAP) --', 'sapwoo'); ?></option>
-                                    <?php foreach ($users as $u) : ?>
+                                    <?php foreach ($combined as $u) : ?>
                                         <option value="<?php echo esc_attr($u['InternalKey']); ?>" <?php selected($selected_user_sign, $u['InternalKey']); ?>>
                                             <?php echo esc_html("{$u['UserName']} ({$u['UserCode']})"); ?>
                                         </option>
                                     <?php endforeach; ?>
                                 </select>
+
 
 
 
