@@ -200,14 +200,27 @@ class SAPWC_Sync_Options_Page
                                 <?php
                                 $selected_employee = get_option('sapwc_sales_employee_code', '');
                                 $sales_employees = [];
+                                $skip = 0;
+                                $limit = 20;
 
-                                if ($conn) {
-                                    $sales_employees = $client->get('/SalesPersons?$select=SalesEmployeeCode,SalesEmployeeName');
-                                }
+                                do {
+                                    $endpoint = "/SalesPersons?\$select=SalesEmployeeCode,SalesEmployeeName&\$skip=$skip";
+                                    $response = $client->get($endpoint);
+
+                                    if (!isset($response['value']) || empty($response['value'])) break;
+
+                                    $sales_employees = array_merge($sales_employees, $response['value']);
+                                    $skip += $limit;
+                                } while (count($response['value']) === $limit);
+
+                                usort($sales_employees, fn($a, $b) => strcmp($a['SalesEmployeeName'], $b['SalesEmployeeName']));
+
+
+
                                 ?>
                                 <select name="sapwc_sales_employee_code" class="regular-text">
                                     <option value=""><?php esc_html_e('-- Autodetectar (usar comercial por defecto en SAP) --', 'sapwoo'); ?></option>
-                                    <?php foreach (($sales_employees['value'] ?? []) as $emp) : ?>
+                                    <?php foreach ($sales_employees as $emp) : ?>
                                         <option value="<?php echo esc_attr($emp['SalesEmployeeCode']); ?>" <?php selected($selected_employee, $emp['SalesEmployeeCode']); ?>>
                                             <?php echo esc_html($emp['SalesEmployeeCode'] . ' - ' . $emp['SalesEmployeeName']); ?>
                                         </option>
@@ -216,6 +229,63 @@ class SAPWC_Sync_Options_Page
                                 <p class="description"><?php esc_html_e('Este comercial se asignará en los pedidos B2B enviados a SAP.', 'sapwoo'); ?></p>
                             </td>
                         </tr>
+                        <tr>
+                            <th scope="row">Titular del pedido (UserSign)</th>
+                            <td>
+                                <?php
+                                $selected_user_sign = get_option('sapwc_user_sign', '');
+                                $users = [];
+
+                                if ($conn) {
+                                    $client = new SAPWC_API_Client($conn['url']);
+                                    $client->login($conn['user'], $conn['pass'], $conn['db'], $conn['ssl'] ?? false);
+
+                                    $users = [];
+                                    $skip = 0;
+                                    $limit = 20;
+
+                                    do {
+                                        $endpoint = "/Users?\$select=InternalKey,UserCode,UserName&\$skip=$skip";
+                                        $response = $client->get($endpoint);
+
+                                        if (!isset($response['value']) || empty($response['value'])) break;
+
+                                        $users = array_merge($users, $response['value']);
+                                        $skip += $limit;
+                                    } while (count($response['value']) === $limit);
+
+                                    usort($users, fn($a, $b) => strcmp($a['UserName'], $b['UserName']));
+                                }
+                                ?>
+                                <select name="sapwc_user_sign" class="regular-text">
+                                    <option value=""><?php esc_html_e('-- Sin especificar (dejar a SAP) --', 'sapwoo'); ?></option>
+                                    <?php foreach ($users as $u) : ?>
+                                        <option value="<?php echo esc_attr($u['InternalKey']); ?>" <?php selected($selected_user_sign, $u['InternalKey']); ?>>
+                                            <?php echo esc_html("{$u['UserName']} ({$u['UserCode']})"); ?>
+                                        </option>
+                                    <?php endforeach; ?>
+                                </select>
+
+
+
+                                <p class="description"><?php esc_html_e('Usuario interno que registrará el pedido en SAP (campo UserSign).', 'sapwoo'); ?></p>
+                            </td>
+
+
+                        </tr>
+                        <tr>
+                            <th scope="row"><?php esc_html_e('Tipo de aplicación de descuento', 'sapwoo'); ?></th>
+                            <td>
+                                <?php $discount_mode = get_option('sapwc_discount_mode', 'rebaja'); ?>
+                                <select name="sapwc_discount_mode">
+                                    <option value="rebaja" <?php selected($discount_mode, 'rebaja'); ?>><?php esc_html_e('Rebajando precios unitarios', 'sapwoo'); ?></option>
+                                    <option value="sin_cargo" <?php selected($discount_mode, 'sin_cargo'); ?>><?php esc_html_e('Con productos sin cargo', 'sapwoo'); ?></option>
+                                </select>
+                                <p class="description">Define cómo aplicar las ofertas tipo "4+2", "9+4", etc., en los pedidos enviados a SAP.</p>
+                            </td>
+                        </tr>
+
+
 
                     <?php endif; ?>
                 </table>
@@ -565,6 +635,28 @@ class SAPWC_Sync_Options_Page
         </script>
     <?php
     }
+
+    private static function fetch_all_sap_entities($client, $base_endpoint)
+    {
+        $all = [];
+        $skip = 0;
+        $limit = 100; // Puedes ajustar a 20, 50, 100...
+
+        do {
+            $endpoint = $base_endpoint . '&$skip=' . $skip;
+            $response = $client->get($endpoint);
+
+            if (!isset($response['value']) || empty($response['value'])) {
+                break;
+            }
+
+            $all = array_merge($all, $response['value']);
+            $count = count($response['value']);
+            $skip += $count;
+        } while ($count >= $limit);
+
+        return $all;
+    }
 }
 
 add_action('wp_ajax_sapwc_toggle_option', function () {
@@ -619,6 +711,9 @@ add_action('admin_init', function () {
     register_setting('sapwc_sync_settings', 'sapwc_customer_filter_value');
 
     register_setting('sapwc_sync_settings', 'sapwc_sales_employee_code');
+
+    register_setting('sapwc_sync_settings', 'sapwc_user_sign');
+    register_setting('sapwc_sync_settings', 'sapwc_discount_mode');
 });
 
 function sapwc_cron_sync_stock_callback()

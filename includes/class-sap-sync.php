@@ -300,6 +300,72 @@ class SAPWC_Sync_Handler
 
         return $items;
     }
+    private function build_items_sin_cargo($order)
+    {
+        $items = [];
+
+        foreach ($order->get_items() as $item) {
+            $product = $item->get_product();
+            if (!$product || !$product->get_sku()) continue;
+
+            $sku         = trim($product->get_sku());
+            $sku_clean   = preg_replace('/[^\x20-\x7E]/', '', $sku);
+            $quantity    = (int) $item->get_quantity();
+            $regular     = (float) $product->get_regular_price();
+            $subtotal    = (float) $item->get_total();
+            $unit_price  = $quantity > 0 ? round($subtotal / $quantity, 4) : 0;
+
+            $almacen     = $product->get_meta('almacen') ?: $product->get_meta('_almacen');
+            $warehouse   = $almacen ? strtoupper(trim($almacen)) : '01';
+
+            $lines = [];
+
+            if ($regular > 0 && $unit_price < $regular) {
+                // Detectamos unidades con descuento → se están regalando algunas
+                $units_paid   = floor($subtotal / $regular);
+                $units_gifted = max($quantity - $units_paid, 0);
+
+                if ($units_paid > 0) {
+                    $lines[] = [
+                        'ItemCode'        => $sku_clean,
+                        'ItemDescription' => $product->get_name(),
+                        'Quantity'        => $units_paid,
+                        'UnitPrice'       => round($regular, 4),
+                        'WarehouseCode'   => $warehouse,
+                    ];
+                }
+
+                if ($units_gifted > 0) {
+                    $lines[] = [
+                        'ItemCode'        => $sku_clean,
+                        'ItemDescription' => $product->get_name() . ' (sin cargo)',
+                        'Quantity'        => $units_gifted,
+                        'UnitPrice'       => 0,
+                        'WarehouseCode'   => $warehouse,
+                    ];
+                }
+
+                error_log("[BUILD_ITEMS_SIN_CARGO] SKU: $sku_clean | PAGADAS: $units_paid | REGALADAS: $units_gifted");
+            } else {
+                // Sin descuento → todas las unidades van con precio
+                $lines[] = [
+                    'ItemCode'        => $sku_clean,
+                    'ItemDescription' => $product->get_name(),
+                    'Quantity'        => $quantity,
+                    'UnitPrice'       => round($regular, 4),
+                    'WarehouseCode'   => $warehouse,
+                ];
+            }
+
+            $items = array_merge($items, $lines);
+        }
+
+        if (empty($items)) {
+            SAPWC_Logger::log($order->get_id(), 'sync', 'error', 'Ningún producto válido (con SKU) encontrado para el pedido.');
+        }
+
+        return $items;
+    }
 
 
 
@@ -323,26 +389,37 @@ class SAPWC_Sync_Handler
         $billing_dni = trim(get_user_meta($user->ID, $cif_meta_key, true));
 
         $order_number = $order->get_order_number();
-        $items = $this->build_items($order);
+        $discount_mode = get_option('sapwc_discount_mode', 'rebaja');
+        $items = ($discount_mode === 'sin_cargo')
+            ? $this->build_items_sin_cargo($order)
+            : $this->build_items($order);
+
         if (empty($items)) return false;
 
         $billing_name = $order->get_formatted_billing_full_name();
         $comments = "Pedido B2B $order_number";
-        $sales_employee_id = get_option('sapwc_sales_employee_code') ?: null;
+
+        // Portes y ruta obligatorios
         $u_ruta   = '45';
         $u_portes = 'P';
 
+        // Comercial: primero intentar desde ajustes
+        $sales_employee_id = get_option('sapwc_sales_employee_code');
+        if (empty($sales_employee_id)) {
+            $sales_employee_id = $this->get_sales_employee_code_from_sap($card_code);
+        }
+
         $payload = [
-            'CardCode'      => $card_code,
-            'CardName'      => $billing_name,
-            'DocDate'       => current_time('Y-m-d'),
-            'DocDueDate'    => current_time('Y-m-d'),
-            'TaxDate'       => current_time('Y-m-d'),
-            'NumAtCard'     => $order_number,
-            'Comments'      => mb_substr($comments, 0, 254),
-            'DocumentLines' => $items,
+            'CardCode'       => $card_code,
+            'CardName'       => $billing_name,
+            'DocDate'        => current_time('Y-m-d'),
+            'DocDueDate'     => current_time('Y-m-d'),
+            'TaxDate'        => current_time('Y-m-d'),
+            'NumAtCard'      => $order_number,
+            'Comments'       => mb_substr($comments, 0, 254),
+            'DocumentLines'  => $items,
             'U_ARTES_Portes' => $u_portes,
-            'U_ARTES_Ruta'  => $u_ruta,
+            'U_ARTES_Ruta'   => $u_ruta,
         ];
 
         if (!empty($billing_dni)) {
@@ -352,9 +429,27 @@ class SAPWC_Sync_Handler
         if (!empty($sales_employee_id)) {
             $payload['SalesPersonCode'] = (int) $sales_employee_id;
         }
+        $user_sign = get_option('sapwc_user_sign');
+        if (!empty($user_sign)) {
+            $payload['UserSign'] = (int) $user_sign;
+        }
+
 
         return $payload;
     }
+    private function get_sales_employee_code_from_sap($card_code)
+    {
+        $url = SAPWC_API_BASE . "BusinessPartners('{$card_code}')?\$select=SalesPersonCode";
+
+        $response = SAPWC_Http::get($url); // Esta clase debe enviar con cookies guardadas
+
+        if ($response && isset($response['SalesPersonCode'])) {
+            return $response['SalesPersonCode'];
+        }
+
+        return null;
+    }
+
 
 
 
