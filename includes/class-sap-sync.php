@@ -342,6 +342,7 @@ class SAPWC_Sync_Handler
                         'Quantity'        => $units_gifted,
                         'UnitPrice'       => 0,
                         'WarehouseCode'   => $warehouse,
+                        'U_ARTES_CantSC'  => $units_gifted
                     ];
                 }
 
