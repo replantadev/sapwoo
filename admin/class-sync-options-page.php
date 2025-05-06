@@ -233,24 +233,21 @@ class SAPWC_Sync_Options_Page
                             <th scope="row">Titular del pedido (DocumentsOwner)</th>
                             <td>
                                 <?php
-                                $users = [];
-                                $sales_persons = [];
+                                $employees = [];
 
                                 if ($conn) {
                                     $client = new SAPWC_API_Client($conn['url']);
                                     $client->login($conn['user'], $conn['pass'], $conn['db'], $conn['ssl'] ?? false);
 
-                                    // Users (usuarios válidos para DocumentsOwner)
                                     $skip = 0;
                                     do {
-                                        $response = $client->get("/Users?\$select=InternalKey,UserCode,UserName,Locked&\$skip=$skip");
+                                        $response = $client->get("/EmployeesInfo?\$select=EmployeeID,FirstName,LastName,ApplicationUserID,Active&\$skip=$skip");
                                         if (isset($response['value'])) {
-                                            foreach ($response['value'] as $u) {
-                                                if ($u['Locked'] === 'tNO') {
-                                                    $users[] = [
-                                                        'InternalKey' => $u['InternalKey'],
-                                                        'UserCode'    => $u['UserCode'],
-                                                        'UserName'    => $u['UserName']
+                                            foreach ($response['value'] as $emp) {
+                                                if ($emp['Active'] === 'tYES' && !is_null($emp['ApplicationUserID'])) {
+                                                    $employees[] = [
+                                                        'name' => trim($emp['FirstName'] . ' ' . $emp['LastName']),
+                                                        'user_id' => $emp['ApplicationUserID']
                                                     ];
                                                 }
                                             }
@@ -258,46 +255,25 @@ class SAPWC_Sync_Options_Page
                                         } else break;
                                     } while (count($response['value']) === 20);
 
-                                    // SalesPersons (solo para mostrar coincidencias, no usables como titular)
-                                    $skip = 0;
-                                    do {
-                                        $response = $client->get("/SalesPersons?\$select=SalesEmployeeCode,SalesEmployeeName&\$skip=$skip");
-                                        if (isset($response['value'])) {
-                                            foreach ($response['value'] as $sp) {
-                                                $sales_persons[] = $sp['SalesEmployeeName'];
-                                            }
-                                            $skip += 20;
-                                        } else break;
-                                    } while (count($response['value']) === 20);
-
-                                    // Marcar usuarios que también son comerciales
-                                    foreach ($users as &$u) {
-                                        if (in_array($u['UserName'], $sales_persons)) {
-                                            $u['UserCode'] = 'COM+USR'; // puedes usar otro distintivo si quieres
-                                        }
-                                    }
-                                    unset($u); // break ref
-
-                                    // Ordenar alfabéticamente
-                                    usort($users, fn($a, $b) => strcmp($a['UserName'], $b['UserName']));
+                                    usort($employees, fn($a, $b) => strcmp($a['name'], $b['name']));
                                 }
                                 ?>
 
                                 <select name="sapwc_user_sign" class="regular-text">
                                     <option value=""><?php esc_html_e('-- Sin especificar (dejar a SAP) --', 'sapwoo'); ?></option>
-                                    <?php foreach ($users as $u) : ?>
-                                        <option value="<?php echo esc_attr($u['InternalKey']); ?>" <?php selected($selected_user_sign, $u['InternalKey']); ?>>
-                                            <?php echo esc_html("{$u['UserName']} ({$u['UserCode']})"); ?>
+                                    <?php foreach ($employees as $e) : ?>
+                                        <option value="<?php echo esc_attr($e['user_id']); ?>" <?php selected($selected_user_sign, $e['user_id']); ?>>
+                                            <?php echo esc_html("{$e['name']} ({$e['user_id']})"); ?>
                                         </option>
                                     <?php endforeach; ?>
                                 </select>
 
-                                <p class="description"><?php esc_html_e('Usuario interno que registrará el pedido en SAP (campo DocumentsOwner / OwnerCode).', 'sapwoo'); ?></p>
+                                <p class="description"><?php esc_html_e('Empleado activo que registrará el pedido en SAP (campo DocumentsOwner / OwnerCode).', 'sapwoo'); ?></p>
                             </td>
-
-
-
                         </tr>
+
+
+
                         <tr>
                             <th scope="row"><?php esc_html_e('Tipo de aplicación de descuento', 'sapwoo'); ?></th>
                             <td>
