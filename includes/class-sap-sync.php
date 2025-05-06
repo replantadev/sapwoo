@@ -439,7 +439,7 @@ class SAPWC_Sync_Handler
     }
     private function get_sales_employee_code_from_sap($card_code)
     {
-        $url = SAPWC_API_BASE . "BusinessPartners('{$card_code}')?\$select=SalesPersonCode";
+        $url = untrailingslashit($this->client->get_base_url()) . "/BusinessPartners('{$card_code}')?\$select=SalesPersonCode";
 
         $response = SAPWC_Http::get($url); // Esta clase debe enviar con cookies guardadas
 
