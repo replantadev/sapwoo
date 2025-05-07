@@ -318,47 +318,30 @@ class SAPWC_Sync_Handler
             $almacen     = $product->get_meta('almacen') ?: $product->get_meta('_almacen');
             $warehouse   = $almacen ? strtoupper(trim($almacen)) : '01';
 
-            $lines = [];
+            $units_paid   = $quantity;
+            $units_gifted = 0;
 
+            // Detectar si hay descuento real
             if ($regular > 0 && $unit_price < $regular) {
-                // Detectamos unidades con descuento → se están regalando algunas
                 $units_paid   = floor($subtotal / $regular);
                 $units_gifted = max($quantity - $units_paid, 0);
-
-                if ($units_paid > 0) {
-                    $lines[] = [
-                        'ItemCode'        => $sku_clean,
-                        'ItemDescription' => $product->get_name(),
-                        'Quantity'        => $units_paid,
-                        'UnitPrice'       => round($regular, 4),
-                        'WarehouseCode'   => $warehouse,
-                    ];
-                }
-
-                if ($units_gifted > 0) {
-                    $lines[] = [
-                        'ItemCode'        => $sku_clean,
-                        'ItemDescription' => $product->get_name() . ' (sin cargo)',
-                        'Quantity'        => $units_gifted,
-                        'UnitPrice'       => 0,
-                        'WarehouseCode'   => $warehouse,
-                        'U_ARTES_CantSC'  => $units_gifted
-                    ];
-                }
-
-                error_log("[BUILD_ITEMS_SIN_CARGO] SKU: $sku_clean | PAGADAS: $units_paid | REGALADAS: $units_gifted");
-            } else {
-                // Sin descuento → todas las unidades van con precio
-                $lines[] = [
-                    'ItemCode'        => $sku_clean,
-                    'ItemDescription' => $product->get_name(),
-                    'Quantity'        => $quantity,
-                    'UnitPrice'       => round($regular, 4),
-                    'WarehouseCode'   => $warehouse,
-                ];
             }
 
-            $items = array_merge($items, $lines);
+            $line = [
+                'ItemCode'        => $sku_clean,
+                'ItemDescription' => $product->get_name(),
+                'Quantity'        => $units_paid,
+                'UnitPrice'       => round($regular, 4),
+                'WarehouseCode'   => $warehouse,
+            ];
+
+            if ($units_gifted > 0) {
+                $line['U_ARTES_CantSC'] = $units_gifted;
+            }
+
+            error_log("[BUILD_ITEMS_SIN_CARGO] SKU: $sku_clean | PAGADAS: $units_paid | REGALADAS: $units_gifted");
+
+            $items[] = $line;
         }
 
         if (empty($items)) {
@@ -367,6 +350,7 @@ class SAPWC_Sync_Handler
 
         return $items;
     }
+
 
 
 
