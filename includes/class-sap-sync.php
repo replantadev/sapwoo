@@ -432,7 +432,7 @@ class SAPWC_Sync_Handler
         }
         $user_sign = get_option('sapwc_user_sign');
         if (!empty($user_sign)) {
-            $payload['DocumentsOwner'] = (int) $user_sign;
+            $payload['DocumentsOwner'] = 97; //sandra a mano
         }
 
 

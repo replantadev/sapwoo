@@ -77,7 +77,7 @@ class SAPWC_Sync_Options_Page
         $selected_user_sign = get_option('sapwc_user_sign', '');
 
 
-    ?>
+?>
         <div class="wrap sapwc-settings">
             <h1><span class="dashicons dashicons-admin-generic"></span> <?php esc_html_e('Configuración de Sincronización SAP', 'sapwoo'); ?></h1>
             <?php if (!empty($missing_fields_notice)) echo wp_kses_post($missing_fields_notice); ?>
@@ -248,33 +248,41 @@ class SAPWC_Sync_Options_Page
                                         if (isset($response['value'])) {
                                             foreach ($response['value'] as $emp) {
                                                 if ($emp['Active'] === 'tYES' && !is_null($emp['ApplicationUserID'])) {
-                                                    $employees[] = [
+                                                    $employee = [
                                                         'name' => trim($emp['FirstName'] . ' ' . $emp['LastName']),
+                                                        'employee_id' => $emp['EmployeeID'],
                                                         'user_id' => $emp['ApplicationUserID']
                                                     ];
+                                                    $employees[] = $employee;
+
+                                                    // Debug: ¿Sandra está?
+                                                    if ($employee['employee_id'] === 97 || $employee['user_id'] === 47) {
+                                                        error_log("✅ SANDRA GONZÁLEZ está en la lista de empleados");
+                                                    }
                                                 }
                                             }
                                             $skip += 20;
                                         } else break;
                                     } while (count($response['value']) === 20);
 
-                                    usort($employees, fn($a, $b) => strcmp($a['name'], $b['name']));
+                                    // Usa strcoll para evitar líos con acentos
+                                    usort($employees, fn($a, $b) => strcoll($a['name'], $b['name']));
                                 }
                                 ?>
 
                                 <select name="sapwc_user_sign" class="regular-text">
                                     <option value=""><?php esc_html_e('-- Sin especificar (dejar a SAP) --', 'sapwoo'); ?></option>
                                     <?php foreach ($employees as $e) : ?>
-                                        <option value="<?php echo esc_attr($e['user_id']); ?>" <?php selected($selected_user_sign, $e['user_id']); ?>>
+                                        <option value="<?php echo esc_attr($e['employee_id']); ?>" <?php selected($selected_user_sign, $e['employee_id']); ?>>
                                             <?php echo esc_html("{$e['name']} ({$e['user_id']})"); ?>
                                         </option>
                                     <?php endforeach; ?>
                                 </select>
 
-
                                 <p class="description"><?php esc_html_e('Empleado activo que registrará el pedido en SAP (campo DocumentsOwner / OwnerCode).', 'sapwoo'); ?></p>
                             </td>
                         </tr>
+
 
 
 
