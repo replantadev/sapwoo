@@ -338,7 +338,7 @@ class SAPWC_Sync_Handler
                     error_log("[BUILD_ITEMS_SIN_CARGO] ⚠️ Precio regular inválido para SKU: $sku_clean");
                     $subtotal  = 0; // Establecer subtotal a 0 si el precio regular no es válido
                 }
-                $item->set_quantity($quantity); // Opcional: ajustar en Woo si quieres
+                $item->set_quantity($quantity); // ajustar en Woo 
             }
 
             $units_paid   = $quantity;
