@@ -121,10 +121,11 @@ class SAPWC_Sync_Handler
                     'error',
                     "SKU inválido: producto sin SKU → " . json_encode($line)
                 );
+                $product_name = $line['ItemDescription'] ?? '[Sin nombre]';
                 $order->add_order_note('❌ Producto sin SKU válido: ' . $product_name);
                 $order->save();
 
-                $product_name = $line['ItemDescription'] ?? '[Sin nombre]';
+                
                 return [
                     'success' => false,
                     'message' => "❌ Error: el producto \"$product_name\" no tiene SKU válido. Corrige esto antes de enviar a SAP."
@@ -318,13 +319,44 @@ class SAPWC_Sync_Handler
             $almacen     = $product->get_meta('almacen') ?: $product->get_meta('_almacen');
             $warehouse   = $almacen ? strtoupper(trim($almacen)) : '01';
 
+            //  Obtener pack mínimo (prioridad: metadatos nuestros → bacola)
+            $pack_size = (int) $product->get_meta('compra_minima')
+                ?: (int) $product->get_meta('unidades_caja')
+                ?: (int) $product->get_meta('_klb_min_quantity')
+                ?: (int) $product->get_meta('_klb_step_quantity')
+                ?: 0;
+            // Ajustar si la cantidad es menor al pack mínimo permitido
+            if (is_int($pack_size) && $pack_size > 0 && $quantity < $pack_size) {
+                error_log("[BUILD_ITEMS_SIN_CARGO] ⚠️ SKU: $sku_clean seleccionó $quantity, ajustado a mínimo $pack_size");
+                SAPWC_Logger::log($order->get_id(), 'sync', 'error', sprintf('seleccionado con %d uds. Se ha corregido automáticamente a %d (mínimo de compra)', $quantity, $pack_size));
+                $order->add_order_note("Producto {$product->get_name()} seleccionado con $quantity uds. Se ha corregido automáticamente a $pack_size (mínimo de compra)");
+
+                $quantity  = $pack_size;
+                if (is_numeric($regular) && $regular > 0) {
+                    $subtotal  = $regular * $quantity; // Simular subtotal completo
+                } else {
+                    error_log("[BUILD_ITEMS_SIN_CARGO] ⚠️ Precio regular inválido para SKU: $sku_clean");
+                    $subtotal  = 0; // Establecer subtotal a 0 si el precio regular no es válido
+                }
+                $item->set_quantity($quantity); // Opcional: ajustar en Woo si quieres
+            }
+
             $units_paid   = $quantity;
             $units_gifted = 0;
 
-            // Detectar si hay descuento real
             if ($regular > 0 && $unit_price < $regular) {
                 $units_paid   = floor($subtotal / $regular);
                 $units_gifted = max($quantity - $units_paid, 0);
+
+                //  Validar pack
+                if (
+                    $pack_size > 0 &&
+                    ($quantity % $pack_size !== 0 || ($units_paid + $units_gifted) !== $quantity)
+                ) {
+                    $units_paid = $quantity;
+                    $units_gifted = 0;
+                    error_log("[BUILD_ITEMS_SIN_CARGO] ❌ $sku_clean cantidad $quantity no válida con pack de $pack_size. Se consideran todas pagadas.");
+                }
             }
 
             $line = [
@@ -339,7 +371,7 @@ class SAPWC_Sync_Handler
                 $line['U_ARTES_CantSC'] = $units_gifted;
             }
 
-            error_log("[BUILD_ITEMS_SIN_CARGO] SKU: $sku_clean | PAGADAS: $units_paid | REGALADAS: $units_gifted");
+            error_log("[BUILD_ITEMS_SIN_CARGO] SKU: $sku_clean | TOTAL: $quantity | PAGADAS: $units_paid | REGALADAS: $units_gifted");
 
             $items[] = $line;
         }
@@ -350,6 +382,7 @@ class SAPWC_Sync_Handler
 
         return $items;
     }
+
 
 
 
