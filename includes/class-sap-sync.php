@@ -328,38 +328,38 @@ class SAPWC_Sync_Handler
 
             $original_qty = $quantity;
 
-            // Calcular promo antes de ajustar cantidad
-            $units_paid   = $quantity;
-            $units_gifted = 0;
-            if ($regular > 0 && $unit_price < $regular) {
-                $units_paid   = floor($subtotal / $regular);
-                $units_gifted = max($quantity - $units_paid, 0);
-            }
-
-            // Si la cantidad es inferior al mínimo → corregir
+            // Ajustar cantidad si es inferior al mínimo
             if ($pack_size > 0 && $quantity < $pack_size) {
                 $quantity = $pack_size;
                 $order->add_order_note("⚠️ {$product->get_name()} se seleccionó con $original_qty uds. y se ajustó a $pack_size (mínimo de compra).");
                 SAPWC_Logger::log($order->get_id(), 'sync', 'info', "SKU: $sku_clean seleccionado con $original_qty uds. → corregido a $pack_size mínimo.");
+                $item->set_quantity($quantity);
 
-                // Recalcular subtotal y promociones
+                // Recalcular subtotal y unit price (por si se usa más adelante)
                 if ($regular > 0) {
                     $subtotal = $regular * $quantity;
                     $unit_price = round($subtotal / $quantity, 4);
-                    $units_paid   = floor($subtotal / $regular);
-                    $units_gifted = max($quantity - $units_paid, 0);
                 }
-                $item->set_quantity($quantity);
             }
 
-            // Validación de integridad: si no cuadra el total, asumir todas pagadas
+            // Calcular unidades pagadas y regaladas
+            $units_paid = $quantity;
+            $units_gifted = 0;
+
+            if ($regular > 0 && $unit_price < $regular) {
+                $expected_total = $regular * $quantity;
+                $discount_amount = $expected_total - $subtotal;
+                $units_gifted = round($discount_amount / $regular);
+                $units_paid = $quantity - $units_gifted;
+            }
+
+            // Validación: si no cuadra la suma, asumir todas pagadas
             if (
                 $regular > 0 &&
                 $unit_price < $regular &&
-                $pack_size > 0 &&
-                ($quantity % $pack_size !== 0 || ($units_paid + $units_gifted !== $quantity))
+                ($units_paid + $units_gifted !== $quantity)
             ) {
-                error_log("[BUILD_ITEMS_SIN_CARGO] ❌ SKU $sku_clean: cantidad $quantity inválida para pack de $pack_size. Se marcan todas como pagadas.");
+                error_log("[BUILD_ITEMS_SIN_CARGO] ❌ SKU $sku_clean: cantidad $quantity inválida. Se marcan todas como pagadas.");
                 $units_paid = $quantity;
                 $units_gifted = 0;
             }
@@ -371,7 +371,7 @@ class SAPWC_Sync_Handler
                 'Quantity'        => $units_paid,
                 'UnitPrice'       => round($regular, 4),
                 'WarehouseCode'   => $warehouse,
-                'U_ARTES_CantSC'  => $units_gifted  // siempre incluir aunque sea 0
+                'U_ARTES_CantSC'  => $units_gifted
             ];
 
             error_log("[BUILD_ITEMS_SIN_CARGO] SKU: $sku_clean | TOTAL: $quantity | PAGADAS: $units_paid | REGALADAS: $units_gifted");
@@ -385,6 +385,7 @@ class SAPWC_Sync_Handler
 
         return $items;
     }
+
 
 
 
