@@ -319,57 +319,60 @@ class SAPWC_Sync_Handler
             $almacen     = $product->get_meta('almacen') ?: $product->get_meta('_almacen');
             $warehouse   = $almacen ? strtoupper(trim($almacen)) : '01';
 
-            //  Obtener pack mínimo (prioridad: metadatos nuestros → bacola)
+            // Obtener pack mínimo (orden de prioridad)
             $pack_size = (int) $product->get_meta('compra_minima')
                 ?: (int) $product->get_meta('unidades_caja')
                 ?: (int) $product->get_meta('_klb_min_quantity')
                 ?: (int) $product->get_meta('_klb_step_quantity')
                 ?: 0;
-            // Ajustar si la cantidad es menor al pack mínimo permitido
-            if (is_int($pack_size) && $pack_size > 0 && $quantity < $pack_size) {
-                error_log("[BUILD_ITEMS_SIN_CARGO] ⚠️ SKU: $sku_clean seleccionó $quantity, ajustado a mínimo $pack_size");
-                SAPWC_Logger::log($order->get_id(), 'sync', 'error', sprintf('seleccionado con %d uds. Se ha corregido automáticamente a %d (mínimo de compra)', $quantity, $pack_size));
-                $order->add_order_note("Producto {$product->get_name()} seleccionado con $quantity uds. Se ha corregido automáticamente a $pack_size (mínimo de compra)");
 
-                $quantity  = $pack_size;
-                if (is_numeric($regular) && $regular > 0) {
-                    $subtotal  = $regular * $quantity; // Simular subtotal completo
-                } else {
-                    error_log("[BUILD_ITEMS_SIN_CARGO] ⚠️ Precio regular inválido para SKU: $sku_clean");
-                    $subtotal  = 0; // Establecer subtotal a 0 si el precio regular no es válido
-                }
-                $item->set_quantity($quantity); // ajustar en Woo 
-            }
+            $original_qty = $quantity;
 
+            // Calcular promo antes de ajustar cantidad
             $units_paid   = $quantity;
             $units_gifted = 0;
-
             if ($regular > 0 && $unit_price < $regular) {
                 $units_paid   = floor($subtotal / $regular);
                 $units_gifted = max($quantity - $units_paid, 0);
-
-                //  Validar pack
-                if (
-                    $pack_size > 0 &&
-                    ($quantity % $pack_size !== 0 || ($units_paid + $units_gifted) !== $quantity)
-                ) {
-                    $units_paid = $quantity;
-                    $units_gifted = 0;
-                    error_log("[BUILD_ITEMS_SIN_CARGO] ❌ $sku_clean cantidad $quantity no válida con pack de $pack_size. Se consideran todas pagadas.");
-                }
             }
 
+            // Si la cantidad es inferior al mínimo → corregir
+            if ($pack_size > 0 && $quantity < $pack_size) {
+                $quantity = $pack_size;
+                $order->add_order_note("⚠️ {$product->get_name()} se seleccionó con $original_qty uds. y se ajustó a $pack_size (mínimo de compra).");
+                SAPWC_Logger::log($order->get_id(), 'sync', 'info', "SKU: $sku_clean seleccionado con $original_qty uds. → corregido a $pack_size mínimo.");
+
+                // Recalcular subtotal y promociones
+                if ($regular > 0) {
+                    $subtotal = $regular * $quantity;
+                    $unit_price = round($subtotal / $quantity, 4);
+                    $units_paid   = floor($subtotal / $regular);
+                    $units_gifted = max($quantity - $units_paid, 0);
+                }
+                $item->set_quantity($quantity);
+            }
+
+            // Validación de integridad: si no cuadra el total, asumir todas pagadas
+            if (
+                $regular > 0 &&
+                $unit_price < $regular &&
+                $pack_size > 0 &&
+                ($quantity % $pack_size !== 0 || ($units_paid + $units_gifted !== $quantity))
+            ) {
+                error_log("[BUILD_ITEMS_SIN_CARGO] ❌ SKU $sku_clean: cantidad $quantity inválida para pack de $pack_size. Se marcan todas como pagadas.");
+                $units_paid = $quantity;
+                $units_gifted = 0;
+            }
+
+            // Construir línea
             $line = [
                 'ItemCode'        => $sku_clean,
                 'ItemDescription' => $product->get_name(),
                 'Quantity'        => $units_paid,
                 'UnitPrice'       => round($regular, 4),
                 'WarehouseCode'   => $warehouse,
+                'U_ARTES_CantSC'  => $units_gifted  // siempre incluir aunque sea 0
             ];
-
-            if ($units_gifted > 0) {
-                $line['U_ARTES_CantSC'] = $units_gifted;
-            }
 
             error_log("[BUILD_ITEMS_SIN_CARGO] SKU: $sku_clean | TOTAL: $quantity | PAGADAS: $units_paid | REGALADAS: $units_gifted");
 
@@ -382,6 +385,7 @@ class SAPWC_Sync_Handler
 
         return $items;
     }
+
 
 
 
