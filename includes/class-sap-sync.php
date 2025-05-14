@@ -351,13 +351,15 @@ class SAPWC_Sync_Handler
                 $units_paid   = round($subtotal / $regular);
                 $units_gifted = max($quantity - $units_paid, 0);
 
-                // Validación suave: si no cuadra, ajustar
-                if (($units_paid + $units_gifted) !== $quantity) {
+                if (abs(($units_paid + $units_gifted) - $quantity) > 0.01) {
                     error_log("[BUILD_ITEMS_SIN_CARGO] ⚠️ Ajuste por redondeo en SKU $sku_clean. TOTAL: $quantity, CALCULADAS: " . ($units_paid + $units_gifted));
                     $units_paid = $quantity;
                     $units_gifted = 0;
+                } else {
+                    error_log("[BUILD_ITEMS_SIN_CARGO] 🎁 Promo detectada SKU $sku_clean → $units_paid pagadas + $units_gifted regaladas");
                 }
             }
+
 
 
             $line = [
