@@ -393,7 +393,7 @@ class SAPWC_Sync_Options_Page
                             <?php if ($mode === 'ecommerce') : ?>
                                 <tr>
                                     <th colspan="2">
-                                        <h3><span class="dashicons dashicons-cart"></span> <?php esc_html_e('Cliente Ecommerce (NAD)', 'sapwoo'); ?></h3>
+                                        <h3><span class="dashicons dashicons-cart"></span> <?php esc_html_e('Cliente Ecommerce', 'sapwoo'); ?></h3>
                                     </th>
                                 </tr>
                                 <tr>
