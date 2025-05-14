@@ -319,60 +319,56 @@ class SAPWC_Sync_Handler
             $almacen     = $product->get_meta('almacen') ?: $product->get_meta('_almacen');
             $warehouse   = $almacen ? strtoupper(trim($almacen)) : '01';
 
-            // Obtener pack mínimo (orden de prioridad)
+            // Obtener pack mínimo
             $pack_size = (int) $product->get_meta('compra_minima')
                 ?: (int) $product->get_meta('unidades_caja')
                 ?: (int) $product->get_meta('_klb_min_quantity')
                 ?: (int) $product->get_meta('_klb_step_quantity')
                 ?: 0;
 
-            $original_qty = $quantity;
-
-            // Ajustar cantidad si es inferior al mínimo
+            // Ajustar si la cantidad es menor al pack mínimo
             if ($pack_size > 0 && $quantity < $pack_size) {
-                $quantity = $pack_size;
-                $order->add_order_note("⚠️ {$product->get_name()} se seleccionó con $original_qty uds. y se ajustó a $pack_size (mínimo de compra).");
-                SAPWC_Logger::log($order->get_id(), 'sync', 'info', "SKU: $sku_clean seleccionado con $original_qty uds. → corregido a $pack_size mínimo.");
-                $item->set_quantity($quantity);
+                error_log("[BUILD_ITEMS_SIN_CARGO] ⚠️ SKU: $sku_clean seleccionó $quantity, ajustado a mínimo $pack_size");
+                SAPWC_Logger::log($order->get_id(), 'sync', 'error', sprintf('SKU %s seleccionado con %d uds. Corregido a %d (mínimo)', $sku_clean, $quantity, $pack_size));
+                $order->add_order_note("Producto {$product->get_name()} ajustado a $pack_size por mínimo de compra");
+                $quantity  = $pack_size;
 
-                // Recalcular subtotal y unit price (por si se usa más adelante)
                 if ($regular > 0) {
-                    $subtotal = $regular * $quantity;
-                    $unit_price = round($subtotal / $quantity, 4);
+                    $subtotal  = $regular * $quantity;
+                } else {
+                    error_log("[BUILD_ITEMS_SIN_CARGO] ❌ Precio regular inválido para SKU $sku_clean");
+                    $subtotal = 0;
                 }
+
+                $item->set_quantity($quantity);
             }
 
-            // Calcular unidades pagadas y regaladas
+            // Cálculo de unidades pagadas y regaladas
             $units_paid = $quantity;
             $units_gifted = 0;
 
-            if ($regular > 0 && $unit_price < $regular) {
-                $expected_total = $regular * $quantity;
-                $discount_amount = $expected_total - $subtotal;
-                $units_gifted = round($discount_amount / $regular);
-                $units_paid = $quantity - $units_gifted;
+            if ($regular > 0 && $subtotal > 0 && $unit_price < $regular) {
+                $units_paid   = round($subtotal / $regular);
+                $units_gifted = max($quantity - $units_paid, 0);
+
+                // Validación suave: si no cuadra, ajustar
+                if (($units_paid + $units_gifted) !== $quantity) {
+                    error_log("[BUILD_ITEMS_SIN_CARGO] ⚠️ Ajuste por redondeo en SKU $sku_clean. TOTAL: $quantity, CALCULADAS: " . ($units_paid + $units_gifted));
+                    $units_paid = $quantity;
+                    $units_gifted = 0;
+                }
             }
 
-            // Validación: si no cuadra la suma, asumir todas pagadas
-            if (
-                $regular > 0 &&
-                $unit_price < $regular &&
-                ($units_paid + $units_gifted !== $quantity)
-            ) {
-                error_log("[BUILD_ITEMS_SIN_CARGO] ❌ SKU $sku_clean: cantidad $quantity inválida. Se marcan todas como pagadas.");
-                $units_paid = $quantity;
-                $units_gifted = 0;
-            }
 
-            // Construir línea
             $line = [
                 'ItemCode'        => $sku_clean,
                 'ItemDescription' => $product->get_name(),
                 'Quantity'        => $units_paid,
                 'UnitPrice'       => round($regular, 4),
                 'WarehouseCode'   => $warehouse,
-                'U_ARTES_CantSC'  => $units_gifted
             ];
+
+            $line['U_ARTES_CantSC'] = $units_gifted; // siempre presente, aunque sea 0
 
             error_log("[BUILD_ITEMS_SIN_CARGO] SKU: $sku_clean | TOTAL: $quantity | PAGADAS: $units_paid | REGALADAS: $units_gifted");
 
@@ -385,7 +381,6 @@ class SAPWC_Sync_Handler
 
         return $items;
     }
-
 
 
 
