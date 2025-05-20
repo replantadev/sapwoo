@@ -12,7 +12,8 @@ class SAPWC_Logger
             'status'    => $status,
             'message'   => $message,
             'docentry' => is_numeric($docentry) ? (int)$docentry : null,
-            'created_at' => current_time('mysql')
+            'created_at' => wp_date('Y-m-d H:i:s')
+
         ]);
 
         if ($result === false) {

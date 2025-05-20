@@ -387,12 +387,6 @@ class SAPWC_Sync_Handler
     }
 
 
-
-
-
-
-
-
     private function build_payload_b2b($order)
     {
         $user = $order->get_user();

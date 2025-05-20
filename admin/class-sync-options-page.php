@@ -354,7 +354,7 @@ class SAPWC_Sync_Options_Page
                                         <?php
                                         $next = wp_next_scheduled('sapwc_cron_sync_orders');
                                         if ($next) {
-                                            echo '<strong>' . esc_html(date_i18n('Y-m-d H:i:s', $next)) . '</strong>';
+                                            echo '<strong>' . esc_html(wp_date('Y-m-d H:i:s', $next)) . '</strong>';
                                             echo ' &nbsp;<code>(' . esc_html(human_time_diff(time(), $next)) . ')</code>';
                                         } else {
                                             echo '<span style="color:red;"><span class="dashicons dashicons-warning"></span> ' . esc_html__('No programado', 'sapwoo') . '</span>';
@@ -515,7 +515,7 @@ class SAPWC_Sync_Options_Page
                                     <?php
                                     $next_stock = wp_next_scheduled('sapwc_cron_sync_stock');
                                     if ($next_stock) {
-                                        echo '<strong>' . esc_html(date_i18n('Y-m-d H:i:s', $next_stock)) . '</strong>';
+                                        echo '<strong>' . esc_html(wp_date('Y-m-d H:i:s', $next_stock)) . '</strong>';
                                         echo ' &nbsp;<code>(' . esc_html(human_time_diff(time(), $next_stock)) . ')</code>';
                                     } else {
                                         echo '<span style="color:red;"><span class="dashicons dashicons-warning"></span> ' . esc_html__('No programado', 'sapwoo') . '</span>';
@@ -946,7 +946,7 @@ function sapwc_sync_stock_items_ecommerce()
         $product->save();
     }
 
-    update_option('sapwc_stock_last_sync', current_time('mysql'));
+    update_option('sapwc_stock_last_sync', wp_date('Y-m-d H:i:s'));
     $context = $is_ajax ? 'manual' : 'cron';
     SAPWC_Logger::log(0, 'stock_' . $context, 'success', 'Stock actualizado desde ' . strtoupper($context));
 
@@ -955,7 +955,7 @@ function sapwc_sync_stock_items_ecommerce()
     if ($is_ajax) {
         wp_send_json_success([
             'message'   => '✅ Stock actualizado con éxito.',
-            'last_sync' => current_time('mysql')
+            'last_sync' => wp_date('Y-m-d H:i:s')
         ]);
     }
 }
@@ -1063,13 +1063,13 @@ function sapwc_sync_stock_items_b2b()
         update_post_meta($product_id, 'compra_minima', ''); // Si se recupera luego desde SAP
     }
 
-    update_option('sapwc_stock_last_sync', current_time('mysql'));
+    update_option('sapwc_stock_last_sync', wp_date('Y-m-d H:i:s'));
     SAPWC_Logger::log(0, 'stock_b2b', 'success', 'Stock actualizado en modo B2B');
 
     if ($is_ajax) {
         wp_send_json_success([
             'message' => '✅ Stock B2B actualizado con éxito.',
-            'last_sync' => current_time('mysql')
+            'last_sync' => wp_date('Y-m-d H:i:s')
         ]);
     }
 }
@@ -1185,13 +1185,13 @@ function sapwc_sync_existing_products()
         $success++;
     }
 
-    update_option('sapwc_stock_last_sync', current_time('mysql'));
+    update_option('sapwc_stock_last_sync', wp_date('Y-m-d H:i:s'));
     SAPWC_Logger::log(0, 'existing_manual', 'success', "Sincronizados $success productos existentes con éxito (fallos: $fail)");
 
     if ($is_ajax) {
         wp_send_json_success([
             'message'   => "✅ Se sincronizaron $success productos existentes.",
-            'last_sync' => current_time('mysql')
+            'last_sync' => wp_date('Y-m-d H:i:s')
         ]);
     }
 }

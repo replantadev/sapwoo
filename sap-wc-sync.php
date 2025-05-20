@@ -3,7 +3,7 @@
 Plugin Name: SAP Woo Sync
 Plugin URI: https://replanta.es
 Description: Sincroniza pedidos de WooCommerce con SAP Business One.
-Version: 1.2.43
+Version: 1.2.44
 Author: Replanta Dev
 Author URI: https://replanta.es
 License: GPLv2 or later
@@ -283,7 +283,7 @@ function sapwc_cron_sync_orders_callback()
         }
     }
 
-    update_option('sapwc_orders_last_sync', current_time('mysql'));
+    update_option('sapwc_orders_last_sync', wp_date('Y-m-d H:i:s'));
     if ($last_docentry) {
         update_option('sapwc_orders_last_docentry', $last_docentry);
     }
@@ -351,8 +351,8 @@ add_action('admin_bar_menu', function ($wp_admin_bar) {
     ]);
 
     $next_cron = wp_next_scheduled('sapwc_cron_sync_orders');
-    $next_cron_formatted = $next_cron ? date_i18n('Y-m-d H:i:s', $next_cron) : __('No programado', 'sapwoo');
-    
+    $next_cron_formatted = $next_cron ? wp_date('Y-m-d H:i:s', $next_cron) : __('No programado', 'sapwoo');
+
     $wp_admin_bar->add_node([
         'id'     => 'sapwc_status_nextcron',
         'parent' => 'sapwc_status',
@@ -412,7 +412,7 @@ add_action('wp_ajax_sapwc_send_orders', function () {
 
     wp_send_json_success([
         'message' => __('Pedidos sincronizados correctamente.', 'sapwoo'),
-        'last_sync' => current_time('mysql'),
+        'last_sync' => wp_date('Y-m-d H:i:s'),
         'last_docentry' => $last_docentry
     ]);
 });
