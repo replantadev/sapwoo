@@ -478,6 +478,8 @@ class SAPWC_Sync_Handler
         $billing_email    = $order->get_billing_email();
         $billing_dni = $order->get_meta('billing_dni') ?: $order->get_meta('_billing_dni') ?: '';
         $order_number     = $order->get_order_number();
+        $u_ruta   = '45';
+        $u_portes = 'P';
 
         $billing_address = [
             'street'  => $order->get_billing_address_1(),
@@ -526,8 +528,9 @@ class SAPWC_Sync_Handler
         $card_name = in_array($billing_state, ['GC', 'TF', 'LP', 'HI', 'TE', 'CN'])
             ? get_option('sapwc_cardname_canarias', 'CLIENTEWEBNAD CANARIAS')
             : get_option('sapwc_cardname_peninsula', 'CLIENTEWEBNAD PENINSULA');
+        $site_short_name = get_option('sapwc_site_short_name', 'NAD+');
 
-        $comments = "WEB NAD+ $order_number | $entrega_nombre | $entrega_full | Dirección de correo electrónico: {$billing_email} | Teléfono: {$billing_phone}";
+        $comments = "{$site_short_name} | $order_number | $entrega_nombre | $entrega_full | Email: {$billing_email} | Tel: {$billing_phone}";
 
         return [
             'CardCode'      => $card_code,
@@ -538,12 +541,14 @@ class SAPWC_Sync_Handler
             'NumAtCard'     => $order_number,
             'Comments'      => mb_substr($comments, 0, 254),
             'DocumentLines' => $this->build_items($order),
+            'U_ARTES_Portes' => $u_portes,
+            'U_ARTES_Ruta'   => $u_ruta,
             'UserFields'    => [
-                'U_ARTES_Com'         => 'CLIENTE WEB NAD',
+                'U_ARTES_Com'         => 'CLIENTE WEB',
                 'U_ARTES_TEL'         => $billing_phone,
                 'U_ARTES_Portes'      => 'P',
                 'U_ARTES_Ruta'        => 45,
-                'U_ARTES_Alerta'      => 'CLIENTE WEB NAD',
+                'U_ARTES_Alerta'      => 'CLIENTE WEB',
                 'U_PerFact'           => 'V',
                 'U_DRA_Observ_Agencia' => 'WEB-' . $order_number,
                 'U_DNI'               => $billing_dni,

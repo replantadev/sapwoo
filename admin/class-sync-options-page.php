@@ -75,6 +75,9 @@ class SAPWC_Sync_Options_Page
         $customer_filter_value = get_option('sapwc_customer_filter_value', '');
         // ID del empleado activo en SAP
         $selected_user_sign = get_option('sapwc_user_sign', '');
+        $site_short_name = get_option('sapwc_site_short_name', '');
+
+
 
 
 ?>
@@ -301,6 +304,7 @@ class SAPWC_Sync_Options_Page
 
 
                     <?php endif; ?>
+
                 </table>
 
 
@@ -408,6 +412,14 @@ class SAPWC_Sync_Options_Page
                                     <td>
                                         <input type="text" name="sapwc_cardcode_canarias" value="<?php echo esc_attr($cardcode_canarias); ?>" class="regular-text" placeholder="<?php esc_attr_e('CardCode', 'sapwoo'); ?>">
                                         <input type="text" name="sapwc_cardname_canarias" value="<?php echo esc_attr($cardname_canarias); ?>" class="regular-text" placeholder="<?php esc_attr_e('Nombre', 'sapwoo'); ?>">
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th scope="row"><?php esc_html_e('Nombre corto del sitio', 'sapwoo'); ?></th>
+                                    <td>
+                                        
+                                        <input type="text" name="sapwc_site_short_name" value="<?php echo esc_attr($site_short_name); ?>" class="regular-text" placeholder="<?php esc_attr_e('Ej: Tienda Online', 'sapwoo'); ?>">
+                                        <p class="description"><?php esc_html_e('Este nombre se usará en los comentarios de pedido enviados a SAP.', 'sapwoo'); ?></p>
                                     </td>
                                 </tr>
                             <?php endif; ?>
@@ -727,6 +739,8 @@ add_action('admin_init', function () {
 
     register_setting('sapwc_sync_settings', 'sapwc_user_sign');
     register_setting('sapwc_sync_settings', 'sapwc_discount_mode');
+
+    register_setting('sapwc_sync_settings', 'sapwc_site_short_name');
 });
 
 function sapwc_cron_sync_stock_callback()
