@@ -541,8 +541,6 @@ class SAPWC_Sync_Handler
             'NumAtCard'     => $order_number,
             'Comments'      => mb_substr($comments, 0, 254),
             'DocumentLines' => $this->build_items($order),
-            'U_ARTES_Portes' => $u_portes,
-            'U_ARTES_Ruta'   => $u_ruta,
             'UserFields'    => [
                 'U_ARTES_Com'         => 'CLIENTE WEB',
                 'U_ARTES_TEL'         => $billing_phone,
