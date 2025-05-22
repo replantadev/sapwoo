@@ -535,24 +535,24 @@ class SAPWC_Sync_Handler
         $doc_date = $fecha_creacion ? $fecha_creacion->date('Y-m-d') : date('Y-m-d');
 
         return [
-            'CardCode'      => $card_code,
-            'CardName'      => $card_name,
-            'DocDate'       => $doc_date,
-            'DocDueDate'    => $doc_date,
-            'TaxDate'       => $doc_date,
-            'NumAtCard'     => $order_number,
-            'Comments'      => mb_substr($comments, 0, 254),
-            'U_ARTES_Portes'      => 'P',
-            'U_ARTES_Ruta'        => strval($u_ruta),
+            'CardCode'         => $card_code,
+            'CardName'         => $card_name,
+            'DocDate'          => $doc_date,
+            'DocDueDate'       => $doc_date,
+            'TaxDate'          => $doc_date,
+            'NumAtCard'        => $order_number,
+            'Comments'         => mb_substr($comments, 0, 254),
+            'U_ARTES_Portes'   => $u_portes,
+            'U_ARTES_Ruta'     => strval($u_ruta),
+            'DocumentLines'    => $this->build_items($order),
+            // Los siguientes solo si estaban antes en tu payload:
             'U_ARTES_Com'         => 'CLIENTE WEB',
             'U_ARTES_TEL'         => $billing_phone,
             'U_ARTES_Alerta'      => 'CLIENTE WEB',
-            'U_PerFact'           => 'V',
             'U_DRA_Observ_Agencia' => 'WEB-' . $order_number,
             'U_DNI'               => $billing_dni,
             'U_ARTES_Observ'      => mb_substr($final_observ, 0, 254),
             'U_DRA_Coment_Alm'    => mb_substr($comments, 0, 254),
-            'DocumentLines' => $this->build_items($order)
         ];
     }
 
