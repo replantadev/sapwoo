@@ -540,6 +540,8 @@ class SAPWC_Sync_Handler
             'TaxDate'       => current_time('Y-m-d'),
             'NumAtCard'     => $order_number,
             'Comments'      => mb_substr($comments, 0, 254),
+            'U_ARTES_Portes'      => 'P',
+            'U_ARTES_Ruta'        => 45,
             'DocumentLines' => $this->build_items($order),
             'UserFields'    => [
                 'U_ARTES_Com'         => 'CLIENTE WEB',
