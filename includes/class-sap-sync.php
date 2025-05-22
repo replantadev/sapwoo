@@ -531,30 +531,28 @@ class SAPWC_Sync_Handler
         $site_short_name = get_option('sapwc_site_short_name', 'NAD+');
 
         $comments = "{$site_short_name} | $order_number | $entrega_nombre | $entrega_full | Email: {$billing_email} | Tel: {$billing_phone}";
+        $fecha_creacion = $order->get_date_created();
+        $doc_date = $fecha_creacion ? $fecha_creacion->date('Y-m-d') : date('Y-m-d');
 
         return [
             'CardCode'      => $card_code,
             'CardName'      => $card_name,
-            'DocDate'       => current_time('Y-m-d'),
-            'DocDueDate'    => current_time('Y-m-d'),
-            'TaxDate'       => current_time('Y-m-d'),
+            'DocDate'       => $doc_date,
+            'DocDueDate'    => $doc_date,
+            'TaxDate'       => $doc_date,
             'NumAtCard'     => $order_number,
             'Comments'      => mb_substr($comments, 0, 254),
             'U_ARTES_Portes'      => 'P',
-            'U_ARTES_Ruta'        => 45,
-            'DocumentLines' => $this->build_items($order),
-            'UserFields'    => [
-                'U_ARTES_Com'         => 'CLIENTE WEB',
-                'U_ARTES_TEL'         => $billing_phone,
-                'U_ARTES_Portes'      => 'P',
-                'U_ARTES_Ruta'        => 45,
-                'U_ARTES_Alerta'      => 'CLIENTE WEB',
-                'U_PerFact'           => 'V',
-                'U_DRA_Observ_Agencia' => 'WEB-' . $order_number,
-                'U_DNI'               => $billing_dni,
-                'U_ARTES_Observ'      => mb_substr($final_observ, 0, 254),
-                'U_DRA_Coment_Alm'    => mb_substr($comments, 0, 254),
-            ]
+            'U_ARTES_Ruta'        => strval($u_ruta),
+            'U_ARTES_Com'         => 'CLIENTE WEB',
+            'U_ARTES_TEL'         => $billing_phone,
+            'U_ARTES_Alerta'      => 'CLIENTE WEB',
+            'U_PerFact'           => 'V',
+            'U_DRA_Observ_Agencia' => 'WEB-' . $order_number,
+            'U_DNI'               => $billing_dni,
+            'U_ARTES_Observ'      => mb_substr($final_observ, 0, 254),
+            'U_DRA_Coment_Alm'    => mb_substr($comments, 0, 254),
+            'DocumentLines' => $this->build_items($order)
         ];
     }
 
