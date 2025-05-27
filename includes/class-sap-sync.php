@@ -251,9 +251,19 @@ class SAPWC_Sync_Handler
         update_option('sapwc_failed_orders', $fallbacks);
     }
 
+    /**
+     * Genera las líneas de pedido para SAP, asegurando que los precios enviados sean SIEMPRE sin IVA.
+     * Si WooCommerce almacena los precios con IVA incluido, los recalcula a netos por línea.
+     * Deja logs si detecta y ajusta precios desde bruto (con IVA) a neto (sin IVA).
+     *
+     * @param WC_Order $order El pedido de WooCommerce.
+     * @return array Las líneas del documento preparadas para SAP.
+     */
     private function build_items($order)
     {
         $items = [];
+        $line_totals = []; // Acumulador para el ajuste de descuadre
+        $prices_include_tax = get_option('woocommerce_prices_include_tax') === 'yes';
 
         foreach ($order->get_items() as $item) {
             $product = $item->get_product();
@@ -262,20 +272,32 @@ class SAPWC_Sync_Handler
             $sku = trim($product->get_sku());
             $sku_clean = preg_replace('/[^\x20-\x7E]/', '', $sku);
 
-            $line_subtotal = $item->get_total();
+            $line_subtotal = $item->get_total(); // Total línea (incluyendo o no IVA según config de Woo)
+            $line_tax      = $item->get_total_tax();
             $quantity      = $item->get_quantity();
-            $price_excl_tax = $quantity > 0 ? ($line_subtotal / $quantity) : 0;
 
+            // Por defecto usamos el subtotal tal cual, pero si WooCommerce almacena los precios con IVA incluido, restamos el IVA de la línea
+            $line_total_excl_tax = $line_subtotal;
+            if ($prices_include_tax) {
+                $line_total_excl_tax = $line_subtotal - $line_tax;
+                error_log("[SAPWC] (build_items) SKU $sku_clean - Ajuste SIN IVA: original $line_subtotal, IVA $line_tax, neto $line_total_excl_tax");
+            }
+
+            // Precio unitario sin IVA para SAP
+            $price_excl_tax = $quantity > 0 ? ($line_total_excl_tax / $quantity) : 0;
+
+            // Descuento sobre el precio regular
             $regular = $product->get_regular_price();
             $discount_percent = 0;
-
             if ($regular > 0 && $price_excl_tax < $regular) {
                 $discount_percent = round((($regular - $price_excl_tax) / $regular) * 100, 2);
             }
 
+            // Almacén del producto
             $almacen = $product->get_meta('almacen') ?: $product->get_meta('_almacen');
             $warehouse = $almacen ? strtoupper(trim($almacen)) : '01';
 
+            // Componer la línea para SAP
             $line = [
                 'ItemCode'        => $sku_clean,
                 'ItemDescription' => $product->get_name(),
@@ -284,38 +306,49 @@ class SAPWC_Sync_Handler
                 'WarehouseCode'   => $warehouse,
             ];
 
+            // Si hay descuento, se añade al campo de usuario
             if ($discount_percent > 0) {
                 $line['UserFields'] = [
                     'U_ARTES_DtoAR1' => $discount_percent
                 ];
             }
 
-            error_log("[BUILD_ITEMS] SKU: $sku_clean | ALMACÉN: $warehouse | DESCUENTO: {$discount_percent}%");
+            error_log("[BUILD_ITEMS] SKU: $sku_clean | ALMACÉN: $warehouse | DESCUENTO: {$discount_percent}% | PVP SIN IVA: {$line['UnitPrice']}");
 
             $items[] = $line;
-            // Guarda el total de línea redondeado a 2 decimales
+
+            // Guarda el total de la línea (sin IVA) para ajustar descuadre si hace falta
             $line_totals[] = round($price_excl_tax * $quantity, 2);
         }
-        // Ajustar última línea si es necesario
-        $order_total = round((float)$order->get_total(), 2);
+
+        // -- AJUSTE DE DESCUDRE FINAL --
+        // Suma de todas las líneas sin IVA
         $lines_sum = array_sum($line_totals);
 
-        $diff = $order_total - $lines_sum;
+        // Total del pedido (sin IVA, porque SAP suma el IVA después)
+        $order_total = $order->get_total();
+        $order_total_tax = $order->get_total_tax();
+        $order_total_excl_tax = $order_total - $order_total_tax;
+
+        // Diferencia por redondeos o descuentos aplicados por WooCommerce
+        $diff = round($order_total_excl_tax - $lines_sum, 2);
 
         if (count($items) && abs($diff) >= 0.01) {
-            // Ajusta el UnitPrice de la última línea
+            // Ajusta el UnitPrice de la última línea para cuadrar el neto exacto
             $idx = count($items) - 1;
             $q = $items[$idx]['Quantity'];
             $items[$idx]['UnitPrice'] = round($items[$idx]['UnitPrice'] + ($diff / $q), 4);
             error_log("[SAPWC] Ajuste de redondeo aplicado en la última línea: " . ($diff));
         }
 
+        // Si por cualquier motivo no hay líneas válidas, deja log
         if (empty($items)) {
             SAPWC_Logger::log($order->get_id(), 'sync', 'error', 'Ningún producto válido (con SKU) encontrado para el pedido.');
         }
 
         return $items;
     }
+
     private function build_items_sin_cargo($order)
     {
         $items = [];
