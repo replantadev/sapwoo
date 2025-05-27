@@ -3,7 +3,7 @@
 Plugin Name: SAP Woo Sync
 Plugin URI: https://replanta.es
 Description: Sincroniza pedidos de WooCommerce con SAP Business One.
-Version: 1.2.50
+Version: 1.2.51
 Author: Replanta Dev
 Author URI: https://replanta.es
 License: GPLv2 or later
@@ -485,7 +485,7 @@ add_action('woocommerce_save_account_details', 'sapwc_save_nif_dni_from_user_pro
 
 /*-------------------AJUSTE DECIMALES WOO------------------------*/
 add_filter('wc_get_price_decimals', function () {
-    return 4; // 
+    return 2; // 
 });
 add_filter('woocommerce_get_price_html', function ($price_html, $product) {
     $precio = floatval($product->get_price());
