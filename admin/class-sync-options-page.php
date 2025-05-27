@@ -745,12 +745,23 @@ add_action('admin_init', function () {
 
 function sapwc_cron_sync_stock_callback()
 {
-    if (get_option('sapwc_sync_stock_auto') !== '1') return;
+    // Lock para evitar ejecuciones solapadas (duración máxima: 20 min)
+    if (get_transient('sapwc_cron_stock_lock')) {
+        error_log('[SAPWC] Cron de stock en ejecución, evitando solapamiento.');
+        return;
+    }
+    set_transient('sapwc_cron_stock_lock', 1, 20 * MINUTE_IN_SECONDS);
 
-    error_log('[SAPWC Cron Stock] Iniciando sincronización automática de stock.');
-    sapwc_sync_existing_products(); // tu función ya hace todo lo necesario
+    try {
+        sapwc_sync_existing_products(); // la función de sincro actual
+    } catch (Throwable $e) {
+        error_log('[SAPWC] Error en sincronización de stock: ' . $e->getMessage());
+    } finally {
+        delete_transient('sapwc_cron_stock_lock');
+    }
 }
 add_action('sapwc_cron_sync_stock', 'sapwc_cron_sync_stock_callback');
+
 
 
 
@@ -945,7 +956,7 @@ function sapwc_sync_stock_items_ecommerce()
             if (!empty($tax_rates)) {
                 $rate = reset($tax_rates);
                 if (isset($rate['rate'])) {
-                    $price_final = round($precio * (1 + ((float)$rate['rate'] / 100)), 2);
+                    $price_final = round($precio * (1 + ((float)$rate['rate'] / 100)), 4);
                 }
             }
         }

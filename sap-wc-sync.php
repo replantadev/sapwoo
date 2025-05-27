@@ -234,63 +234,86 @@ add_action('admin_enqueue_scripts', function ($hook) {
 
 
 
-
-
-
-add_action('sapwc_cron_sync_orders', 'sapwc_cron_sync_orders_callback');
-
-function sapwc_cron_sync_orders_callback()
+function sapwc_sync_orders_with_lock()
 {
-    if (get_option('sapwc_sync_orders_auto') !== '1') return;
-
-    $conn = sapwc_get_active_connection();
-    if (!$conn) {
-        error_log(__('❌ No hay conexión activa configurada.', 'sapwoo'));
-        return;
+    // Lock para evitar ejecuciones solapadas (20 min)
+    if (get_transient('sapwc_cron_orders_lock')) {
+        error_log('[SAPWC] Sincronización de pedidos ya en ejecución, evitando solapamiento.');
+        return [
+            'locked' => true,
+            'message' => 'Sincronización en curso.'
+        ];
     }
+    set_transient('sapwc_cron_orders_lock', 1, 20 * MINUTE_IN_SECONDS);
 
-    $client = new SAPWC_API_Client($conn['url']);
-    $login  = $client->login($conn['user'], $conn['pass'], $conn['db'], $conn['ssl'] ?? false);
-    if (!$login['success']) {
-        error_log(__('❌ Error de conexión: ', 'sapwoo') . $login['message']);
-        return;
-    }
-
-    $sync = new SAPWC_Sync_Handler($client);
-    $orders = wc_get_orders([
-        'status' => ['processing', 'on-hold'],
-        'limit' => -1
-    ]);
-
-    $sent = 0;
-    $skipped = 0;
-    $errors = 0;
-    $last_docentry = null;
-
-    foreach ($orders as $order) {
-        $result = $sync->send_order($order);
-
-        if (!empty($result['skipped'])) {
-            $skipped++;
-        } elseif (!empty($result['success'])) {
-            $sent++;
-            if (!empty($result['docentry'])) {
-                $last_docentry = $result['docentry'];
-            }
-        } else {
-            $errors++;
-            SAPWC_Logger::log($order->get_id(), 'cron', 'error', 'Falló sincronización desde cron: ' . ($result['message'] ?? 'Error desconocido'));
+    try {
+        $conn = sapwc_get_active_connection();
+        if (!$conn) {
+            error_log(__('❌ No hay conexión activa configurada.', 'sapwoo'));
+            return ['success' => false, 'message' => 'No hay conexión activa configurada.'];
         }
-    }
 
-    update_option('sapwc_orders_last_sync', wp_date('Y-m-d H:i:s'));
-    if ($last_docentry) {
-        update_option('sapwc_orders_last_docentry', $last_docentry);
-    }
+        $client = new SAPWC_API_Client($conn['url']);
+        $login  = $client->login($conn['user'], $conn['pass'], $conn['db'], $conn['ssl'] ?? false);
+        if (!$login['success']) {
+            error_log(__('❌ Error de conexión: ', 'sapwoo') . $login['message']);
+            return ['success' => false, 'message' => 'Error de conexión a SAP: ' . $login['message']];
+        }
 
-    error_log(sprintf(__('Enviados: %d | Ya enviados: %d | Errores: %d', 'sapwoo'), $sent, $skipped, $errors));
-    SAPWC_Logger::log(null, 'cron', 'info', "Finalizó sync automática. Enviados: $sent | Saltados: $skipped | Errores: $errors");
+        $sync = new SAPWC_Sync_Handler($client);
+        $orders = wc_get_orders([
+            'status' => ['processing', 'on-hold'],
+            'limit' => -1
+        ]);
+        $sent = 0;
+        $skipped = 0;
+        $errors = 0;
+        $last_docentry = null;
+
+        foreach ($orders as $order) {
+            $result = $sync->send_order($order);
+            if (!empty($result['skipped'])) {
+                $skipped++;
+            } elseif (!empty($result['success'])) {
+                $sent++;
+                if (!empty($result['docentry'])) {
+                    $last_docentry = $result['docentry'];
+                }
+            } else {
+                $errors++;
+                SAPWC_Logger::log($order->get_id(), 'cron', 'error', 'Falló sincronización desde cron: ' . ($result['message'] ?? 'Error desconocido'));
+            }
+        }
+
+        update_option('sapwc_orders_last_sync', wp_date('Y-m-d H:i:s'));
+        if ($last_docentry) {
+            update_option('sapwc_orders_last_docentry', $last_docentry);
+        }
+
+        error_log(sprintf(__('Enviados: %d | Ya enviados: %d | Errores: %d', 'sapwoo'), $sent, $skipped, $errors));
+        SAPWC_Logger::log(null, 'cron', 'info', "Finalizó sync automática. Enviados: $sent | Saltados: $skipped | Errores: $errors");
+
+        return [
+            'success' => true,
+            'sent' => $sent,
+            'skipped' => $skipped,
+            'errors' => $errors,
+            'last_docentry' => $last_docentry
+        ];
+    } finally {
+        delete_transient('sapwc_cron_orders_lock');
+    }
 }
+add_action('sapwc_cron_sync_orders', function () {
+    $result = sapwc_sync_orders_with_lock();
+    if (!empty($result['locked'])) {
+        // Si quieres loguear: 
+        error_log('[SAPWC] Se evitó un solapamiento de sincro de pedidos.');
+    }
+});
+
+
+
 
 
 
@@ -377,45 +400,24 @@ add_action('admin_bar_menu', function ($wp_admin_bar) {
 // AJAX para enviar pedidos a SAP
 add_action('wp_ajax_sapwc_send_orders', function () {
     check_ajax_referer('sapwc_nonce', 'nonce');
+    $result = sapwc_sync_orders_with_lock();
 
-    $conn = sapwc_get_active_connection();
-    if (!$conn) {
-        wp_send_json_error(__('❌ No hay conexión activa con SAP.', 'sapwoo'));
+    if (!empty($result['locked'])) {
+        wp_send_json_error(['message' => '⏳ Sincronización ya en curso. Espera a que termine.']);
+    } elseif (empty($result['success'])) {
+        wp_send_json_error(['message' => $result['message'] ?? '❌ Error desconocido']);
+    } else {
+        wp_send_json_success([
+            'message' => __('Pedidos sincronizados correctamente.', 'sapwoo'),
+            'sent' => $result['sent'],
+            'skipped' => $result['skipped'],
+            'errors' => $result['errors'],
+            'last_docentry' => $result['last_docentry'],
+            'last_sync' => wp_date('Y-m-d H:i:s')
+        ]);
     }
-
-    $client = new SAPWC_API_Client($conn['url']);
-    $login  = $client->login($conn['user'], $conn['pass'], $conn['db'], $conn['ssl'] ?? false);
-    if (!$login['success']) {
-        wp_send_json_error(__('❌ Error al conectar con SAP: ', 'sapwoo') . $login['message']);
-    }
-
-    $sync = new SAPWC_Sync_Handler($client);
-    $orders = wc_get_orders([
-        'status' => ['processing', 'on-hold'], // puedes añadir más estados si quieres
-        'limit'  => -1
-    ]);
-
-    $last_docentry = null;
-    foreach ($orders as $order) {
-        if (!$order->get_meta('_sap_exported')) {
-            $result = $sync->send_order($order);
-            if ($result['success'] && isset($result['docentry'])) {
-                $last_docentry = $result['docentry'];
-            }
-        }
-    }
-
-    update_option('sapwc_orders_last_sync', current_time('mysql'));
-    if ($last_docentry) {
-        update_option('sapwc_orders_last_docentry', $last_docentry);
-    }
-
-    wp_send_json_success([
-        'message' => __('Pedidos sincronizados correctamente.', 'sapwoo'),
-        'last_sync' => wp_date('Y-m-d H:i:s'),
-        'last_docentry' => $last_docentry
-    ]);
 });
+
 
 
 //mostrar solo si hay stock o agotado por producto, no las unidades en frontend:
@@ -479,3 +481,17 @@ function sapwc_save_nif_dni_from_user_profile($user_id)
 add_action('personal_options_update', 'sapwc_save_nif_dni_from_user_profile');
 add_action('edit_user_profile_update', 'sapwc_save_nif_dni_from_user_profile');
 add_action('woocommerce_save_account_details', 'sapwc_save_nif_dni_from_user_profile');
+
+
+/*-------------------AJUSTE DECIMALES WOO------------------------*/
+add_filter('wc_get_price_decimals', function () {
+    return 4; // 
+});
+add_filter('woocommerce_get_price_html', function ($price_html, $product) {
+    $precio = floatval($product->get_price());
+    return wc_price(round($precio, 2));
+}, 10, 2);
+
+add_filter('woocommerce_calculated_total', function ($total) {
+    return round($total, 2);
+});

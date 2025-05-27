@@ -293,6 +293,21 @@ class SAPWC_Sync_Handler
             error_log("[BUILD_ITEMS] SKU: $sku_clean | ALMACÉN: $warehouse | DESCUENTO: {$discount_percent}%");
 
             $items[] = $line;
+            // Guarda el total de línea redondeado a 2 decimales
+            $line_totals[] = round($price_excl_tax * $quantity, 2);
+        }
+        // Ajustar última línea si es necesario
+        $order_total = round((float)$order->get_total(), 2);
+        $lines_sum = array_sum($line_totals);
+
+        $diff = $order_total - $lines_sum;
+
+        if (count($items) && abs($diff) >= 0.01) {
+            // Ajusta el UnitPrice de la última línea
+            $idx = count($items) - 1;
+            $q = $items[$idx]['Quantity'];
+            $items[$idx]['UnitPrice'] = round($items[$idx]['UnitPrice'] + ($diff / $q), 4);
+            error_log("[SAPWC] Ajuste de redondeo aplicado en la última línea: " . ($diff));
         }
 
         if (empty($items)) {
@@ -533,6 +548,10 @@ class SAPWC_Sync_Handler
         $comments = "{$site_short_name} | $order_number | $entrega_nombre | $entrega_full | Email: {$billing_email} | Tel: {$billing_phone}";
         $fecha_creacion = $order->get_date_created();
         $doc_date = $fecha_creacion ? $fecha_creacion->date('Y-m-d') : date('Y-m-d');
+        $user_sign = get_option('sapwc_user_sign');
+        if (!empty($user_sign)) {
+            $DocumentsOwner = 97; //sandra a mano
+        }
 
         return [
             'CardCode'         => $card_code,
@@ -544,6 +563,7 @@ class SAPWC_Sync_Handler
             'Comments'         => mb_substr($comments, 0, 254),
             'U_ARTES_Portes'   => $u_portes,
             'U_ARTES_Ruta'     => strval($u_ruta),
+            'DocumentsOwner' => $DocumentsOwner,
             'DocumentLines'    => $this->build_items($order),
             // Los siguientes solo si estaban antes en tu payload:
             'U_ARTES_Com'         => 'CLIENTE WEB',
