@@ -582,9 +582,9 @@ class SAPWC_Sync_Handler
         $fecha_creacion = $order->get_date_created();
         $doc_date = $fecha_creacion ? $fecha_creacion->date('Y-m-d') : date('Y-m-d');
         $user_sign = get_option('sapwc_user_sign');
-        if (!empty($user_sign)) {
+        //if (!empty($user_sign)) {
             $DocumentsOwner = 97; //sandra a mano
-        }
+        //}
 
         return [
             'CardCode'         => $card_code,
