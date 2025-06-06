@@ -262,7 +262,7 @@ class SAPWC_Sync_Handler
     private function build_items($order)
     {
         $items = [];
-        $line_totals = []; // Acumulador para el ajuste de descuadre
+        $line_totals = [];
         $prices_include_tax = get_option('woocommerce_prices_include_tax') === 'yes';
 
         foreach ($order->get_items() as $item) {
@@ -272,82 +272,66 @@ class SAPWC_Sync_Handler
             $sku = trim($product->get_sku());
             $sku_clean = preg_replace('/[^\x20-\x7E]/', '', $sku);
 
-            $line_subtotal = $item->get_total(); // Total línea (incluyendo o no IVA según config de Woo)
-            $line_tax      = $item->get_total_tax();
             $quantity      = $item->get_quantity();
+            $line_subtotal = $item->get_total();
+            $line_tax      = $item->get_total_tax();
 
-            // Por defecto usamos el subtotal tal cual, pero si WooCommerce almacena los precios con IVA incluido, restamos el IVA de la línea
-            $line_total_excl_tax = $line_subtotal;
-            if ($prices_include_tax) {
-                $line_total_excl_tax = $line_subtotal - $line_tax;
-                error_log("[SAPWC] (build_items) SKU $sku_clean - Ajuste SIN IVA: original $line_subtotal, IVA $line_tax, neto $line_total_excl_tax");
-            }
+            // Calcula el precio unitario SIN IVA, SIN descuentos
+            $line_total_excl_tax = $prices_include_tax ? ($line_subtotal - $line_tax) : $line_subtotal;
+            $unit_price = $quantity > 0 ? round($line_total_excl_tax / $quantity, 4) : 0;
 
-            // Precio unitario sin IVA para SAP
-            $price_excl_tax = $quantity > 0 ? ($line_total_excl_tax / $quantity) : 0;
-
-            // Descuento sobre el precio regular
-            $regular = $product->get_regular_price();
-            $discount_percent = 0;
-            if ($regular > 0 && $price_excl_tax < $regular) {
-                $discount_percent = round((($regular - $price_excl_tax) / $regular) * 100, 2);
-            }
-
-            // Almacén del producto
+            // Campo de almacén, por si lo tienes
             $almacen = $product->get_meta('almacen') ?: $product->get_meta('_almacen');
             $warehouse = $almacen ? strtoupper(trim($almacen)) : '01';
 
-            // Componer la línea para SAP
+            // Puedes calcular descuento para llevarlo como UserField, pero no para modificar el precio enviado a SAP
+            $regular = $product->get_regular_price();
+            $discount_percent = 0;
+            if ($regular > 0 && $unit_price < $regular) {
+                $discount_percent = round((($regular - $unit_price) / $regular) * 100, 2);
+            }
+
             $line = [
                 'ItemCode'        => $sku_clean,
                 'ItemDescription' => $product->get_name(),
                 'Quantity'        => $quantity,
-                'UnitPrice'       => round($price_excl_tax, 4),
+                'UnitPrice'       => $unit_price,
                 'WarehouseCode'   => $warehouse,
             ];
 
-            // Si hay descuento, se añade al campo de usuario
             if ($discount_percent > 0) {
                 $line['UserFields'] = [
                     'U_ARTES_DtoAR1' => $discount_percent
                 ];
             }
 
-            error_log("[BUILD_ITEMS] SKU: $sku_clean | ALMACÉN: $warehouse | DESCUENTO: {$discount_percent}% | PVP SIN IVA: {$line['UnitPrice']}");
+            error_log("[BUILD_ITEMS] SKU: $sku_clean | ALMACÉN: $warehouse | PVP NETO: {$line['UnitPrice']} | DESCUENTO: $discount_percent%");
 
             $items[] = $line;
-
-            // Guarda el total de la línea (sin IVA) para ajustar descuadre si hace falta
-            $line_totals[] = round($price_excl_tax * $quantity, 2);
+            $line_totals[] = round($unit_price * $quantity, 2);
         }
 
         // -- AJUSTE DE DESCUDRE FINAL --
-        // Suma de todas las líneas sin IVA
         $lines_sum = array_sum($line_totals);
-
-        // Total del pedido (sin IVA, porque SAP suma el IVA después)
         $order_total = $order->get_total();
         $order_total_tax = $order->get_total_tax();
         $order_total_excl_tax = $order_total - $order_total_tax;
-
-        // Diferencia por redondeos o descuentos aplicados por WooCommerce
         $diff = round($order_total_excl_tax - $lines_sum, 2);
 
         if (count($items) && abs($diff) >= 0.01) {
-            // Ajusta el UnitPrice de la última línea para cuadrar el neto exacto
             $idx = count($items) - 1;
             $q = $items[$idx]['Quantity'];
             $items[$idx]['UnitPrice'] = round($items[$idx]['UnitPrice'] + ($diff / $q), 4);
             error_log("[SAPWC] Ajuste de redondeo aplicado en la última línea: " . ($diff));
         }
 
-        // Si por cualquier motivo no hay líneas válidas, deja log
         if (empty($items)) {
             SAPWC_Logger::log($order->get_id(), 'sync', 'error', 'Ningún producto válido (con SKU) encontrado para el pedido.');
         }
 
         return $items;
     }
+
 
     private function build_items_sin_cargo($order)
     {
@@ -434,6 +418,27 @@ class SAPWC_Sync_Handler
         return $items;
     }
 
+    /**
+     * Obtiene el precio neto SIN IVA de un SKU para el cliente y la tarifa seleccionada.
+     */
+    private function get_sap_item_price($sku, $card_code = '', $price_list_id = null)
+    {
+        // Si no tienes price_list_id, puedes obtenerlo desde el BP
+        if (!$price_list_id && $card_code) {
+            $bp = $this->client->get("/BusinessPartners('$card_code')");
+            $price_list_id = $bp['PriceListNum'] ?? null;
+        }
+        if (!$price_list_id) $price_list_id = get_option('sapwc_price_list', 2);
+
+        // Ahora consulta el precio
+        $endpoint = "/Items('$sku')/ItemPrices?\$filter=PriceList eq $price_list_id";
+        $resp = $this->client->get($endpoint);
+
+        if (isset($resp['value'][0]['Price'])) {
+            return (float) $resp['value'][0]['Price'];
+        }
+        return null;
+    }
 
     private function build_payload_b2b($order)
     {
@@ -581,10 +586,11 @@ class SAPWC_Sync_Handler
         $comments = "{$site_short_name} | $order_number | $entrega_nombre | $entrega_full | Email: {$billing_email} | Tel: {$billing_phone}";
         $fecha_creacion = $order->get_date_created();
         $doc_date = $fecha_creacion ? $fecha_creacion->date('Y-m-d') : date('Y-m-d');
+        $DocumentsOwner = null;
         $user_sign = get_option('sapwc_user_sign');
-        //if (!empty($user_sign)) {
-            $DocumentsOwner = 97; //sandra a mano
-        //}
+        if (!empty($user_sign)) {
+            $DocumentsOwner = 97; //o lo que corresponda
+        }
 
         return [
             'CardCode'         => $card_code,
