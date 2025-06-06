@@ -249,3 +249,34 @@ function get_valid_sap_state($wc_state)
     return $state_map[$wc_state] ?? null;
 }
 
+
+/**
+ * Devuelve el IVA de la clase de impuesto del producto, o el 21% si no encuentra.
+ */
+function sapwc_get_tax_rate_percent($tax_class = '')
+{
+    if ($tax_class === '') $tax_class = 'standard';
+    $taxes = WC_Tax::get_rates($tax_class);
+    $iva_percent = 0;
+    if ($taxes) {
+        $tax_obj = reset($taxes);
+        if (isset($tax_obj['rate'])) {
+            $iva_percent = (float) $tax_obj['rate'];
+        }
+    }
+    // Fallback manual: buscar en tabla tasas estándar
+    if ($iva_percent <= 0 && $tax_class === 'standard') {
+        global $wpdb;
+        $rate = $wpdb->get_var(
+            "SELECT tax_rate FROM {$wpdb->prefix}woocommerce_tax_rates WHERE tax_rate_class = '' ORDER BY tax_rate_id LIMIT 1"
+        );
+        if ($rate !== null) {
+            $iva_percent = (float) $rate;
+        }
+    }
+    // Si aún así nada, fuerza 21%
+    if ($iva_percent <= 0) {
+        $iva_percent = 21;
+    }
+    return $iva_percent;
+}

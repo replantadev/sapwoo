@@ -1,1 +1,1 @@
-Stable tag: 1.2.61
+Stable tag: 1.2.62

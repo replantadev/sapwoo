@@ -275,48 +275,32 @@ class SAPWC_Sync_Handler
             $almacen = $product->get_meta('almacen') ?: $product->get_meta('_almacen');
             $warehouse = $almacen ? strtoupper(trim($almacen)) : '01';
 
-            // OBTENER PRECIO CON IVA (PVP)
+            // 1. OBTENER PRECIO REGULAR y SALE (ambos con IVA)
             $regular_price = (float) $product->get_regular_price();
             $sale_price    = (float) $product->get_sale_price();
             $use_sale      = $sale_price && ($sale_price < $regular_price);
 
-            $pvp_con_iva = $use_sale ? $sale_price : $regular_price;
-
-            // DETECTAR CLASE IVA
+            // 2. OBTENER IVA real (con fallback)
             $tax_class = $product->get_tax_class();
-            if ($tax_class === '') $tax_class = 'standard';
-            $taxes = WC_Tax::get_rates($tax_class);
-            $iva_percent = 0;
-            if ($taxes) {
-                $tax_obj = reset($taxes);
-                if (isset($tax_obj['rate'])) {
-                    $iva_percent = (float) $tax_obj['rate'];
-                }
-            }
+            $iva_percent = sapwc_get_tax_rate_percent($tax_class);
 
-            // MANEJO DE IVA "FALLBACK"
-            if ($iva_percent == 0) {
-                // Si no hay IVA declarado, asume 21% y avisa en log
-                $iva_percent = 21.0;
-                error_log("[BUILD_ITEMS][ADVERTENCIA] Producto $sku_clean sin IVA definido. Se fuerza 21%");
-            }
+            // 3. CALCULAR PVP CON IVA y NETO (el que espera SAP)
+            $pvp_con_iva = $use_sale ? $sale_price : $regular_price;
+            $pvp_neto = ($prices_include_tax && $iva_percent > 0)
+                ? round($pvp_con_iva / (1 + ($iva_percent / 100)), 6)
+                : round($pvp_con_iva, 6);
 
-            // CALCULAR NETO
-            $pvp_neto = $prices_include_tax
-                ? round($pvp_con_iva / (1 + ($iva_percent / 100)), 5)
-                : round($pvp_con_iva, 5);
-
-            // CALCULAR DESCUENTO SOLO SI HAY OFERTA
+            // 4. CALCULAR DESCUENTO (solo si hay oferta real)
             $discount_percent = 0;
             if ($use_sale && $regular_price > 0) {
-                $pvp_neto_regular = $prices_include_tax
+                $pvp_neto_regular = ($prices_include_tax && $iva_percent > 0)
                     ? $regular_price / (1 + ($iva_percent / 100))
                     : $regular_price;
                 $discount_percent = round((($pvp_neto_regular - $pvp_neto) / $pvp_neto_regular) * 100, 2);
                 if ($discount_percent < 0) $discount_percent = 0;
             }
 
-            // CONSTRUIR LÍNEA PARA SAP
+            // 5. CONSTRUIR LÍNEA para SAP
             $line = [
                 'ItemCode'        => $sku_clean,
                 'ItemDescription' => $product->get_name(),
@@ -330,7 +314,7 @@ class SAPWC_Sync_Handler
                 ];
             }
 
-            // LOG MUY DETALLADO
+            // LOG para auditoría (quítalo si no quieres ruido)
             error_log("[BUILD_ITEMS] SKU: $sku_clean | MODE: $mode | ALMACÉN: $warehouse | PVP NETO: $pvp_neto | PVP IVA: $pvp_con_iva | REGULAR: $regular_price | SALE: $sale_price | IVA: $iva_percent | DESC: $discount_percent | QTY: $quantity");
 
             $items[] = $line;
@@ -338,6 +322,8 @@ class SAPWC_Sync_Handler
 
         return $items;
     }
+
+
 
 
 
