@@ -275,12 +275,12 @@ class SAPWC_Sync_Handler
             $almacen = $product->get_meta('almacen') ?: $product->get_meta('_almacen');
             $warehouse = $almacen ? strtoupper(trim($almacen)) : '01';
 
-            // 1. OBTENER PRECIO REGULAR y SALE (ambos con IVA)
+            // PRECIO REGULAR (PVP con IVA)
             $regular_price = (float) $product->get_regular_price();
             $sale_price    = (float) $product->get_sale_price();
             $use_sale      = $sale_price && ($sale_price < $regular_price);
 
-            // 2. OBTENER IVA del producto
+            // OBTENER IVA DEL PRODUCTO
             $tax_class = $product->get_tax_class();
             if ($tax_class === '') $tax_class = 'standard';
             $taxes = WC_Tax::get_rates($tax_class);
@@ -292,24 +292,25 @@ class SAPWC_Sync_Handler
                 }
             }
 
-            // 3. CALCULAR UNIT PRICE (sin IVA) —> el que espera SAP
+            // PRECIO CON IVA (el que WooCommerce muestra)
             $pvp_con_iva = $use_sale ? $sale_price : $regular_price;
-            $pvp_neto = ($prices_include_tax && $iva_percent > 0)
-                ? round($pvp_con_iva / (1 + ($iva_percent / 100)), 4)
-                : round($pvp_con_iva, 4);
 
-            // 4. CALCULAR DESCUENTO (solo si hay oferta real)
+            // PRECIO NETO (sin IVA), que es el que espera SAP
+            $pvp_neto = ($prices_include_tax && $iva_percent > 0)
+                ? round($pvp_con_iva / (1 + ($iva_percent / 100)), 5) // usa 5 decimales por los redondeos SAP
+                : round($pvp_con_iva, 5);
+
+            // CALCULAR DESCUENTO (%) SOLO SI HAY OFERTA REAL
             $discount_percent = 0;
             if ($use_sale && $regular_price > 0) {
                 $pvp_neto_regular = ($prices_include_tax && $iva_percent > 0)
                     ? $regular_price / (1 + ($iva_percent / 100))
                     : $regular_price;
                 $discount_percent = round((($pvp_neto_regular - $pvp_neto) / $pvp_neto_regular) * 100, 2);
-                // Garantía de no negativo
                 if ($discount_percent < 0) $discount_percent = 0;
             }
 
-            // 5. CONSTRUIR LÍNEA para SAP
+            // CONSTRUIR LÍNEA
             $line = [
                 'ItemCode'        => $sku_clean,
                 'ItemDescription' => $product->get_name(),
@@ -317,14 +318,15 @@ class SAPWC_Sync_Handler
                 'UnitPrice'       => $pvp_neto,
                 'WarehouseCode'   => $warehouse,
             ];
-            // Solo si hay descuento real, añade UserFields
+
+            // SOLO SI HAY DESCUENTO REAL
             if ($discount_percent > 0) {
                 $line['UserFields'] = [
                     'U_ARTES_DtoAR1' => $discount_percent
                 ];
             }
 
-            // LOG debug línea construida
+            // LOG para debug, muy detallado
             error_log("[BUILD_ITEMS] SKU: $sku_clean | MODE: $mode | ALMACÉN: $warehouse | PVP NETO: $pvp_neto | PVP IVA: $pvp_con_iva | REGULAR: $regular_price | SALE: $sale_price | IVA: $iva_percent | DESC: $discount_percent | QTY: $quantity");
 
             $items[] = $line;
@@ -332,6 +334,7 @@ class SAPWC_Sync_Handler
 
         return $items;
     }
+
 
 
 
