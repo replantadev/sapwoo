@@ -286,6 +286,7 @@ class SAPWC_Sync_Handler
 
             // 3. CALCULAR PVP CON IVA y NETO (el que espera SAP)
             $pvp_con_iva = $use_sale ? $sale_price : $regular_price;
+            $pvp_con_iva = round($pvp_con_iva, 2); // aseguremos que el precio bruto esté ya a 2 decimales
             $pvp_neto = ($prices_include_tax && $iva_percent > 0)
                 ? round($pvp_con_iva / (1 + ($iva_percent / 100)), 2)
                 : round($pvp_con_iva, 2);
