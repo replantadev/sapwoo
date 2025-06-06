@@ -332,7 +332,6 @@ class SAPWC_Sync_Handler
     }
 
 
-
     private function build_items_sin_cargo($order)
     {
         $items = [];
