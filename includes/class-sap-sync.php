@@ -263,6 +263,9 @@ class SAPWC_Sync_Handler
     {
         $items = [];
         $line_totals = [];
+
+        // Detectar modo B2B o ecommerce
+        $mode = get_option('sapwc_mode', 'ecommerce');
         $prices_include_tax = get_option('woocommerce_prices_include_tax') === 'yes';
 
         foreach ($order->get_items() as $item) {
@@ -271,50 +274,62 @@ class SAPWC_Sync_Handler
 
             $sku = trim($product->get_sku());
             $sku_clean = preg_replace('/[^\x20-\x7E]/', '', $sku);
-
             $quantity      = $item->get_quantity();
-            $line_subtotal = $item->get_total();
-            $line_tax      = $item->get_total_tax();
 
-            $line_total_excl_tax = $prices_include_tax ? ($line_subtotal - $line_tax) : $line_subtotal;
-            $unit_price = $quantity > 0 ? round($line_total_excl_tax / $quantity, 4) : 0;
+            $almacen = $product->get_meta('almacen') ?: $product->get_meta('_almacen');
+            $warehouse = $almacen ? strtoupper(trim($almacen)) : '01';
 
-            // CALCULA REGULAR SIN IVA de forma dinámica
-            $regular = $this->get_regular_price_excl_tax($product);
+            // 1. Para B2B los precios SIEMPRE son sin IVA
+            if ($mode === 'b2b') {
+                // Precio neto sin IVA, directamente
+                $unit_price = $item->get_total() / max(1, $quantity);
+                $regular = (float) $product->get_regular_price();
+            } else {
+                // 2. Para ecommerce los precios pueden venir con IVA, se debe quitar por línea según tax real
+                $line_subtotal = $item->get_total();
+                $line_tax      = $item->get_total_tax();
 
-            // Aplica descuento real sólo si lo hay
+                $unit_price = $prices_include_tax
+                    ? round(($line_subtotal - $line_tax) / max(1, $quantity), 4)
+                    : round($line_subtotal / max(1, $quantity), 4);
+
+                // El regular puede estar con IVA; hay que quitarle el IVA real
+                $regular = $this->get_regular_price_excl_tax($product);
+            }
+
+            // Calcula el descuento real SOLO si lo hay
             $discount_percent = 0;
             if ($regular > 0 && $unit_price < ($regular - 0.01)) {
                 $discount_percent = round((($regular - $unit_price) / $regular) * 100, 2);
             }
 
-            $almacen = $product->get_meta('almacen') ?: $product->get_meta('_almacen');
-            $warehouse = $almacen ? strtoupper(trim($almacen)) : '01';
-
             $line = [
                 'ItemCode'        => $sku_clean,
                 'ItemDescription' => $product->get_name(),
                 'Quantity'        => $quantity,
-                'UnitPrice'       => $unit_price,
+                'UnitPrice'       => round($unit_price, 4),
                 'WarehouseCode'   => $warehouse,
             ];
-
             if ($discount_percent > 0) {
                 $line['UserFields'] = [
                     'U_ARTES_DtoAR1' => $discount_percent
                 ];
             }
 
-            error_log("[BUILD_ITEMS] SKU: $sku_clean | ALMACÉN: $warehouse | PVP NETO: {$line['UnitPrice']} | DESCUENTO: $discount_percent%");
+            error_log("[BUILD_ITEMS] SKU: $sku_clean | MODE: $mode | ALMACÉN: $warehouse | UNIT: {$line['UnitPrice']} | REGULAR: $regular | DESCUENTO: $discount_percent%");
 
             $items[] = $line;
             $line_totals[] = round($unit_price * $quantity, 2);
         }
-        // -- AJUSTE SOLO SI HAY DESCUDRE MINÚSCULO (<0.10€) --
+
+        // SOLO AJUSTE si el descuadre es menor de 0,10€ (para evitar errores SAP en redondeos tontos)
         $lines_sum = array_sum($line_totals);
         $order_total = $order->get_total();
         $order_total_tax = $order->get_total_tax();
-        $order_total_excl_tax = $order_total - $order_total_tax;
+        $order_total_excl_tax = ($mode === 'b2b')
+            ? $order_total // ya sin IVA en B2B
+            : ($order_total - $order_total_tax);
+
         $diff = round($order_total_excl_tax - $lines_sum, 2);
 
         if (count($items) && abs($diff) > 0.01 && abs($diff) <= 0.10) {
@@ -330,6 +345,7 @@ class SAPWC_Sync_Handler
 
         return $items;
     }
+
 
 
     private function build_items_sin_cargo($order)
@@ -428,43 +444,34 @@ class SAPWC_Sync_Handler
     {
         $regular_price = (float) $product->get_regular_price();
 
-        // Si WooCommerce ya está en modo "sin IVA", devuelve tal cual
         if (get_option('woocommerce_prices_include_tax') !== 'yes') {
             return round($regular_price, 4);
         }
 
-        // Obtén el ID de la tasa de impuesto
-        $tax_class = $product->get_tax_class();
-        if ($tax_class === '') $tax_class = 'standard'; // Woo usa '' para standard
-
-        // Usamos una cantidad ficticia para calcular el porcentaje de IVA real
+        // Usa el tax_class real del producto para calcular el IVA
+        $tax_class = $product->get_tax_class() ?: 'standard';
         $taxes = WC_Tax::get_rates($tax_class);
         $iva_percent = 0;
 
         if ($taxes) {
-            // Coge SOLO la primera tasa aplicable
             $tax_obj = reset($taxes);
             if (isset($tax_obj['rate'])) {
                 $iva_percent = (float) $tax_obj['rate'];
             }
         }
-        // Si no encuentra, asume 0%
         if ($iva_percent <= 0) {
             return round($regular_price, 4);
         }
-
-        // El precio regular que viene de Woo es CON IVA: hay que quitarle el %IVA
-        $regular_price_excl_tax = $regular_price / (1 + ($iva_percent / 100));
-        return round($regular_price_excl_tax, 4);
+        return round($regular_price / (1 + ($iva_percent / 100)), 4);
     }
+
     private function get_sale_price_excl_tax($product)
     {
         $sale_price = (float) $product->get_sale_price();
         if (!$sale_price) return 0;
         if (get_option('woocommerce_prices_include_tax') !== 'yes') return round($sale_price, 4);
 
-        $tax_class = $product->get_tax_class();
-        if ($tax_class === '') $tax_class = 'standard';
+        $tax_class = $product->get_tax_class() ?: 'standard';
         $taxes = WC_Tax::get_rates($tax_class);
         $iva_percent = 0;
 
@@ -479,6 +486,7 @@ class SAPWC_Sync_Handler
         }
         return round($sale_price / (1 + ($iva_percent / 100)), 4);
     }
+
 
 
     private function build_payload_b2b($order)
