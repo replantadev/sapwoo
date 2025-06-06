@@ -275,24 +275,31 @@ class SAPWC_Sync_Handler
             $almacen = $product->get_meta('almacen') ?: $product->get_meta('_almacen');
             $warehouse = $almacen ? strtoupper(trim($almacen)) : '01';
 
-            // --- Calcular el precio unitario SIN IVA ---
-            $line_total = $item->get_total();        // Total de la línea (con o sin IVA según Woo)
-            $line_tax   = $item->get_total_tax();    // IVA de la línea
+            // CALCULAR PVP NETO (precio regular sin IVA, siempre)
+            $regular_price = (float) $product->get_regular_price();
+            $tax_class = $product->get_tax_class();
+            if ($tax_class === '') $tax_class = 'standard';
+            $taxes = WC_Tax::get_rates($tax_class);
+            $iva_percent = 0;
+            if ($taxes) {
+                $tax_obj = reset($taxes);
+                if (isset($tax_obj['rate'])) {
+                    $iva_percent = (float) $tax_obj['rate'];
+                }
+            }
+            $pvp_neto = $prices_include_tax && $iva_percent > 0
+                ? round($regular_price / (1 + ($iva_percent / 100)), 4)
+                : round($regular_price, 4);
 
-            // El precio real cobrado es SIEMPRE (total de línea - IVA de línea) / cantidad
-            $line_total_excl_tax = $line_total - $line_tax;
-            $unit_price = $quantity > 0 ? round($line_total_excl_tax / $quantity, 4) : 0;
-
-            // Si tienes lógica de descuentos, puedes añadir UserFields aquí (ahora solo info base)
             $line = [
                 'ItemCode'        => $sku_clean,
                 'ItemDescription' => $product->get_name(),
                 'Quantity'        => $quantity,
-                'UnitPrice'       => $unit_price,
+                'UnitPrice'       => $pvp_neto,
                 'WarehouseCode'   => $warehouse,
             ];
 
-            error_log("[BUILD_ITEMS] SKU: $sku_clean | MODE: $mode | ALMACÉN: $warehouse | UNIT: {$line['UnitPrice']} | QTY: $quantity");
+            error_log("[BUILD_ITEMS] SKU: $sku_clean | MODE: $mode | ALMACÉN: $warehouse | PVP NETO: $pvp_neto | REGULAR: $regular_price | IVA: $iva_percent | QTY: $quantity");
 
             $items[] = $line;
         }
