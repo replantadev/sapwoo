@@ -3,7 +3,7 @@
 Plugin Name: SAP Woo Sync
 Plugin URI: https://replanta.es
 Description: Sincroniza pedidos de WooCommerce con SAP Business One.
-Version: 1.2.62
+Version: 1.2.63
 Author: Replanta Dev
 Author URI: https://replanta.es
 License: GPLv2 or later
@@ -432,57 +432,7 @@ function custom_availability_text($availability, $product)
 }
 
 
-//campos de usuario
-function sapwc_add_nif_dni_to_user_profile($user)
-{
-    $dni  = get_user_meta($user->ID, 'dni', true);
-    $nif  = get_user_meta($user->ID, 'nif', true);
-?>
-    <h2>🪪 Datos de Identificación</h2>
-    <table class="form-table">
-        <?php if (!empty($dni)) : ?>
-            <tr>
-                <th><label for="sapwc_dni">DNI</label></th>
-                <td>
-                    <input type="text" name="sapwc_dni" id="sapwc_dni" value="<?php echo esc_attr($dni); ?>" class="regular-text" />
-                    <p class="description">Documento Nacional de Identidad del usuario.</p>
-                </td>
-            </tr>
-        <?php endif; ?>
-        <?php if (!empty($nif)) : ?>
-            <tr>
-                <th><label for="sapwc_nif">NIF</label></th>
-                <td>
-                    <input type="text" name="sapwc_nif" id="sapwc_nif" value="<?php echo esc_attr($nif); ?>" class="regular-text" />
-                    <p class="description">Número de Identificación Fiscal del usuario.</p>
-                </td>
-            </tr>
-        <?php endif; ?>
-    </table>
-<?php
-}
-add_action('show_user_profile', 'sapwc_add_nif_dni_to_user_profile');
-add_action('edit_user_profile', 'sapwc_add_nif_dni_to_user_profile');
-
-function sapwc_save_nif_dni_from_user_profile($user_id)
-{
-    if (!current_user_can('edit_user', $user_id)) {
-        return false;
-    }
-
-    if (isset($_POST['sapwc_dni'])) {
-        update_user_meta($user_id, 'dni', sanitize_text_field($_POST['sapwc_dni']));
-    }
-
-    if (isset($_POST['sapwc_nif'])) {
-        update_user_meta($user_id, 'nif', sanitize_text_field($_POST['sapwc_nif']));
-    }
-}
-add_action('personal_options_update', 'sapwc_save_nif_dni_from_user_profile');
-add_action('edit_user_profile_update', 'sapwc_save_nif_dni_from_user_profile');
-add_action('woocommerce_save_account_details', 'sapwc_save_nif_dni_from_user_profile');
-
-
+// Ajustar decimales de precios en WooCommerce
 /*-------------------AJUSTE DECIMALES WOO------------------------*/
 add_filter('wc_get_price_decimals', function () {
     return 2; // 
