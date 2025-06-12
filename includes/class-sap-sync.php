@@ -287,7 +287,7 @@ class SAPWC_Sync_Handler
 
             // 3. CALCULAR PVP CON IVA y NETO (el que espera SAP)
             $pvp_con_iva = $use_sale ? $sale_price : $regular_price;
-            $pvp_con_iva = round($pvp_con_iva, 4); // aseguremos que el precio bruto esté ya a 2 decimales
+            $pvp_con_iva = round($pvp_con_iva, 4); // aseguremos que el precio bruto esté ya a 4 decimales
             $pvp_neto = ($prices_include_tax && $iva_percent > 0)
                 ? round($pvp_con_iva / (1 + ($iva_percent / 100)), 4)
                 : round($pvp_con_iva, 4);
@@ -307,7 +307,7 @@ class SAPWC_Sync_Handler
                 'ItemCode'        => $sku_clean,
                 'ItemDescription' => $product->get_name(),
                 'Quantity'        => $quantity,
-                'UnitPrice'       => $pvp_neto,
+                'UnitPrice'       => round($pvp_neto, 4), // Aseguramos que el precio neto esté a 4 decimales
                 'WarehouseCode'   => $warehouse,
             ];
             if ($discount_percent > 0) {
@@ -827,7 +827,6 @@ class SAPWC_Sync_Handler
     //metodo de ajuste de redondeo
     private function add_rounding_adjustment_if_needed($order, $docentry)
     {
-        // 1. Obtén el pedido desde SAP
         $order_number = $order->get_order_number();
         $query = "/Orders?\$filter=NumAtCard eq '$order_number'";
         $sap_orders = $this->client->get($query);
@@ -837,24 +836,30 @@ class SAPWC_Sync_Handler
         }
         $sap_order = $sap_orders['value'][0];
         $sap_total = (float) $sap_order['DocTotal'];
+
+        // Sumar todas las líneas de SAP (productos) con IVA
+        $sap_line_total = 0.0;
+        foreach ($sap_order['DocumentLines'] as $line) {
+            $sap_line_total += ((float)$line['LineTotal'] + (float)$line['TaxTotal']);
+        }
+        $sap_envio = $sap_total - $sap_line_total;
+
         $woo_total = (float) $order->get_total();
+        $woo_envio = (float) $order->get_shipping_total() + (float) $order->get_shipping_tax();
 
-        $ajuste = round($woo_total - $sap_total, 2);
+        // Solo compara productos, sin portes
+        $ajuste = round(($woo_total - $woo_envio) - ($sap_total - $sap_envio), 2);
 
-        // Solo si hay descuadre de céntimos relevantes
         if (abs($ajuste) >= 0.01) {
-            // 2. Prepara PATCH para añadir línea de ajuste
             $endpoint = untrailingslashit($this->client->get_base_url()) . "/Orders($docentry)";
-            // Clona las líneas actuales
             $document_lines = $sap_order['DocumentLines'];
-            // Añade línea de ajuste (sin IVA)
             $document_lines[] = [
                 'ItemCode'        => 'AJUSTE',
                 'ItemDescription' => 'Ajuste redondeo e-commerce',
                 'Quantity'        => 1,
                 'UnitPrice'       => $ajuste,
-                'WarehouseCode'   => '01', // Puedes usar almacén por defecto
-                'TaxCode'         => '', // Sin IVA
+                'WarehouseCode'   => '01',
+                'VatGroup'        => 'EI', // O el grupo exento que uses
             ];
 
             $patch_data = [
