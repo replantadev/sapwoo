@@ -164,7 +164,11 @@ class SAPWC_Sync_Handler
 
         if ($code === 201 && isset($body['DocEntry'])) {
             $sap_id = $body['DocEntry'];
-            $this->add_rounding_adjustment_if_needed($order, $sap_id);
+            // Solo aplica el ajuste de redondeo si es modo ecommerce
+            if ($mode === 'ecommerce') {
+                $this->add_rounding_adjustment_if_needed($order, $sap_id);
+            }
+            //$this->add_rounding_adjustment_if_needed($order, $sap_id);
             update_post_meta($order->get_id(), '_sap_exported', '1');
             update_post_meta($order->get_id(), '_sap_docentry', $sap_id);
             update_post_meta($order->get_id(), '_sap_address_synced', '1');
