@@ -164,6 +164,7 @@ class SAPWC_Sync_Handler
 
         if ($code === 201 && isset($body['DocEntry'])) {
             $sap_id = $body['DocEntry'];
+            $this->add_rounding_adjustment_if_needed($order, $sap_id);
             update_post_meta($order->get_id(), '_sap_exported', '1');
             update_post_meta($order->get_id(), '_sap_docentry', $sap_id);
             update_post_meta($order->get_id(), '_sap_address_synced', '1');
@@ -286,10 +287,10 @@ class SAPWC_Sync_Handler
 
             // 3. CALCULAR PVP CON IVA y NETO (el que espera SAP)
             $pvp_con_iva = $use_sale ? $sale_price : $regular_price;
-            $pvp_con_iva = round($pvp_con_iva, 2); // aseguremos que el precio bruto esté ya a 2 decimales
+            $pvp_con_iva = round($pvp_con_iva, 4); // aseguremos que el precio bruto esté ya a 2 decimales
             $pvp_neto = ($prices_include_tax && $iva_percent > 0)
-                ? round($pvp_con_iva / (1 + ($iva_percent / 100)), 2)
-                : round($pvp_con_iva, 2);
+                ? round($pvp_con_iva / (1 + ($iva_percent / 100)), 4)
+                : round($pvp_con_iva, 4);
 
             // 4. CALCULAR DESCUENTO (solo si hay oferta real)
             $discount_percent = 0;
@@ -821,6 +822,68 @@ class SAPWC_Sync_Handler
             $msg = "[B2B PATCH] Error PATCH ($status_code): $body";
             error_log($msg);
             SAPWC_Logger::log($order->get_id(), 'bp_patch_b2b', 'error', $msg);
+        }
+    }
+    //metodo de ajuste de redondeo
+    private function add_rounding_adjustment_if_needed($order, $docentry)
+    {
+        // 1. Obtén el pedido desde SAP
+        $order_number = $order->get_order_number();
+        $query = "/Orders?\$filter=NumAtCard eq '$order_number'";
+        $sap_orders = $this->client->get($query);
+        if (!isset($sap_orders['value'][0])) {
+            SAPWC_Logger::log($order->get_id(), 'ajuste', 'error', 'No se encontró el pedido en SAP para comparar totales.');
+            return;
+        }
+        $sap_order = $sap_orders['value'][0];
+        $sap_total = (float) $sap_order['DocTotal'];
+        $woo_total = (float) $order->get_total();
+
+        $ajuste = round($woo_total - $sap_total, 2);
+
+        // Solo si hay descuadre de céntimos relevantes
+        if (abs($ajuste) >= 0.01) {
+            // 2. Prepara PATCH para añadir línea de ajuste
+            $endpoint = untrailingslashit($this->client->get_base_url()) . "/Orders($docentry)";
+            // Clona las líneas actuales
+            $document_lines = $sap_order['DocumentLines'];
+            // Añade línea de ajuste (sin IVA)
+            $document_lines[] = [
+                'ItemCode'        => 'AJUSTE',
+                'ItemDescription' => 'Ajuste redondeo e-commerce',
+                'Quantity'        => 1,
+                'UnitPrice'       => $ajuste,
+                'WarehouseCode'   => '01', // Puedes usar almacén por defecto
+                'TaxCode'         => '', // Sin IVA
+            ];
+
+            $patch_data = [
+                'DocumentLines' => $document_lines,
+                'Comments'      => ($sap_order['Comments'] ?? '') . " | Ajuste de redondeo aplicado $ajuste EUR"
+            ];
+
+            $patch_response = wp_remote_request($endpoint, [
+                'method' => 'PATCH',
+                'headers' => [
+                    'Content-Type' => 'application/json',
+                    'Cookie'       => $this->client->get_cookie_header()
+                ],
+                'body'    => json_encode($patch_data),
+                'timeout' => 30,
+                'sslverify' => false
+            ]);
+            if (is_wp_error($patch_response)) {
+                SAPWC_Logger::log($order->get_id(), 'ajuste', 'error', 'Error HTTP al añadir línea de ajuste: ' . $patch_response->get_error_message());
+            } else {
+                $code = wp_remote_retrieve_response_code($patch_response);
+                if ($code === 204) {
+                    SAPWC_Logger::log($order->get_id(), 'ajuste', 'success', "Ajuste de redondeo aplicado: $ajuste EUR");
+                    $order->add_order_note("🔄 Se ha aplicado un ajuste de redondeo en SAP de $ajuste EUR.");
+                } else {
+                    $body = wp_remote_retrieve_body($patch_response);
+                    SAPWC_Logger::log($order->get_id(), 'ajuste', 'error', "Error PATCH ajuste ($code): $body");
+                }
+            }
         }
     }
 }
