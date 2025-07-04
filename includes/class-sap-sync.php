@@ -166,7 +166,7 @@ class SAPWC_Sync_Handler
             $sap_id = $body['DocEntry'];
             // Solo aplica el ajuste de redondeo si es modo ecommerce
             if ($mode === 'ecommerce') {
-                $this->add_rounding_adjustment_if_needed($order, $sap_id);
+           //Nuevo ajuste no enviamos precios     $this->add_rounding_adjustment_if_needed($order, $sap_id);
             }
             //$this->add_rounding_adjustment_if_needed($order, $sap_id);
             update_post_meta($order->get_id(), '_sap_exported', '1');
@@ -264,12 +264,12 @@ class SAPWC_Sync_Handler
      * @param WC_Order $order El pedido de WooCommerce.
      * @return array Las líneas del documento preparadas para SAP.
      */
-    private function build_items($order)
+    private function build_items_old($order)
     {
         $items = [];
         $mode = get_option('sapwc_mode', 'ecommerce');
         $prices_include_tax = get_option('woocommerce_prices_include_tax') === 'yes';
-
+        
         foreach ($order->get_items() as $item) {
             $product = $item->get_product();
             if (!$product || !$product->get_sku()) continue;
@@ -329,11 +329,58 @@ class SAPWC_Sync_Handler
         return $items;
     }
 
+    private function build_items($order)
+    {
+        $items = [];
+
+        // 1. Tarifas
+        $default_tariff     = get_option('sapwc_selected_tariff');
+        $warehouse_tariffs  = get_option('sapwc_warehouse_tariff_map', []);
+        if (!is_array($warehouse_tariffs)) {
+            $warehouse_tariffs = [];
+        }
+
+        foreach ($order->get_items() as $item) {
+            $product = $item->get_product();
+            if (!$product || !$product->get_sku()) {
+                continue;
+            }
+
+            $sku       = preg_replace('/[^\x20-\x7E]/', '', trim($product->get_sku()));
+            $quantity  = (float) $item->get_quantity();
+            $almacen   = $product->get_meta('almacen') ?: $product->get_meta('_almacen');
+            $warehouse = strtoupper(trim($almacen ?: '01'));
+
+            // 2. Determinar tarifa aplicable
+            $applicable_tariff = $default_tariff;
+            if (isset($warehouse_tariffs[$warehouse]) && $warehouse_tariffs[$warehouse]) {
+                $applicable_tariff = $warehouse_tariffs[$warehouse];
+            }
+
+            // 3. Construir línea SIN precio, usando PriceList
+            $line = [
+                'ItemCode'      => $sku,
+                'ItemDescription' => $product->get_name(),
+                'Quantity'      => $quantity,
+                'PriceList'     => (int) $applicable_tariff,
+                'WarehouseCode' => $warehouse,
+            ];
+
+            // Si tienes % de descuento personalizado, lo mantienes en UserFields...
+            // if ($discount_percent > 0) {
+            //     $line['UserFields'] = ['U_ARTES_DtoAR1' => $discount_percent];
+            // }
+            
+            $items[] = $line;
+        }
+
+        return $items;
+    }
 
 
 
 
-    private function build_items_sin_cargo($order)
+    private function build_items_sin_cargo_old($order)
     {
         $items = [];
 
@@ -417,7 +464,100 @@ class SAPWC_Sync_Handler
 
         return $items;
     }
+    private function build_items_sin_cargo($order)
+    {
+        $items = [];
+        // 1. Tarifas
+        $default_tariff    = get_option('sapwc_selected_tariff');
+        $warehouse_tariffs = get_option('sapwc_warehouse_tariff_map', []);
+        if (!is_array($warehouse_tariffs)) {
+            $warehouse_tariffs = [];
+        }
 
+        foreach ($order->get_items() as $item) {
+            $product = $item->get_product();
+            if (!$product || !$product->get_sku()) continue;
+
+            $sku         = trim($product->get_sku());
+            $sku_clean   = preg_replace('/[^\x20-\x7E]/', '', $sku);
+            $quantity    = (int) $item->get_quantity();
+            $regular     = (float) $product->get_regular_price();
+            $subtotal    = (float) $item->get_total();
+            $applicable_tariff = $default_tariff;
+            if (isset($warehouse_tariffs[$warehouse]) && $warehouse_tariffs[$warehouse]) {
+                $applicable_tariff = $warehouse_tariffs[$warehouse];
+            }
+           $unit_price  = $quantity > 0 ? round($subtotal / $quantity, 4) : 0;
+
+            $almacen     = $product->get_meta('almacen') ?: $product->get_meta('_almacen');
+            $warehouse   = $almacen ? strtoupper(trim($almacen)) : '01';
+
+            // Obtener pack mínimo (orden de prioridad)
+            $pack_size = (int) $product->get_meta('compra_minima')
+                ?: (int) $product->get_meta('unidades_caja')
+                ?: (int) $product->get_meta('_klb_min_quantity')
+                ?: (int) $product->get_meta('_klb_step_quantity')
+                ?: 0;
+
+            // Ajustar si la cantidad es menor al pack mínimo
+            if ($pack_size > 0 && $quantity < $pack_size) {
+                error_log("[BUILD_ITEMS_SIN_CARGO] ⚠️ SKU: $sku_clean seleccionó $quantity, ajustado a mínimo $pack_size");
+                SAPWC_Logger::log($order->get_id(), 'sync', 'error', sprintf('SKU %s seleccionado con %d uds. Corregido a %d (mínimo)', $sku_clean, $quantity, $pack_size));
+                $order->add_order_note("Producto {$product->get_name()} ajustado a $pack_size por mínimo de compra");
+                $quantity  = $pack_size;
+
+                if ($regular > 0) {
+                    $subtotal  = $regular * $quantity;
+                } else {
+                    error_log("[BUILD_ITEMS_SIN_CARGO] ❌ Precio regular inválido para SKU $sku_clean");
+                    $subtotal = 0;
+                }
+
+                $item->set_quantity($quantity);
+            }
+
+            // Cálculo de unidades pagadas y regaladas
+            $units_paid = $quantity;
+            $units_gifted = 0;
+
+            if ($regular > 0 && $subtotal > 0 && $unit_price < $regular) {
+                $units_paid = round($subtotal / $regular, 2);
+                $units_gifted = max($quantity - $units_paid, 0);
+
+                // Si solo queremos unidades completas regaladas
+                $units_gifted = floor($units_gifted);
+                $units_paid = $quantity - $units_gifted;
+
+                // Validación suave: si no cuadra, asumir todo pagado
+                if (abs(($units_paid + $units_gifted) - $quantity) > 0.1) {
+                    error_log("[BUILD_ITEMS_SIN_CARGO] ❌ Ajuste por descuadre decimal en SKU $sku_clean. TOTAL: $quantity ≠ CALCULADAS: " . ($units_paid + $units_gifted));
+                    $units_paid = $quantity;
+                    $units_gifted = 0;
+                } else {
+                    error_log("[BUILD_ITEMS_SIN_CARGO] 🎁 Promo detectada SKU $sku_clean → $units_paid pagadas + $units_gifted regaladas");
+                }
+            }
+
+            $line = [
+                'ItemCode'        => $sku_clean,
+                'ItemDescription' => $product->get_name(),
+                'Quantity'        => $units_paid,
+                'PriceList'     => (int) $applicable_tariff,
+                'WarehouseCode'   => $warehouse,
+                'U_ARTES_CantSC'  => $units_gifted
+            ];
+
+            error_log("[BUILD_ITEMS_SIN_CARGO] SKU: $sku_clean | TOTAL: $quantity | PAGADAS: $units_paid | REGALADAS: $units_gifted");
+
+            $items[] = $line;
+        }
+
+        if (empty($items)) {
+            SAPWC_Logger::log($order->get_id(), 'sync', 'error', 'Ningún producto válido (con SKU) encontrado para el pedido.');
+        }
+
+        return $items;
+    }
 
     private function build_payload_b2b($order)
     {
@@ -855,6 +995,20 @@ class SAPWC_Sync_Handler
         $ajuste = round(($woo_total - $woo_envio) - ($sap_total - $sap_envio), 2);
 
         if (abs($ajuste) >= 0.01) {
+            // 1) Detectar península vs Canarias
+            $country = $order->get_shipping_country();      // 'ES', 'FR', etc.
+            $state   = $order->get_shipping_state();        // código de provincia de WooCommerce
+
+            // Provincias canarias según códigos ISO en WooCommerce
+            $canarias = ['TF', 'GC', 'LP', 'PM'];           // Santa Cruz de Tenerife, Las Palmas, La Palma, Palmas Minorcas...
+
+            // Por defecto: península
+            $vatGroup = 'RE';
+            if ($country === 'ES' && in_array($state, $canarias, true)) {
+                $vatGroup = 'EX';  // Canarias → exento
+            }
+
+            // 2) Preparamos PATCH a SAP
             $endpoint = untrailingslashit($this->client->get_base_url()) . "/Orders($docentry)";
             $document_lines = $sap_order['DocumentLines'];
             $document_lines[] = [
@@ -863,7 +1017,7 @@ class SAPWC_Sync_Handler
                 'Quantity'        => 1,
                 'UnitPrice'       => $ajuste,
                 'WarehouseCode'   => '01',
-                'VatGroup'        => 'EI', // O el grupo exento que uses
+                'VatGroup'        => $vatGroup,
             ];
 
             $patch_data = [
@@ -886,8 +1040,8 @@ class SAPWC_Sync_Handler
             } else {
                 $code = wp_remote_retrieve_response_code($patch_response);
                 if ($code === 204) {
-                    SAPWC_Logger::log($order->get_id(), 'ajuste', 'success', "Ajuste de redondeo aplicado: $ajuste EUR");
-                    $order->add_order_note("🔄 Se ha aplicado un ajuste de redondeo en SAP de $ajuste EUR.");
+                    SAPWC_Logger::log($order->get_id(), 'ajuste', 'success', "Ajuste de redondeo aplicado: $ajuste EUR (IVA: $vatGroup)");
+                    $order->add_order_note("🔄 Se ha aplicado un ajuste de redondeo en SAP de $ajuste EUR (IVA: $vatGroup).");
                 } else {
                     $body = wp_remote_retrieve_body($patch_response);
                     SAPWC_Logger::log($order->get_id(), 'ajuste', 'error', "Error PATCH ajuste ($code): $body");
