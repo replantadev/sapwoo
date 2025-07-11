@@ -610,11 +610,23 @@ class SAPWC_Sync_Handler
             'U_ARTES_Portes' => $u_portes,
             'U_ARTES_Ruta'   => $u_ruta,
         ];
+        // 1) Nombre comercial en “Moneda local”
+        $billing_company = $order->get_billing_company();
+        if (!empty($billing_company)) {
+            // recortamos a 254 carácteres si tu UDF lo requiere
+            $payload['U_ARTES_Com'] = mb_substr($billing_company, 0, 254);
+        }
 
+        // 2) Teléfono de contacto
+        $billing_phone = $order->get_billing_phone();
+        if (!empty($billing_phone)) {
+            $payload['U_ARTES_TEL'] = $billing_phone;
+        }
+        // 3) DNI
         if (!empty($billing_dni)) {
             $payload['U_DNI'] = $billing_dni;
         }
-
+        
         if (!empty($sales_employee_id)) {
             $payload['SalesPersonCode'] = (int) $sales_employee_id;
         }
