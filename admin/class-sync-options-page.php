@@ -432,8 +432,8 @@ class SAPWC_Sync_Options_Page
                                             <option value=""><?php esc_html_e('-- Seleccionar Tarifa --', 'sapwoo'); ?></option>
                                             <?php if (!empty($tariffs)) : ?>
                                                 <?php foreach ($tariffs as $tariff) : ?>
-                                                    <option value="<?php echo esc_attr($tariff['PriceListNo']); ?>" <?php selected($tariff_peninsula, $tariff['PriceListNo']); ?>>
-                                                        <?php echo esc_html($tariff['PriceListName']); ?>
+                                                    <option value="<?php echo esc_attr($tariff['id']); ?>" <?php selected($tariff_peninsula, $tariff['id']); ?>>
+                                                        <?php echo esc_html($tariff['name']); ?>
                                                     </option>
                                                 <?php endforeach; ?>
                                             <?php else: ?>
@@ -455,8 +455,8 @@ class SAPWC_Sync_Options_Page
                                             <option value=""><?php esc_html_e('-- Seleccionar Tarifa --', 'sapwoo'); ?></option>
                                             <?php if (!empty($tariffs)) : ?>
                                                 <?php foreach ($tariffs as $tariff) : ?>
-                                                    <option value="<?php echo esc_attr($tariff['PriceListNo']); ?>" <?php selected($tariff_canarias, $tariff['PriceListNo']); ?>>
-                                                        <?php echo esc_html($tariff['PriceListName']); ?>
+                                                    <option value="<?php echo esc_attr($tariff['id']); ?>" <?php selected($tariff_canarias, $tariff['id']); ?>>
+                                                        <?php echo esc_html($tariff['name']); ?>
                                                     </option>
                                                 <?php endforeach; ?>
                                             <?php else: ?>
