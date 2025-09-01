@@ -436,9 +436,16 @@ class SAPWC_Sync_Options_Page
                                                         <?php echo esc_html($tariff['PriceListName']); ?>
                                                     </option>
                                                 <?php endforeach; ?>
+                                            <?php else: ?>
+                                                <option value="">⚠️ No hay conexión a SAP o no se pudieron cargar las tarifas</option>
                                             <?php endif; ?>
                                         </select>
                                         <p class="description"><?php esc_html_e('Tarifa TARIFA WEB PVP para Península y Baleares.', 'sapwoo'); ?></p>
+                                        <?php if (current_user_can('manage_options')) : ?>
+                                            <p class="description" style="font-size: 11px; color: #666;">
+                                                Debug: <?php echo 'Tarifas cargadas: ' . count($tariffs) . ' | Península actual: ' . $tariff_peninsula; ?>
+                                            </p>
+                                        <?php endif; ?>
                                     </td>
                                 </tr>
                                 <tr>
@@ -452,9 +459,16 @@ class SAPWC_Sync_Options_Page
                                                         <?php echo esc_html($tariff['PriceListName']); ?>
                                                     </option>
                                                 <?php endforeach; ?>
+                                            <?php else: ?>
+                                                <option value="">⚠️ No hay conexión a SAP o no se pudieron cargar las tarifas</option>
                                             <?php endif; ?>
                                         </select>
                                         <p class="description"><?php esc_html_e('Tarifa TARIFA WEB CANARIAS para Canarias y Portugal.', 'sapwoo'); ?></p>
+                                        <?php if (current_user_can('manage_options')) : ?>
+                                            <p class="description" style="font-size: 11px; color: #666;">
+                                                Debug: <?php echo 'Tarifas cargadas: ' . count($tariffs) . ' | Canarias actual: ' . $tariff_canarias; ?>
+                                            </p>
+                                        <?php endif; ?>
                                     </td>
                                 </tr>
                                 <tr>
