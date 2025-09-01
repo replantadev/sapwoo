@@ -333,8 +333,10 @@ class SAPWC_Sync_Handler
     {
         $items = [];
 
-        // 1. Tarifas
-        $default_tariff     = get_option('sapwc_selected_tariff');
+        // 1. Obtener región del pedido para determinar tarifa
+        $region_tariff = $this->get_regional_tariff($order);
+        $default_tariff = $region_tariff ?: get_option('sapwc_selected_tariff');
+        
         $warehouse_tariffs  = get_option('sapwc_warehouse_tariff_map', []);
         if (!is_array($warehouse_tariffs)) {
             $warehouse_tariffs = [];
@@ -351,7 +353,7 @@ class SAPWC_Sync_Handler
             $almacen   = $product->get_meta('almacen') ?: $product->get_meta('_almacen');
             $warehouse = strtoupper(trim($almacen ?: '01'));
 
-            // 2. Determinar tarifa aplicable
+            // 2. Determinar tarifa aplicable (regional o por almacén)
             $applicable_tariff = $default_tariff;
             if (isset($warehouse_tariffs[$warehouse]) && $warehouse_tariffs[$warehouse]) {
                 $applicable_tariff = $warehouse_tariffs[$warehouse];
@@ -375,6 +377,40 @@ class SAPWC_Sync_Handler
         }
 
         return $items;
+    }
+
+    /**
+     * Determina la tarifa regional basada en la dirección de entrega del pedido
+     */
+    private function get_regional_tariff($order)
+    {
+        $billing_address = [
+            'state'   => $order->get_billing_state(),
+            'country' => $order->get_billing_country(),
+        ];
+
+        $shipping_address = [
+            'street'  => $order->get_shipping_address_1(),
+            'state'   => $order->get_shipping_state(),
+            'country' => $order->get_shipping_country(),
+        ];
+
+        // Usar dirección de envío si es diferente a la de facturación
+        $entrega_distinta = $shipping_address['street'] && $shipping_address['street'] !== $order->get_billing_address_1();
+        $target_state = $entrega_distinta ? strtoupper($shipping_address['state']) : strtoupper($billing_address['state']);
+        $target_country = $entrega_distinta ? strtoupper($shipping_address['country']) : strtoupper($billing_address['country']);
+        
+        // Determinar tarifa por región
+        if ($target_country === 'PT') {
+            // Portugal: usar tarifa Canarias
+            return get_option('sapwc_tariff_canarias', '');
+        } elseif (in_array($target_state, ['GC', 'TF', 'LP', 'HI', 'TE', 'CN'])) {
+            // Canarias: tarifa específica de Canarias
+            return get_option('sapwc_tariff_canarias', '');
+        } else {
+            // Península y Baleares: tarifa específica de península
+            return get_option('sapwc_tariff_peninsula', '');
+        }
     }
 
 
@@ -467,8 +503,10 @@ class SAPWC_Sync_Handler
     private function build_items_sin_cargo($order)
     {
         $items = [];
-        // 1. Tarifas
-        $default_tariff    = get_option('sapwc_selected_tariff');
+        // 1. Obtener región del pedido para determinar tarifa
+        $region_tariff = $this->get_regional_tariff($order);
+        $default_tariff = $region_tariff ?: get_option('sapwc_selected_tariff');
+        
         $warehouse_tariffs = get_option('sapwc_warehouse_tariff_map', []);
         if (!is_array($warehouse_tariffs)) {
             $warehouse_tariffs = [];
@@ -702,16 +740,40 @@ class SAPWC_Sync_Handler
 
         $final_observ = "DNI: $billing_dni | Cupones: $cupones_str | " . implode(' | ', $observaciones);
 
+        // Determinar región y aplicar cliente y tarifa correspondiente
         $billing_state = strtoupper($billing_address['state']);
-        $card_code = in_array($billing_state, ['GC', 'TF', 'LP', 'HI', 'TE', 'CN'])
-            ? get_option('sapwc_cardcode_canarias', 'WNAD CANARIAS')
-            : get_option('sapwc_cardcode_peninsula', 'WNAD PENINSULA');
-        $card_name = in_array($billing_state, ['GC', 'TF', 'LP', 'HI', 'TE', 'CN'])
-            ? get_option('sapwc_cardname_canarias', 'CLIENTEWEBNAD CANARIAS')
-            : get_option('sapwc_cardname_peninsula', 'CLIENTEWEBNAD PENINSULA');
+        $billing_country = strtoupper($billing_address['country']);
+        
+        // Usar dirección de envío si es diferente
+        $target_state = $entrega_distinta ? strtoupper($shipping_address['state']) : $billing_state;
+        $target_country = $entrega_distinta ? strtoupper($shipping_address['country']) : $billing_country;
+        
+        // Lógica de asignación por región
+        if ($target_country === 'PT') {
+            // Portugal: usar cliente específico de Portugal con tarifa Canarias
+            $card_code = get_option('sapwc_cardcode_portugal', 'WWEB PORTUGAL');
+            $card_name = get_option('sapwc_cardname_portugal', 'CLIENTEWEB PORTUGAL');
+            $region_tariff = get_option('sapwc_tariff_canarias', '');
+            $region_name = 'Portugal';
+        } elseif (in_array($target_state, ['GC', 'TF', 'LP', 'HI', 'TE', 'CN'])) {
+            // Canarias: tarifa específica de Canarias
+            $card_code = get_option('sapwc_cardcode_canarias', 'WNAD CANARIAS');
+            $card_name = get_option('sapwc_cardname_canarias', 'CLIENTEWEBNAD CANARIAS');
+            $region_tariff = get_option('sapwc_tariff_canarias', '');
+            $region_name = 'Canarias';
+        } else {
+            // Península y Baleares: tarifa específica de península
+            $card_code = get_option('sapwc_cardcode_peninsula', 'WNAD PENINSULA');
+            $card_name = get_option('sapwc_cardname_peninsula', 'CLIENTEWEBNAD PENINSULA');
+            $region_tariff = get_option('sapwc_tariff_peninsula', '');
+            $region_name = 'Península/Baleares';
+        }
+        
         $site_short_name = get_option('sapwc_site_short_name', 'NAD+');
-
-        $comments = "{$site_short_name} | $order_number | $entrega_nombre | $entrega_full | Email: {$billing_email} | Tel: {$billing_phone}";
+        
+        // Incluir ID de dirección SAP en comentarios
+        $address_id = 'WEB-' . $order_number;
+        $comments = "[$address_id] {$site_short_name} | $order_number | $entrega_nombre | $entrega_full | Email: {$billing_email} | Tel: {$billing_phone}";
         $fecha_creacion = $order->get_date_created();
         $doc_date = $fecha_creacion ? $fecha_creacion->date('Y-m-d') : date('Y-m-d');
         $user_sign = get_option('sapwc_user_sign');

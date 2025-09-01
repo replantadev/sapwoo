@@ -66,6 +66,10 @@ class SAPWC_Sync_Options_Page
         $cardname_peninsula    = get_option('sapwc_cardname_peninsula', 'CLIENTEWEBNAD PENINSULA');
         $cardcode_canarias     = get_option('sapwc_cardcode_canarias', 'WNAD CANARIAS');
         $cardname_canarias     = get_option('sapwc_cardname_canarias', 'CLIENTEWEBNAD CANARIAS');
+        $cardcode_portugal     = get_option('sapwc_cardcode_portugal', 'WWEB PORTUGAL');
+        $cardname_portugal     = get_option('sapwc_cardname_portugal', 'CLIENTEWEB PORTUGAL');
+        $tariff_canarias       = get_option('sapwc_tariff_canarias', '');
+        $tariff_peninsula      = get_option('sapwc_tariff_peninsula', '');
         $b2b_cardcode_meta     = get_option('sapwc_b2b_cardcode_meta', 'user_login');
         $retry_failed_auto     = get_option('sapwc_retry_failed_auto', '0');
         $cron_interval         = get_option('sapwc_cron_interval', 'hourly');
@@ -415,6 +419,45 @@ class SAPWC_Sync_Options_Page
                                     </td>
                                 </tr>
                                 <tr>
+                                    <th scope="row"><?php esc_html_e('Cliente Portugal', 'sapwoo'); ?></th>
+                                    <td>
+                                        <input type="text" name="sapwc_cardcode_portugal" value="<?php echo esc_attr($cardcode_portugal); ?>" class="regular-text" placeholder="<?php esc_attr_e('CardCode', 'sapwoo'); ?>">
+                                        <input type="text" name="sapwc_cardname_portugal" value="<?php echo esc_attr($cardname_portugal); ?>" class="regular-text" placeholder="<?php esc_attr_e('Nombre', 'sapwoo'); ?>">
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th scope="row"><?php esc_html_e('Tarifa Península + Baleares', 'sapwoo'); ?></th>
+                                    <td>
+                                        <select name="sapwc_tariff_peninsula" class="regular-text">
+                                            <option value=""><?php esc_html_e('-- Seleccionar Tarifa --', 'sapwoo'); ?></option>
+                                            <?php if (!empty($tariffs)) : ?>
+                                                <?php foreach ($tariffs as $tariff) : ?>
+                                                    <option value="<?php echo esc_attr($tariff['PriceListNo']); ?>" <?php selected($tariff_peninsula, $tariff['PriceListNo']); ?>>
+                                                        <?php echo esc_html($tariff['PriceListName']); ?>
+                                                    </option>
+                                                <?php endforeach; ?>
+                                            <?php endif; ?>
+                                        </select>
+                                        <p class="description"><?php esc_html_e('Tarifa TARIFA WEB PVP para Península y Baleares.', 'sapwoo'); ?></p>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th scope="row"><?php esc_html_e('Tarifa Canarias + Portugal', 'sapwoo'); ?></th>
+                                    <td>
+                                        <select name="sapwc_tariff_canarias" class="regular-text">
+                                            <option value=""><?php esc_html_e('-- Seleccionar Tarifa --', 'sapwoo'); ?></option>
+                                            <?php if (!empty($tariffs)) : ?>
+                                                <?php foreach ($tariffs as $tariff) : ?>
+                                                    <option value="<?php echo esc_attr($tariff['PriceListNo']); ?>" <?php selected($tariff_canarias, $tariff['PriceListNo']); ?>>
+                                                        <?php echo esc_html($tariff['PriceListName']); ?>
+                                                    </option>
+                                                <?php endforeach; ?>
+                                            <?php endif; ?>
+                                        </select>
+                                        <p class="description"><?php esc_html_e('Tarifa TARIFA WEB CANARIAS para Canarias y Portugal.', 'sapwoo'); ?></p>
+                                    </td>
+                                </tr>
+                                <tr>
                                     <th scope="row"><?php esc_html_e('Nombre corto del sitio', 'sapwoo'); ?></th>
                                     <td>
                                         
@@ -725,6 +768,10 @@ add_action('admin_init', function () {
     register_setting('sapwc_sync_settings', 'sapwc_cardname_peninsula');
     register_setting('sapwc_sync_settings', 'sapwc_cardcode_canarias');
     register_setting('sapwc_sync_settings', 'sapwc_cardname_canarias');
+    register_setting('sapwc_sync_settings', 'sapwc_cardcode_portugal');
+    register_setting('sapwc_sync_settings', 'sapwc_cardname_portugal');
+    register_setting('sapwc_sync_settings', 'sapwc_tariff_peninsula');
+    register_setting('sapwc_sync_settings', 'sapwc_tariff_canarias');
     register_setting('sapwc_sync_settings', 'sapwc_retry_failed_auto');
     register_setting('sapwc_sync_settings', 'sapwc_cron_interval');
 
