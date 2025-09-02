@@ -379,6 +379,53 @@ class SAPWC_Sync_Handler
         return $items;
     }
 
+    private function build_items_with_tariff($order, $specific_tariff)
+    {
+        $items = [];
+        
+        // Usar la tarifa específica pasada como parámetro
+        $default_tariff = $specific_tariff ?: get_option('sapwc_selected_tariff');
+        
+        $warehouse_tariffs  = get_option('sapwc_warehouse_tariff_map', []);
+        if (!is_array($warehouse_tariffs)) {
+            $warehouse_tariffs = [];
+        }
+
+        foreach ($order->get_items() as $item) {
+            $product = $item->get_product();
+            if (!$product || !$product->get_sku()) {
+                continue;
+            }
+
+            $sku       = preg_replace('/[^\x20-\x7E]/', '', trim($product->get_sku()));
+            $quantity  = (float) $item->get_quantity();
+            $almacen   = $product->get_meta('almacen') ?: $product->get_meta('_almacen');
+            $warehouse = strtoupper(trim($almacen ?: '01'));
+
+            // Determinar tarifa aplicable (específica o por almacén)
+            $applicable_tariff = $default_tariff;
+            if (isset($warehouse_tariffs[$warehouse]) && $warehouse_tariffs[$warehouse]) {
+                $applicable_tariff = $warehouse_tariffs[$warehouse];
+            }
+
+            // LOG de debug para verificar la tarifa
+            error_log("[BUILD_ITEMS_TARIFF] SKU: {$sku} | Tarifa específica: {$specific_tariff} | Tarifa aplicada: {$applicable_tariff} | Almacén: {$warehouse}");
+
+            // Construir línea SIN precio, usando PriceList
+            $line = [
+                'ItemCode'      => $sku,
+                'ItemDescription' => $product->get_name(),
+                'Quantity'      => $quantity,
+                'PriceList'     => (int) $applicable_tariff,
+                'WarehouseCode' => $warehouse,
+            ];
+            
+            $items[] = $line;
+        }
+
+        return $items;
+    }
+
     /**
      * Determina la tarifa regional basada en la dirección de entrega del pedido
      */
@@ -781,6 +828,9 @@ class SAPWC_Sync_Handler
             $DocumentsOwner = 97; //sandra a mano
         //}
 
+        // LOG para debug regional
+        error_log("[REGIONAL_DEBUG] Pedido: {$order_number} | Región: {$region_name} | País: {$target_country} | Estado: {$target_state} | Cliente: {$card_code} | Tarifa: {$region_tariff}");
+
         return [
             'CardCode'         => $card_code,
             'CardName'         => $card_name,
@@ -792,7 +842,7 @@ class SAPWC_Sync_Handler
             'U_ARTES_Portes'   => $u_portes,
             'U_ARTES_Ruta'     => strval($u_ruta),
             'DocumentsOwner' => $DocumentsOwner,
-            'DocumentLines'    => $this->build_items($order),
+            'DocumentLines'    => $this->build_items_with_tariff($order, $region_tariff),
             // Los siguientes solo si estaban antes en tu payload:
             'U_ARTES_Com'         => 'CLIENTE WEB',
             'U_ARTES_TEL'         => $billing_phone,
