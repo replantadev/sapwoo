@@ -71,6 +71,12 @@ class SAPWC_Sync_Options_Page
         $tariff_canarias       = get_option('sapwc_tariff_canarias', '');
         $tariff_peninsula      = get_option('sapwc_tariff_peninsula', '');
         $tariff_portugal       = get_option('sapwc_tariff_portugal', '');
+        
+        // Configuraciones de IVA por región
+        $include_vat_peninsula = get_option('sapwc_include_vat_peninsula', '1'); // Por defecto SÍ incluir IVA
+        $include_vat_canarias  = get_option('sapwc_include_vat_canarias', '0');  // Por defecto NO incluir IVA (exento)
+        $include_vat_portugal  = get_option('sapwc_include_vat_portugal', '1');  // Por defecto SÍ incluir IVA (intracomunitario)
+        
         $b2b_cardcode_meta     = get_option('sapwc_b2b_cardcode_meta', 'user_login');
         $retry_failed_auto     = get_option('sapwc_retry_failed_auto', '0');
         $cron_interval         = get_option('sapwc_cron_interval', 'hourly');
@@ -496,6 +502,32 @@ class SAPWC_Sync_Options_Page
                                     </td>
                                 </tr>
                                 <tr>
+                                    <th scope="row"><?php esc_html_e('Configuración de IVA por Región', 'sapwoo'); ?></th>
+                                    <td>
+                                        <fieldset>
+                                            <legend class="screen-reader-text"><?php esc_html_e('Configuración de IVA por región', 'sapwoo'); ?></legend>
+                                            <label>
+                                                <input type="checkbox" name="sapwc_include_vat_peninsula" value="1" <?php checked($include_vat_peninsula, '1'); ?>>
+                                                <strong><?php esc_html_e('Península + Baleares:', 'sapwoo'); ?></strong> <?php esc_html_e('Incluir IVA en líneas de pedido', 'sapwoo'); ?>
+                                            </label><br><br>
+                                            <label>
+                                                <input type="checkbox" name="sapwc_include_vat_canarias" value="1" <?php checked($include_vat_canarias, '1'); ?>>
+                                                <strong><?php esc_html_e('Canarias:', 'sapwoo'); ?></strong> <?php esc_html_e('Incluir IVA en líneas de pedido', 'sapwoo'); ?>
+                                            </label><br><br>
+                                            <label>
+                                                <input type="checkbox" name="sapwc_include_vat_portugal" value="1" <?php checked($include_vat_portugal, '1'); ?>>
+                                                <strong><?php esc_html_e('Portugal:', 'sapwoo'); ?></strong> <?php esc_html_e('Incluir IVA en líneas de pedido', 'sapwoo'); ?>
+                                            </label>
+                                        </fieldset>
+                                        <p class="description">
+                                            <?php esc_html_e('Configura si cada región debe incluir IVA en las líneas del pedido enviado a SAP:', 'sapwoo'); ?><br>
+                                            <strong>• Península/Baleares:</strong> <?php esc_html_e('Normalmente SÍ (mercado nacional)', 'sapwoo'); ?><br>
+                                            <strong>• Canarias:</strong> <?php esc_html_e('Normalmente NO (exento de IVA)', 'sapwoo'); ?><br>
+                                            <strong>• Portugal:</strong> <?php esc_html_e('Normalmente SÍ (intracomunitario con IVA)', 'sapwoo'); ?>
+                                        </p>
+                                    </td>
+                                </tr>
+                                <tr>
                                     <th scope="row"><?php esc_html_e('Nombre corto del sitio', 'sapwoo'); ?></th>
                                     <td>
                                         
@@ -811,6 +843,11 @@ add_action('admin_init', function () {
     register_setting('sapwc_sync_settings', 'sapwc_tariff_peninsula');
     register_setting('sapwc_sync_settings', 'sapwc_tariff_canarias');
     register_setting('sapwc_sync_settings', 'sapwc_tariff_portugal');
+    
+    // Configuraciones de IVA por región
+    register_setting('sapwc_sync_settings', 'sapwc_include_vat_peninsula');
+    register_setting('sapwc_sync_settings', 'sapwc_include_vat_canarias');
+    register_setting('sapwc_sync_settings', 'sapwc_include_vat_portugal');
     register_setting('sapwc_sync_settings', 'sapwc_retry_failed_auto');
     register_setting('sapwc_sync_settings', 'sapwc_cron_interval');
 

@@ -427,6 +427,61 @@ class SAPWC_Sync_Handler
     }
 
     /**
+     * Construye las líneas de pedido con tarifa específica y manejo de IVA regional
+     */
+    private function build_items_with_tariff_and_vat($order, $specific_tariff, $include_vat)
+    {
+        $items = [];
+        
+        // Usar la tarifa específica pasada como parámetro
+        $default_tariff = $specific_tariff ?: get_option('sapwc_selected_tariff');
+        
+        $warehouse_tariffs  = get_option('sapwc_warehouse_tariff_map', []);
+        if (!is_array($warehouse_tariffs)) {
+            $warehouse_tariffs = [];
+        }
+
+        foreach ($order->get_items() as $item) {
+            $product = $item->get_product();
+            if (!$product || !$product->get_sku()) {
+                continue;
+            }
+
+            $sku       = preg_replace('/[^\x20-\x7E]/', '', trim($product->get_sku()));
+            $quantity  = (float) $item->get_quantity();
+            $almacen   = $product->get_meta('almacen') ?: $product->get_meta('_almacen');
+            $warehouse = strtoupper(trim($almacen ?: '01'));
+
+            // Determinar tarifa aplicable (específica o por almacén)
+            $applicable_tariff = $default_tariff;
+            if (isset($warehouse_tariffs[$warehouse]) && $warehouse_tariffs[$warehouse]) {
+                $applicable_tariff = $warehouse_tariffs[$warehouse];
+            }
+
+            // Construir línea base
+            $line = [
+                'ItemCode'      => $sku,
+                'ItemDescription' => $product->get_name(),
+                'Quantity'      => $quantity,
+                'PriceList'     => (int) $applicable_tariff,
+                'WarehouseCode' => $warehouse,
+            ];
+
+            // Si la región NO debe incluir IVA, especificar que es libre de impuestos
+            if (!$include_vat) {
+                $line['TaxCode'] = 'EXE'; // Código de exención de impuestos en SAP
+            }
+
+            // LOG de debug para verificar configuración
+            error_log("[BUILD_ITEMS_VAT] SKU: {$sku} | Tarifa: {$applicable_tariff} | Incluir IVA: " . ($include_vat ? 'SÍ' : 'NO') . " | TaxCode: " . ($include_vat ? 'Default' : 'EXE'));
+            
+            $items[] = $line;
+        }
+
+        return $items;
+    }
+
+    /**
      * Determina la tarifa regional basada en la dirección de entrega del pedido
      */
     private function get_regional_tariff($order)
@@ -457,6 +512,40 @@ class SAPWC_Sync_Handler
         } else {
             // Península y Baleares: tarifa específica de península
             return get_option('sapwc_tariff_peninsula', '');
+        }
+    }
+
+    /**
+     * Determina si una región debe incluir IVA en las líneas de pedido SAP
+     */
+    private function should_include_vat_for_region($order)
+    {
+        $billing_address = [
+            'state'   => $order->get_billing_state(),
+            'country' => $order->get_billing_country(),
+        ];
+
+        $shipping_address = [
+            'street'  => $order->get_shipping_address_1(),
+            'state'   => $order->get_shipping_state(),
+            'country' => $order->get_shipping_country(),
+        ];
+
+        // Usar dirección de envío si es diferente a la de facturación
+        $entrega_distinta = $shipping_address['street'] && $shipping_address['street'] !== $order->get_billing_address_1();
+        $target_state = $entrega_distinta ? strtoupper($shipping_address['state']) : strtoupper($billing_address['state']);
+        $target_country = $entrega_distinta ? strtoupper($shipping_address['country']) : strtoupper($billing_address['country']);
+        
+        // Determinar configuración de IVA por región
+        if ($target_country === 'PT') {
+            // Portugal: usar configuración específica de Portugal
+            return get_option('sapwc_include_vat_portugal', '1') === '1';
+        } elseif (in_array($target_state, ['GC', 'TF', 'LP', 'HI', 'TE', 'CN'])) {
+            // Canarias: usar configuración específica de Canarias
+            return get_option('sapwc_include_vat_canarias', '0') === '1';
+        } else {
+            // Península y Baleares: usar configuración específica de península
+            return get_option('sapwc_include_vat_peninsula', '1') === '1';
         }
     }
 
@@ -830,6 +919,10 @@ class SAPWC_Sync_Handler
 
         // LOG para debug regional
         error_log("[REGIONAL_DEBUG] Pedido: {$order_number} | Región: {$region_name} | País: {$target_country} | Estado: {$target_state} | Cliente: {$card_code} | Tarifa: {$region_tariff}");
+        
+        // Determinar si incluir IVA según configuración regional
+        $include_vat = $this->should_include_vat_for_region($order);
+        error_log("[REGIONAL_VAT_DEBUG] Pedido: {$order_number} | Región: {$region_name} | Incluir IVA: " . ($include_vat ? 'SÍ' : 'NO'));
 
         return [
             'CardCode'         => $card_code,
@@ -842,7 +935,7 @@ class SAPWC_Sync_Handler
             'U_ARTES_Portes'   => $u_portes,
             'U_ARTES_Ruta'     => strval($u_ruta),
             'DocumentsOwner' => $DocumentsOwner,
-            'DocumentLines'    => $this->build_items_with_tariff($order, $region_tariff),
+            'DocumentLines'    => $this->build_items_with_tariff_and_vat($order, $region_tariff, $include_vat),
             // Los siguientes solo si estaban antes en tu payload:
             'U_ARTES_Com'         => 'CLIENTE WEB',
             'U_ARTES_TEL'         => $billing_phone,
