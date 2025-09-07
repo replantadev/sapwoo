@@ -70,6 +70,7 @@ class SAPWC_Sync_Options_Page
         $cardname_portugal     = get_option('sapwc_cardname_portugal', 'CLIENTEWEB PORTUGAL');
         $tariff_canarias       = get_option('sapwc_tariff_canarias', '');
         $tariff_peninsula      = get_option('sapwc_tariff_peninsula', '');
+        $tariff_portugal       = get_option('sapwc_tariff_portugal', '');
         $b2b_cardcode_meta     = get_option('sapwc_b2b_cardcode_meta', 'user_login');
         $retry_failed_auto     = get_option('sapwc_retry_failed_auto', '0');
         $cron_interval         = get_option('sapwc_cron_interval', 'hourly');
@@ -449,7 +450,7 @@ class SAPWC_Sync_Options_Page
                                     </td>
                                 </tr>
                                 <tr>
-                                    <th scope="row"><?php esc_html_e('Tarifa Canarias + Portugal', 'sapwoo'); ?></th>
+                                    <th scope="row"><?php esc_html_e('Tarifa Canarias', 'sapwoo'); ?></th>
                                     <td>
                                         <select name="sapwc_tariff_canarias" class="regular-text">
                                             <option value=""><?php esc_html_e('-- Seleccionar Tarifa --', 'sapwoo'); ?></option>
@@ -463,10 +464,33 @@ class SAPWC_Sync_Options_Page
                                                 <option value="">⚠️ No hay conexión a SAP o no se pudieron cargar las tarifas</option>
                                             <?php endif; ?>
                                         </select>
-                                        <p class="description"><?php esc_html_e('Tarifa TARIFA WEB CANARIAS para Canarias y Portugal.', 'sapwoo'); ?></p>
+                                        <p class="description"><?php esc_html_e('Tarifa específica para Canarias (GC, TF, LP, HI, TE, CN).', 'sapwoo'); ?></p>
                                         <?php if (current_user_can('manage_options')) : ?>
                                             <p class="description" style="font-size: 11px; color: #666;">
                                                 Debug: <?php echo 'Tarifas cargadas: ' . count($tariffs) . ' | Canarias actual: ' . $tariff_canarias; ?>
+                                            </p>
+                                        <?php endif; ?>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th scope="row"><?php esc_html_e('Tarifa Portugal', 'sapwoo'); ?></th>
+                                    <td>
+                                        <select name="sapwc_tariff_portugal" class="regular-text">
+                                            <option value=""><?php esc_html_e('-- Seleccionar Tarifa --', 'sapwoo'); ?></option>
+                                            <?php if (!empty($tariffs)) : ?>
+                                                <?php foreach ($tariffs as $tariff) : ?>
+                                                    <option value="<?php echo esc_attr($tariff['id']); ?>" <?php selected($tariff_portugal, $tariff['id']); ?>>
+                                                        <?php echo esc_html($tariff['name']); ?>
+                                                    </option>
+                                                <?php endforeach; ?>
+                                            <?php else: ?>
+                                                <option value="">⚠️ No hay conexión a SAP o no se pudieron cargar las tarifas</option>
+                                            <?php endif; ?>
+                                        </select>
+                                        <p class="description"><?php esc_html_e('Tarifa específica para Portugal (PT).', 'sapwoo'); ?></p>
+                                        <?php if (current_user_can('manage_options')) : ?>
+                                            <p class="description" style="font-size: 11px; color: #666;">
+                                                Debug: <?php echo 'Tarifas cargadas: ' . count($tariffs) . ' | Portugal actual: ' . $tariff_portugal; ?>
                                             </p>
                                         <?php endif; ?>
                                     </td>
@@ -786,6 +810,7 @@ add_action('admin_init', function () {
     register_setting('sapwc_sync_settings', 'sapwc_cardname_portugal');
     register_setting('sapwc_sync_settings', 'sapwc_tariff_peninsula');
     register_setting('sapwc_sync_settings', 'sapwc_tariff_canarias');
+    register_setting('sapwc_sync_settings', 'sapwc_tariff_portugal');
     register_setting('sapwc_sync_settings', 'sapwc_retry_failed_auto');
     register_setting('sapwc_sync_settings', 'sapwc_cron_interval');
 

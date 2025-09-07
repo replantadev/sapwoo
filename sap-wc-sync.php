@@ -3,7 +3,7 @@
 Plugin Name: SAP Woo Sync
 Plugin URI: https://replanta.es
 Description: Sincroniza pedidos de WooCommerce con SAP Business One.
- * Version: 1.2.75
+ * Version: 1.2.76
 Author: Replanta Dev
 Author URI: https://replanta.es
 License: GPLv2 or later
@@ -481,14 +481,14 @@ function sapwc_apply_regional_pricing() {
     $shipping_country = $customer->get_shipping_country();
     $shipping_state = $customer->get_shipping_state();
     
-    // Determinar tarifa regional
+    // Determinar tarifa regional - Portugal y Canarias independientes
     $target_country = strtoupper($shipping_country ?: $customer->get_billing_country());
     $target_state = strtoupper($shipping_state ?: $customer->get_billing_state());
     
     $regional_tariff = null;
     if ($target_country === 'PT') {
-        // Portugal: usar tarifa Canarias
-        $regional_tariff = get_option('sapwc_tariff_canarias', '');
+        // Portugal: usar tarifa específica de Portugal
+        $regional_tariff = get_option('sapwc_tariff_portugal', '');
     } elseif (in_array($target_state, ['GC', 'TF', 'LP', 'HI', 'TE', 'CN'])) {
         // Canarias: tarifa específica de Canarias
         $regional_tariff = get_option('sapwc_tariff_canarias', '');

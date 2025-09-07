@@ -447,10 +447,10 @@ class SAPWC_Sync_Handler
         $target_state = $entrega_distinta ? strtoupper($shipping_address['state']) : strtoupper($billing_address['state']);
         $target_country = $entrega_distinta ? strtoupper($shipping_address['country']) : strtoupper($billing_address['country']);
         
-        // Determinar tarifa por región
+        // Determinar tarifa por región - Portugal y Canarias ahora independientes
         if ($target_country === 'PT') {
-            // Portugal: usar tarifa Canarias
-            return get_option('sapwc_tariff_canarias', '');
+            // Portugal: usar tarifa específica de Portugal
+            return get_option('sapwc_tariff_portugal', '');
         } elseif (in_array($target_state, ['GC', 'TF', 'LP', 'HI', 'TE', 'CN'])) {
             // Canarias: tarifa específica de Canarias
             return get_option('sapwc_tariff_canarias', '');
@@ -795,12 +795,12 @@ class SAPWC_Sync_Handler
         $target_state = $entrega_distinta ? strtoupper($shipping_address['state']) : $billing_state;
         $target_country = $entrega_distinta ? strtoupper($shipping_address['country']) : $billing_country;
         
-        // Lógica de asignación por región
+        // Lógica de asignación por región - Portugal y Canarias independientes
         if ($target_country === 'PT') {
-            // Portugal: usar cliente específico de Portugal con tarifa Canarias
+            // Portugal: usar cliente específico de Portugal con tarifa específica de Portugal
             $card_code = get_option('sapwc_cardcode_portugal', 'WWEB PORTUGAL');
             $card_name = get_option('sapwc_cardname_portugal', 'CLIENTEWEB PORTUGAL');
-            $region_tariff = get_option('sapwc_tariff_canarias', '');
+            $region_tariff = get_option('sapwc_tariff_portugal', '');
             $region_name = 'Portugal';
         } elseif (in_array($target_state, ['GC', 'TF', 'LP', 'HI', 'TE', 'CN'])) {
             // Canarias: tarifa específica de Canarias
