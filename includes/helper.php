@@ -47,9 +47,10 @@ function sapwc_build_orders_query()
     if ($mode === 'ecommerce') {
         $peninsula = sanitize_text_field(get_option('sapwc_cardcode_peninsula', 'WNAD PENINSULA'));
         $canarias  = sanitize_text_field(get_option('sapwc_cardcode_canarias', 'WNAD CANARIAS'));
+        $portugal  = sanitize_text_field(get_option('sapwc_cardcode_portugal', 'WWEB PORTUGAL'));
 
-        $query_info['params'] = compact('peninsula', 'canarias');
-        $query_info['query'] = "/Orders?\$filter=(CardCode eq '$peninsula' or CardCode eq '$canarias')&\$orderby=DocEntry desc&\$top=50&\$select=DocEntry,DocNum,DocDate,CardCode,DocTotal,Comments";
+        $query_info['params'] = compact('peninsula', 'canarias', 'portugal');
+        $query_info['query'] = "/Orders?\$filter=(CardCode eq '$peninsula' or CardCode eq '$canarias' or CardCode eq '$portugal')&\$orderby=DocEntry desc&\$top=50&\$select=DocEntry,DocNum,DocDate,CardCode,DocTotal,Comments";
     } elseif ($mode === 'b2b') {
         $filter_type  = get_option('sapwc_customer_filter_type', 'starts');
         $filter_value = sanitize_text_field(trim(get_option('sapwc_customer_filter_value', '')));

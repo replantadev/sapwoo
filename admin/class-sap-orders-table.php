@@ -18,8 +18,9 @@ class SAPWC_SAP_Orders_Table
         if ($mode === 'ecommerce') {
             $name_peninsula = get_option('sapwc_cardname_peninsula', 'CLIENTEWEBNAD PENINSULA');
             $name_canarias = get_option('sapwc_cardname_canarias', 'CLIENTEWEBNAD CANARIAS');
+            $name_portugal = get_option('sapwc_cardname_portugal', 'CLIENTEWEB PORTUGAL');
 
-            $message = "📝 Últimos pedidos de: <strong>$name_peninsula</strong> y <strong>$name_canarias</strong>.";
+            $message = "📝 Últimos pedidos de: <strong>$name_peninsula</strong>, <strong>$name_canarias</strong> y <strong>$name_portugal</strong>.";
         } else {
             $filter_type = get_option('sapwc_customer_filter_type', 'starts');
             $filter_value = get_option('sapwc_customer_filter_value', '');
