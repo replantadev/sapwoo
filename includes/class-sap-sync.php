@@ -784,6 +784,13 @@ class SAPWC_Sync_Handler
             'U_ARTES_Portes' => $u_portes,
             'U_ARTES_Ruta'   => $u_ruta,
         ];
+
+        // Añadir gastos de envío si existen
+        $shipping_expenses = $this->build_shipping_expenses($order);
+        if (!empty($shipping_expenses)) {
+            $payload['DocumentAdditionalExpenses'] = $shipping_expenses;
+        }
+
         // 1) Nombre comercial en “Moneda local”
         $billing_company = $order->get_billing_company();
         if (!empty($billing_company)) {
@@ -924,7 +931,10 @@ class SAPWC_Sync_Handler
         $include_vat = $this->should_include_vat_for_region($order);
         error_log("[REGIONAL_VAT_DEBUG] Pedido: {$order_number} | Región: {$region_name} | Incluir IVA: " . ($include_vat ? 'SÍ' : 'NO'));
 
-        return [
+        // Construir gastos de envío (portes) para SAP
+        $shipping_expenses = $this->build_shipping_expenses($order);
+
+        $payload = [
             'CardCode'         => $card_code,
             'CardName'         => $card_name,
             'DocDate'          => $doc_date,
@@ -945,6 +955,13 @@ class SAPWC_Sync_Handler
             'U_ARTES_Observ'      => mb_substr($final_observ, 0, 254),
             'U_DRA_Coment_Alm'    => mb_substr($comments, 0, 254),
         ];
+
+        // Añadir gastos de envío si existen
+        if (!empty($shipping_expenses)) {
+            $payload['DocumentAdditionalExpenses'] = $shipping_expenses;
+        }
+
+        return $payload;
     }
 
     private function check_order_in_sap($order_number)
@@ -956,6 +973,58 @@ class SAPWC_Sync_Handler
             return $result['value'][0];
         }
         return null;
+    }
+
+    /**
+     * Construye los gastos adicionales del documento (portes/envío) para SAP
+     * Estos van en el campo DocumentAdditionalExpenses y aparecen en la pestaña "Portes" de SAP
+     *
+     * @param WC_Order $order El pedido de WooCommerce
+     * @return array Los gastos adicionales para SAP (vacío si no hay envío o está deshabilitado)
+     */
+    private function build_shipping_expenses($order)
+    {
+        $expenses = [];
+        
+        // Verificar si la sincronización de portes está habilitada
+        $sync_shipping = get_option('sapwc_sync_shipping_expenses', '1');
+        if ($sync_shipping !== '1') {
+            return $expenses;
+        }
+
+        // Obtener el código de gasto de SAP configurado (por defecto "2" = Transporte)
+        $expense_code = get_option('sapwc_shipping_expense_code', '2');
+        
+        // Obtener el código de impuesto para los portes (por defecto RE3 = 21%)
+        $tax_code = get_option('sapwc_shipping_tax_code', 'RE3');
+
+        // Obtener los gastos de envío del pedido
+        $shipping_total = (float) $order->get_shipping_total();
+        $shipping_tax = (float) $order->get_shipping_tax();
+
+        // Solo añadir si hay gastos de envío
+        if ($shipping_total > 0) {
+            $expense = [
+                'ExpenseCode'       => (int) $expense_code,
+                'LineTotal'         => round($shipping_total, 2),
+                'TaxCode'           => $tax_code,
+                'DistributionMethod' => 'aedm_Equally', // Distribución por total de líneas
+            ];
+
+            // Log para debug
+            error_log(sprintf(
+                '[SHIPPING_EXPENSES] Pedido: %s | Envío neto: %.2f | IVA envío: %.2f | Código gasto: %s | TaxCode: %s',
+                $order->get_order_number(),
+                $shipping_total,
+                $shipping_tax,
+                $expense_code,
+                $tax_code
+            ));
+
+            $expenses[] = $expense;
+        }
+
+        return $expenses;
     }
 
 

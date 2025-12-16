@@ -535,6 +535,39 @@ class SAPWC_Sync_Options_Page
                                         <p class="description"><?php esc_html_e('Este nombre se usará en los comentarios de pedido enviados a SAP.', 'sapwoo'); ?></p>
                                     </td>
                                 </tr>
+                                <tr>
+                                    <th colspan="2">
+                                        <h3><span class="dashicons dashicons-car"></span> <?php esc_html_e('Gastos de Envío (Portes)', 'sapwoo'); ?></h3>
+                                    </th>
+                                </tr>
+                                <tr>
+                                    <th scope="row"><?php esc_html_e('Sincronizar portes a SAP', 'sapwoo'); ?></th>
+                                    <td>
+                                        <?php $sync_shipping = get_option('sapwc_sync_shipping_expenses', '1'); ?>
+                                        <label class="sapwc-toggle">
+                                            <input type="checkbox" name="sapwc_sync_shipping_expenses" value="1" <?php checked($sync_shipping, '1'); ?>>
+                                            <span class="slider"></span>
+                                        </label>
+                                        <span style="margin-left: 1em;"><?php esc_html_e('Enviar gastos de envío como Portes en SAP', 'sapwoo'); ?></span>
+                                        <p class="description"><?php esc_html_e('Los gastos de envío de WooCommerce se añadirán como DocumentAdditionalExpenses en el pedido de SAP.', 'sapwoo'); ?></p>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th scope="row"><?php esc_html_e('Código de Gasto SAP', 'sapwoo'); ?></th>
+                                    <td>
+                                        <?php $shipping_expense_code = get_option('sapwc_shipping_expense_code', '2'); ?>
+                                        <input type="number" name="sapwc_shipping_expense_code" value="<?php echo esc_attr($shipping_expense_code); ?>" class="small-text" min="1" placeholder="2">
+                                        <p class="description"><?php esc_html_e('Código del gasto adicional en SAP para el transporte. Por defecto: 2 (Transporte). Consulta Administración → Definiciones → General → Gastos adicionales en SAP.', 'sapwoo'); ?></p>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th scope="row"><?php esc_html_e('Código de Impuesto (TaxCode)', 'sapwoo'); ?></th>
+                                    <td>
+                                        <?php $shipping_tax_code = get_option('sapwc_shipping_tax_code', 'RE3'); ?>
+                                        <input type="text" name="sapwc_shipping_tax_code" value="<?php echo esc_attr($shipping_tax_code); ?>" class="regular-text" placeholder="RE3">
+                                        <p class="description"><?php esc_html_e('Código de impuesto a aplicar a los portes. Ejemplo: RE3 = 21% IVA. Consulta Finanzas → Configuración de impuestos en SAP.', 'sapwoo'); ?></p>
+                                    </td>
+                                </tr>
                             <?php endif; ?>
                         </table>
                     </div>
@@ -864,6 +897,11 @@ add_action('admin_init', function () {
     register_setting('sapwc_sync_settings', 'sapwc_discount_mode');
 
     register_setting('sapwc_sync_settings', 'sapwc_site_short_name');
+
+    // Configuración de portes/gastos de envío
+    register_setting('sapwc_sync_settings', 'sapwc_sync_shipping_expenses');
+    register_setting('sapwc_sync_settings', 'sapwc_shipping_expense_code');
+    register_setting('sapwc_sync_settings', 'sapwc_shipping_tax_code');
 });
 
 function sapwc_cron_sync_stock_callback()
