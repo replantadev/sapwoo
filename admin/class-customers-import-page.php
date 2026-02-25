@@ -21,9 +21,9 @@ class SAPWC_Customers_Import_Page
         echo '<p>' . esc_html__('Modo actual: ', 'sapwoo') . '<strong>' . esc_html($mode) . '</strong></p>';
         echo '<p>' . esc_html__('Filtro aplicado: ', 'sapwoo') . '<strong>' . esc_html($filter_type . ' → ' . $filter_value) . '</strong></p>';
 
-        echo '<button id="sapwc-import-all-customers" class="button button-primary">📥 Importar todos los clientes</button>';
+        echo '<button id="sapwc-import-all-customers" class="button button-primary"><span class="dashicons dashicons-download" style="font-family:dashicons;vertical-align:middle;margin-right:4px;"></span>Importar todos los clientes</button>';
         echo '<p id="sapwc-import-result" style="margin-top: 1em;"></p>';
-        echo '<input type="text" id="custom-sap-search" placeholder="🔎 Buscar cliente..." style="margin-bottom:10px;padding:6px;width:100%;max-width:300px;"><span class="button reload" style="margin-left: 10px;" id="sapwc-customers-table-button">🔄 Recargar</span>';
+        echo '<input type="text" id="custom-sap-search" placeholder="Buscar cliente..." style="margin-bottom:10px;padding:6px;width:100%;max-width:300px;"><span class="button reload" style="margin-left: 10px;" id="sapwc-customers-table-button"><span class="dashicons dashicons-update" style="font-family:dashicons;vertical-align:middle;margin-right:4px;"></span>Recargar</span>';
 
         echo '<table id="sapwc-customers-table" class="wp-list-table widefat fixed striped">';
         echo '<thead><tr>';
@@ -88,7 +88,7 @@ class SAPWC_Customers_Import_Page
                         {
                             data: 'is_imported',
                             render: function(isImported) {
-                                return isImported ? '✅ Importado' : '–';
+                                return isImported ? '<span style="color:green;">Importado</span>' : '–';
                             },
                             orderable: false,
                             searchable: false
@@ -110,7 +110,7 @@ class SAPWC_Customers_Import_Page
                             data: 'CardCode',
                             render: function(data) {
                                 return `<button class="button sapwc-import-customer" data-code="${$('<div>').text(data).html()}"
->📥 Importar</button>`;
+>Importar</button>`;
                             },
                             orderable: false,
                             searchable: false
@@ -142,7 +142,7 @@ class SAPWC_Customers_Import_Page
                     const $btn = $(this);
                     const cardCode = $btn.data('code');
 
-                    $btn.prop('disabled', true).text('⏳ Importando...');
+                    $btn.prop('disabled', true).text('Importando...');
 
                     $.post(sapwc_ajax.ajax_url, {
                         action: 'sapwc_import_single_customer',
@@ -150,10 +150,10 @@ class SAPWC_Customers_Import_Page
                         cardcode: cardCode
                     }, function(res) {
                         if (res.success) {
-                            $btn.replaceWith('✅ Importado');
+                            $btn.replaceWith('<span style="color:green;">Importado</span>');
                         } else {
-                            $btn.prop('disabled', false).text('📥 Importar');
-                            alert('❌ Error: ' + res.data);
+                            $btn.prop('disabled', false).text('Importar');
+                            alert('Error: ' + res.data);
                         }
                     });
                 });
@@ -167,18 +167,18 @@ class SAPWC_Customers_Import_Page
                 // Botón importar todos
                 $('#sapwc-import-all-customers').on('click', function() {
                     const $btn = $(this);
-                    $btn.prop('disabled', true).text('⏳ Importando todos...');
+                    $btn.prop('disabled', true).text('Importando todos...');
 
                     $.post(sapwc_ajax.ajax_url, {
                         action: 'sapwc_import_all_customers',
                         nonce: sapwc_ajax.nonce
                     }, function(res) {
-                        $('#sapwc-import-result').html(`<p><strong>${res.success ? '✅ ' : '❌ '}${res.data.message}</strong></p>`);
+                        $('#sapwc-import-result').html(`<p><strong>${res.data.message}</strong></p>`);
                         table.ajax.reload(); // recargar la tabla después de importar
                     }).fail(function() {
-                        $('#sapwc-import-result').html('<p><strong>❌ Error de red al importar clientes.</strong></p>');
+                        $('#sapwc-import-result').html('<p><strong>Error de red al importar clientes.</strong></p>');
                     }).always(function() {
-                        $btn.prop('disabled', false).text('📥 Importar todos los clientes');
+                        $btn.prop('disabled', false).text('Importar todos los clientes');
                     });
                 });
 
@@ -402,7 +402,7 @@ add_action('wp_ajax_sapwc_get_sap_customers_dt', function () {
         $full_address = implode(', ', array_filter([$address, $zip, $city]));
         $row['Address'] = $full_address;
         if (!empty($phone)) {
-            $row['Address'] .= "<br><small>📞 " . esc_html($phone) . "</small>";
+            $row['Address'] .= "<br><small>" . esc_html($phone) . "</small>";
         }
         // Nombre combinado para mostrar en DataTable
         $card_name = '<strong>' . esc_html($row['CardName'] ?? '') . '</strong>';

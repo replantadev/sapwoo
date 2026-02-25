@@ -20,21 +20,21 @@ class SAPWC_SAP_Orders_Table
             $name_canarias = get_option('sapwc_cardname_canarias', 'CLIENTEWEBNAD CANARIAS');
             $name_portugal = get_option('sapwc_cardname_portugal', 'CLIENTEWEB PORTUGAL');
 
-            $message = "📝 Últimos pedidos de: <strong>$name_peninsula</strong>, <strong>$name_canarias</strong> y <strong>$name_portugal</strong>.";
+            $message = "Últimos pedidos de: <strong>$name_peninsula</strong>, <strong>$name_canarias</strong> y <strong>$name_portugal</strong>.";
         } else {
             $filter_type = get_option('sapwc_customer_filter_type', 'starts');
             $filter_value = get_option('sapwc_customer_filter_value', '');
 
             if ($filter_value) {
                 $message = $filter_type === 'starts'
-                    ? "📝 Últimos pedidos de clientes que empiezan por <code>$filter_value</code>"
-                    : "📝 Últimos pedidos de clientes que contienen <code>$filter_value</code>";
+                    ? "Últimos pedidos de clientes que empiezan por <code>$filter_value</code>"
+                    : "Últimos pedidos de clientes que contienen <code>$filter_value</code>";
             } else {
-                $message = "📝 No se ha definido un filtro de clientes. <a href='" . admin_url('options-general.php?page=sapwc-sync-settings') . "'>Definir ahora</a>";
+                $message = "No se ha definido un filtro de clientes. <a href='" . admin_url('options-general.php?page=sapwc-sync-settings') . "'>Definir ahora</a>";
             }
         }
 
-        echo '<h2 style="margin-top: 3em;">' . $message . ' <span id="sapwc-status-indicator" style="margin-left: 10px;">🔴</span></h2>';
+        echo '<h2 style="margin-top: 3em;">' . $message . ' <span id="sapwc-status-indicator" style="margin-left: 10px;"><span class="dashicons dashicons-no-alt" style="font-family:dashicons;color:red;"></span></span></h2>';
         echo '<table class="widefat striped" id="sapwc-sap-orders-table" style="margin-top: 1em; width:100%">';
         echo '<thead><tr>
             <th>' . esc_html__('DocEntry', 'sapwoo') . '</th>
@@ -122,14 +122,14 @@ add_action('wp_ajax_sapwc_get_sap_orders', function () {
 
     $conn = sapwc_get_active_connection();
     if (!$conn) {
-        wp_send_json_error(['message' => __('❌ No hay conexión activa con SAP.', 'sapwoo')]);
+        wp_send_json_error(['message' => __('No hay conexión activa con SAP.', 'sapwoo')]);
     }
 
     $client = new SAPWC_API_Client($conn['url']);
     $login  = $client->login($conn['user'], $conn['pass'], $conn['db'], $conn['ssl'] ?? false);
 
     if (!$login['success']) {
-        wp_send_json_error(['message' => __('❌ Error al conectar con SAP: ', 'sapwoo') . $login['message']]);
+        wp_send_json_error(['message' => __('Error al conectar con SAP: ', 'sapwoo') . $login['message']]);
     }
 
    

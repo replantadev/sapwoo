@@ -16,7 +16,7 @@ class SAPWC_UDF_Mapping_Page
             }
         }
 
-        echo '<div class="wrap"><h1>🧩 Campos Personalizados U_</h1>';
+        echo '<div class="wrap"><h1><span class="dashicons dashicons-networking" style="font-family:dashicons;"></span> Campos Personalizados U_</h1>';
         echo '<form method="post"><input type="hidden" name="sapwc_udf_save" value="1">';
         echo '<table class="widefat fixed striped"><thead><tr><th>Campo SAP (U_)</th><th>Campo Woo (meta u otro)</th></tr></thead><tbody>';
 
@@ -35,7 +35,7 @@ class SAPWC_UDF_Mapping_Page
         // Save logic
         if (isset($_POST['sapwc_udf_save'])) {
             update_option('sapwc_udf_mapping', array_map('sanitize_text_field', $_POST['sapwc_udf_mapping']));
-            echo '<div class="updated"><p>✅ Mapeo guardado correctamente.</p></div>';
+            echo '<div class="updated"><p>Mapeo guardado correctamente.</p></div>';
         }
     }
 }

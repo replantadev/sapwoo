@@ -5,7 +5,7 @@ class SAPWC_Extensions_Page
     {
         return [
             'logistica' => [
-                'label' => '📦 Logística & Envíos',
+                'label' => 'Logística & Envíos',
                 'description' => 'Mapea métodos de envío, ruta, portes y más.',
                 'fields' => [
                     'shipping_method' => 'TransportationCode',
@@ -15,7 +15,7 @@ class SAPWC_Extensions_Page
                 ]
             ],
             'estado_pedido' => [
-                'label' => '🔄 Estado Avanzado',
+                'label' => 'Estado Avanzado',
                 'description' => 'Sincroniza estados personalizados y devoluciones.',
                 'fields' => [
                     'status' => 'U_ARTES_EST',
@@ -23,7 +23,7 @@ class SAPWC_Extensions_Page
                 ]
             ],
             'etiquetas' => [
-                'label' => '🏷️ Etiquetas e impresión',
+                'label' => 'Etiquetas e impresión',
                 'description' => 'Envía flags para impresión automática desde SAP.',
                 'fields' => [
                     'imprimir_etiqueta' => 'U_ARTES_ImpEti',
@@ -39,7 +39,7 @@ class SAPWC_Extensions_Page
         $mapping_ext = get_option('sapwc_field_mapping_extensiones', []);
         $active_ext = get_option('sapwc_active_extensions', []);
 
-        echo '<div class="wrap"><h1>⚙️ Extensiones SAP Woo</h1>';
+        echo '<div class="wrap"><h1><span class="dashicons dashicons-admin-plugins" style="font-family:dashicons;"></span> Extensiones SAP Woo</h1>';
         echo '<form method="post">';
         echo '<input type="hidden" name="sapwc_extensions_save" value="1">';
 
@@ -79,7 +79,7 @@ class SAPWC_Extensions_Page
             update_option('sapwc_field_mapping_extensiones', array_map('sanitize_text_field_deep', $mapeo));
             update_option('sapwc_active_extensions', array_map('sanitize_text_field', $activos));
 
-            echo '<div class="updated"><p>✅ Extensiones y mapeo guardados.</p></div>';
+            echo '<div class="updated"><p>Extensiones y mapeo guardados.</p></div>';
         }
     }
 

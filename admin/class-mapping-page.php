@@ -115,24 +115,24 @@ class SAPWC_Mapping_Page
                 }
             }
 
-            echo '<div class="updated"><p>✅ Se enviaron ' . $sent . ' pedidos a SAP.';
+            echo '<div class="updated"><p>Se enviaron ' . $sent . ' pedidos a SAP.';
             if ($skipped > 0) echo ' (' . $skipped . ' ya habían sido enviados)';
             echo '</p></div>';
         }
 
-        echo '<hr><h2>📑 Campos disponibles desde SAP (/Orders)</h2>';
+        echo '<hr><h2><span class="dashicons dashicons-clipboard" style="font-family:dashicons;"></span> Campos disponibles desde SAP (/Orders)</h2>';
         echo '<form method="post" style="display:inline-block;margin-right:1em;"><input type="hidden" name="sapwc_metadata_check" value="1">';
         submit_button('Consultar campos desde SAP');
         echo '</form>';
 
         echo '<form method="post" style="display:inline-block;"><input type="hidden" name="sapwc_force_login" value="1">';
-        submit_button('🔄 Reiniciar sesión con SAP');
+        submit_button('Reiniciar sesión con SAP');
         echo '</form>';
 
         if (isset($_POST['sapwc_force_login'])) {
             $conn = sapwc_get_active_connection();
             if (!$conn) {
-                echo '<div class="error"><p>❌ No hay conexión SAP activa.</p></div>';
+                echo '<div class="error"><p>No hay conexión SAP activa.</p></div>';
                 return;
             }
         
@@ -140,9 +140,9 @@ class SAPWC_Mapping_Page
             $result  = $client->login($conn['user'], $conn['pass'], $conn['db'], $conn['ssl'] ?? false);
         
             if ($result['success']) {
-                echo '<div class="updated"><p>✅ Sesión reiniciada correctamente con SAP.</p></div>';
+                echo '<div class="updated"><p>Sesión reiniciada correctamente con SAP.</p></div>';
             } else {
-                echo '<div class="error"><p>❌ Error al reiniciar sesión: ' . esc_html($result['message']) . '</p></div>';
+                echo '<div class="error"><p>Error al reiniciar sesión: ' . esc_html($result['message']) . '</p></div>';
             }
         }
         
@@ -150,7 +150,7 @@ class SAPWC_Mapping_Page
         if (isset($_POST['sapwc_metadata_check'])) {
             $conn = sapwc_get_active_connection();
             if (!$conn) {
-                echo '<div class="error"><p>❌ No hay conexión SAP activa.</p></div>';
+                echo '<div class="error"><p>No hay conexión SAP activa.</p></div>';
                 return;
             }
 
@@ -158,7 +158,7 @@ class SAPWC_Mapping_Page
             $login  = $client->login($conn['user'], $conn['pass'], $conn['db'], $conn['ssl'] ?? false);
 
             if (!$client->get_cookie_header()) {
-                echo '<div class="error"><p>⚠️ Sesión inválida o expirada. Por favor, revisa tus credenciales o vuelve a iniciar sesión.</p></div>';
+                echo '<div class="error"><p>Sesión inválida o expirada. Por favor, revisa tus credenciales o vuelve a iniciar sesión.</p></div>';
                 return;
             }
 
@@ -182,7 +182,7 @@ class SAPWC_Mapping_Page
                 if (!$xml) {
                     echo '<div class="error"><p>Error al parsear el XML de metadata.</p></div>';
                 } else {
-                    echo '<h3>🧩 Entidades y campos disponibles en SAP</h3>';
+                    echo '<h3><span class="dashicons dashicons-networking" style="font-family:dashicons;"></span> Entidades y campos disponibles en SAP</h3>';
                     echo '<div style="max-height:400px;overflow:auto;border:1px solid #ccc;padding:1em;background:#fff">';
                     foreach ($xml->children('edmx', true)->DataServices->children() as $schema) {
                         foreach ($schema->EntityType as $entity) {
@@ -195,7 +195,7 @@ class SAPWC_Mapping_Page
                     }
                     echo '</div><hr>';
                 }
-                echo '<h3>📄 XML completo (sin procesar)</h3>';
+                echo '<h3><span class="dashicons dashicons-media-code" style="font-family:dashicons;"></span> XML completo (sin procesar)</h3>';
                 echo '<textarea readonly style="width:100%;height:400px;font-family:monospace;">' . esc_html($body) . '</textarea>';
             }
         }

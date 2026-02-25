@@ -33,9 +33,9 @@ class SAPWC_Sync_Options_Page
             }
 
             if (!empty($missing)) {
-                $missing_fields_notice = '<div class="notice notice-error"><p>❌ Modo B2B: Faltan campos requeridos en productos: <strong>' . implode(', ', $missing) . '</strong>.</p><p>Asegúrate de que todos los productos tengan esos campos meta.</p></div>';
+                $missing_fields_notice = '<div class="notice notice-error"><p>Modo B2B: Faltan campos requeridos en productos: <strong>' . implode(', ', $missing) . '</strong>.</p><p>Asegúrate de que todos los productos tengan esos campos meta.</p></div>';
             } else {
-                $missing_fields_notice = '<div class="notice notice-success"><p>✅ Todos los productos contienen los campos meta necesarios para el modo B2B.</p></div>';
+                $missing_fields_notice = '<div class="notice notice-success"><p>Todos los productos contienen los campos meta necesarios para el modo B2B.</p></div>';
             }
         }
 
@@ -88,7 +88,13 @@ class SAPWC_Sync_Options_Page
         $selected_user_sign = get_option('sapwc_user_sign', '');
         $site_short_name = get_option('sapwc_site_short_name', '');
 
-
+        // Configuración de sincronización de clientes B2B
+        $sync_customers_auto = get_option('sapwc_sync_customers_auto', '0');
+        $customer_udf_field = get_option('sapwc_customer_udf_field', 'U_ARTES_CLIW');
+        $customer_udf_value = get_option('sapwc_customer_udf_value', 'S');
+        $customer_sync_time = get_option('sapwc_customer_sync_time', '10:00');
+        $send_welcome_email = get_option('sapwc_send_welcome_email', '1');
+        $customers_last_sync = get_option('sapwc_customers_last_sync', __('Nunca', 'sapwoo'));
 
 
 ?>
@@ -271,7 +277,7 @@ class SAPWC_Sync_Options_Page
 
                                                     // Debug: ¿Sandra está?
                                                     if ($employee['employee_id'] === 97 || $employee['user_id'] === 47) {
-                                                        error_log("✅ SANDRA GONZÁLEZ está en la lista de empleados");
+                                                        error_log("[SAPWC] SANDRA GONZÁLEZ está en la lista de empleados");
                                                     }
                                                 }
                                             }
@@ -312,7 +318,101 @@ class SAPWC_Sync_Options_Page
                             </td>
                         </tr>
 
-
+                        <!-- SECCIÓN: Sincronización de Clientes SAP → WooCommerce -->
+                        <tr>
+                            <th colspan="2">
+                                <h3><span class="dashicons dashicons-groups"></span> <?php esc_html_e('Sincronización de Clientes SAP → WooCommerce', 'sapwoo'); ?></h3>
+                            </th>
+                        </tr>
+                        <tr>
+                            <th scope="row"><?php esc_html_e('Sincronizar clientes web', 'sapwoo'); ?></th>
+                            <td>
+                                <label class="sapwc-toggle">
+                                    <input type="checkbox" id="sapwc_sync_customers_auto" name="sapwc_sync_customers_auto" value="1" <?php checked($sync_customers_auto, '1'); ?>>
+                                    <span class="slider"></span>
+                                </label>
+                                <span style="margin-left: 1em;"><?php esc_html_e('Sincronización automática diaria', 'sapwoo'); ?></span>
+                                <p class="description"><?php esc_html_e('Importa automáticamente los clientes marcados como "cliente web" en SAP.', 'sapwoo'); ?></p>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th scope="row"><?php esc_html_e('Campo UDF "Cliente Web"', 'sapwoo'); ?></th>
+                            <td>
+                                <input type="text" name="sapwc_customer_udf_field" value="<?php echo esc_attr($customer_udf_field); ?>" class="regular-text" placeholder="U_ARTES_CLIW">
+                                <span style="margin: 0 5px;">=</span>
+                                <input type="text" name="sapwc_customer_udf_value" value="<?php echo esc_attr($customer_udf_value); ?>" class="small-text" placeholder="S" style="width: 60px;">
+                                <p class="description"><?php esc_html_e('Campo UDF en SAP que indica si el cliente debe tener acceso web. Ejecuta la verificación en consola para comprobar.', 'sapwoo'); ?></p>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th scope="row"><?php esc_html_e('Hora de sincronización', 'sapwoo'); ?></th>
+                            <td>
+                                <input type="time" name="sapwc_customer_sync_time" value="<?php echo esc_attr($customer_sync_time); ?>" class="small-text">
+                                <p class="description"><?php esc_html_e('Hora del día en que se ejecutará la sincronización automática (zona horaria del servidor).', 'sapwoo'); ?></p>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th scope="row"><?php esc_html_e('Email de bienvenida', 'sapwoo'); ?></th>
+                            <td>
+                                <label>
+                                    <input type="checkbox" name="sapwc_send_welcome_email" value="1" <?php checked($send_welcome_email, '1'); ?>>
+                                    <?php esc_html_e('Enviar email de bienvenida a nuevos clientes', 'sapwoo'); ?>
+                                </label>
+                                <p class="description"><?php esc_html_e('El email incluye un enlace para que el cliente establezca su contraseña y acceda a la tienda.', 'sapwoo'); ?></p>
+                                <p style="margin-top: 10px;">
+                                    <button type="button" id="sapwc-preview-welcome-email" class="button button-secondary">
+                                        <span class="dashicons dashicons-visibility" style="vertical-align: middle;"></span> <?php esc_html_e('Vista previa del email', 'sapwoo'); ?>
+                                    </button>
+                                </p>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th scope="row"><?php esc_html_e('Estado de sincronización', 'sapwoo'); ?></th>
+                            <td>
+                                <?php
+                                // Obtener estadísticas
+                                if (class_exists('SAPWC_Customer_Sync')) {
+                                    $stats = SAPWC_Customer_Sync::get_stats();
+                                } else {
+                                    $stats = ['total_imported' => 0, 'last_sync' => $customers_last_sync, 'emails_sent' => 0];
+                                }
+                                ?>
+                                <table class="widefat" style="max-width: 400px;">
+                                    <tr>
+                                        <td><strong><?php esc_html_e('Última sincronización:', 'sapwoo'); ?></strong></td>
+                                        <td id="sapwc-customers-last-sync"><?php echo esc_html($stats['last_sync']); ?></td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong><?php esc_html_e('Clientes importados:', 'sapwoo'); ?></strong></td>
+                                        <td><?php echo esc_html($stats['total_imported']); ?></td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong><?php esc_html_e('Emails enviados:', 'sapwoo'); ?></strong></td>
+                                        <td><?php echo esc_html($stats['emails_sent']); ?></td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong><?php esc_html_e('Próxima ejecución:', 'sapwoo'); ?></strong></td>
+                                        <td>
+                                            <?php
+                                            $next_customer_cron = wp_next_scheduled('sapwc_cron_sync_customers');
+                                            if ($next_customer_cron) {
+                                                echo esc_html(wp_date('Y-m-d H:i:s', $next_customer_cron));
+                                                echo ' <code>(' . esc_html(human_time_diff(time(), $next_customer_cron)) . ')</code>';
+                                            } else {
+                                                echo '<span style="color: #999;">' . esc_html__('No programado', 'sapwoo') . '</span>';
+                                            }
+                                            ?>
+                                        </td>
+                                    </tr>
+                                </table>
+                                <p style="margin-top: 15px;">
+                                    <button type="button" id="sapwc-sync-customers-now" class="button button-primary">
+                                        <span class="dashicons dashicons-update" style="vertical-align: middle;"></span> <?php esc_html_e('Sincronizar clientes ahora', 'sapwoo'); ?>
+                                    </button>
+                                    <span id="sapwc-sync-customers-result" style="margin-left: 10px;"></span>
+                                </p>
+                            </td>
+                        </tr>
 
                     <?php endif; ?>
 
@@ -444,7 +544,7 @@ class SAPWC_Sync_Options_Page
                                                     </option>
                                                 <?php endforeach; ?>
                                             <?php else: ?>
-                                                <option value="">⚠️ No hay conexión a SAP o no se pudieron cargar las tarifas</option>
+                                                <option value="">No hay conexión a SAP o no se pudieron cargar las tarifas</option>
                                             <?php endif; ?>
                                         </select>
                                         <p class="description"><?php esc_html_e('Tarifa TARIFA WEB PVP para Península y Baleares.', 'sapwoo'); ?></p>
@@ -467,7 +567,7 @@ class SAPWC_Sync_Options_Page
                                                     </option>
                                                 <?php endforeach; ?>
                                             <?php else: ?>
-                                                <option value="">⚠️ No hay conexión a SAP o no se pudieron cargar las tarifas</option>
+                                                <option value="">No hay conexión a SAP o no se pudieron cargar las tarifas</option>
                                             <?php endif; ?>
                                         </select>
                                         <p class="description"><?php esc_html_e('Tarifa específica para Canarias (GC, TF, LP, HI, TE, CN).', 'sapwoo'); ?></p>
@@ -490,7 +590,7 @@ class SAPWC_Sync_Options_Page
                                                     </option>
                                                 <?php endforeach; ?>
                                             <?php else: ?>
-                                                <option value="">⚠️ No hay conexión a SAP o no se pudieron cargar las tarifas</option>
+                                                <option value="">No hay conexión a SAP o no se pudieron cargar las tarifas</option>
                                             <?php endif; ?>
                                         </select>
                                         <p class="description"><?php esc_html_e('Tarifa específica para Portugal (PT).', 'sapwoo'); ?></p>
@@ -686,6 +786,58 @@ class SAPWC_Sync_Options_Page
                     </div>
                 </div>
 
+                <!-- Sincronización Automática de Catálogo (Productos & Categorías) -->
+                <div class="sapwc-settings-columns" style="margin-top: 20px;">
+                    <div class="sapwc-column">
+                        <table class="form-table widefat striped">
+                            <tr>
+                                <th colspan="2">
+                                    <h2><span class="dashicons dashicons-products"></span> <?php esc_html_e('Auto-Sync Catálogo SAP → Woo', 'sapwoo'); ?></h2>
+                                    <p class="description" style="font-weight: normal;"><?php esc_html_e('Actualiza automáticamente productos y categorías desde SAP. Para la primera importación masiva, usa la pestaña Importación.', 'sapwoo'); ?></p>
+                                </th>
+                            </tr>
+                            <tr>
+                                <th scope="row"><?php esc_html_e('Auto-sync Productos', 'sapwoo'); ?></th>
+                                <td>
+                                    <label class="sapwc-toggle">
+                                        <input type="checkbox" id="sapwc_sync_products_auto" name="sapwc_sync_products_auto" value="1" <?php checked(get_option('sapwc_sync_products_auto', '0'), '1'); ?>>
+                                        <span class="slider"></span>
+                                    </label>
+                                    <span style="margin-left: 1em;"><?php esc_html_e('Automático', 'sapwoo'); ?></span>
+                                    <p class="description"><?php esc_html_e('Crea productos nuevos y actualiza existentes desde SAP automáticamente (mismo intervalo que stock).', 'sapwoo'); ?></p>
+                                    <?php
+                                    $next_prod = wp_next_scheduled('sapwc_cron_sync_products');
+                                    if ($next_prod) {
+                                        echo '<p><small>⏰ ' . esc_html__('Próx. ejecución:', 'sapwoo') . ' <strong>' . esc_html(wp_date('Y-m-d H:i:s', $next_prod)) . '</strong></small></p>';
+                                    }
+                                    $products_last = get_option('sapwc_products_last_sync', __('Nunca', 'sapwoo'));
+                                    echo '<p><small>' . esc_html__('Última sync:', 'sapwoo') . ' <strong>' . esc_html($products_last) . '</strong></small></p>';
+                                    ?>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th scope="row"><?php esc_html_e('Auto-sync Categorías', 'sapwoo'); ?></th>
+                                <td>
+                                    <label class="sapwc-toggle">
+                                        <input type="checkbox" id="sapwc_sync_categories_auto" name="sapwc_sync_categories_auto" value="1" <?php checked(get_option('sapwc_sync_categories_auto', '0'), '1'); ?>>
+                                        <span class="slider"></span>
+                                    </label>
+                                    <span style="margin-left: 1em;"><?php esc_html_e('Automático', 'sapwoo'); ?></span>
+                                    <p class="description"><?php esc_html_e('Sincroniza ItemGroups de SAP como categorías de producto en WooCommerce.', 'sapwoo'); ?></p>
+                                    <?php
+                                    $next_cat = wp_next_scheduled('sapwc_cron_sync_categories');
+                                    if ($next_cat) {
+                                        echo '<p><small>⏰ ' . esc_html__('Próx. ejecución:', 'sapwoo') . ' <strong>' . esc_html(wp_date('Y-m-d H:i:s', $next_cat)) . '</strong></small></p>';
+                                    }
+                                    $cats_last = get_option('sapwc_categories_last_sync', __('Nunca', 'sapwoo'));
+                                    echo '<p><small>' . esc_html__('Última sync:', 'sapwoo') . ' <strong>' . esc_html($cats_last) . '</strong></small></p>';
+                                    ?>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+
                 <?php submit_button(esc_html__('Guardar cambios', 'sapwoo'), 'primary', '', false, ['id' => 'submit-button']); ?>
 
             </form>
@@ -721,10 +873,10 @@ class SAPWC_Sync_Options_Page
                             value: this.checked ? '1' : '0'
                         }, function(response) {
                             if (response.success) {
-                                $('<div class="notice notice-success is-dismissible"><p>✅ Configuración guardada.</p></div>')
+                                $('<div class="notice notice-success is-dismissible"><p>Configuración guardada.</p></div>')
                                     .insertAfter('.wrap h1').delay(2000).fadeOut();
                             } else {
-                                alert('❌ Error al guardar');
+                                alert('Error al guardar');
                             }
                         });
                     });
@@ -732,6 +884,8 @@ class SAPWC_Sync_Options_Page
 
                 toggleOption('sapwc_sync_orders_auto', 'sapwc_sync_orders_auto');
                 toggleOption('sapwc_sync_stock_auto', 'sapwc_sync_stock_auto');
+                toggleOption('sapwc_sync_products_auto', 'sapwc_sync_products_auto');
+                toggleOption('sapwc_sync_categories_auto', 'sapwc_sync_categories_auto');
 
                 function showToast(msg, type = 'success') {
                     const color = type === 'success' ? '#46b450' : '#dc3232';
@@ -768,10 +922,10 @@ class SAPWC_Sync_Options_Page
                             showToast(successMsg);
                             if (res.data.last_sync && updateCallback) updateCallback(res.data);
                         } else {
-                            showToast(res.data.message || '❌ Error desconocido', 'error');
+                            showToast(res.data.message || 'Error desconocido', 'error');
                         }
                     }).fail(function() {
-                        showToast('❌ Error de red', 'error');
+                        showToast('Error de red', 'error');
                     }).always(function() {
                         $btn.prop('disabled', false).text($btn.data('original-text'));
                     });
@@ -785,7 +939,7 @@ class SAPWC_Sync_Options_Page
 
                 $('#sapwc-sync-orders').on('click', function(e) {
                     e.preventDefault();
-                    handleSync('sapwc-sync-orders', 'sapwc_send_orders', '✅ Pedidos sincronizados correctamente', function(data) {
+                    handleSync('sapwc-sync-orders', 'sapwc_send_orders', 'Pedidos sincronizados correctamente', function(data) {
                         $('#sapwc-last-sync').text(data.last_sync);
                         $('#sapwc-last-docentry').text(data.last_docentry);
                     });
@@ -793,13 +947,63 @@ class SAPWC_Sync_Options_Page
 
                 $('#sapwc-sync-existing').on('click', function(e) {
                     e.preventDefault();
-                    handleSync('sapwc-sync-existing', 'sapwc_sync_existing_products', '✅ Productos existentes sincronizados.', function(data) {
+                    handleSync('sapwc-sync-existing', 'sapwc_sync_existing_products', 'Productos existentes sincronizados.', function(data) {
                         $('#sapwc-last-stock-sync').text(data.last_sync);
                     });
                 });
 
+                // Toggle para sincronización de clientes B2B
+                toggleOption('sapwc_sync_customers_auto', 'sapwc_sync_customers_auto');
 
+                // Sincronizar clientes ahora
+                $('#sapwc-sync-customers-now').on('click', function(e) {
+                    e.preventDefault();
+                    const $btn = $(this);
+                    const $result = $('#sapwc-sync-customers-result');
+                    
+                    $btn.prop('disabled', true).html('<span class="spinner is-active" style="float: none; margin: 0 8px 0 0"></span> Sincronizando...');
+                    $result.text('');
 
+                    $.post(ajaxurl, {
+                        action: 'sapwc_sync_customers_now',
+                        nonce: sapwc_ajax.nonce
+                    }).done(function(res) {
+                        if (res.success) {
+                            showToast(res.data.message);
+                            if (res.data.last_sync) {
+                                $('#sapwc-customers-last-sync').text(res.data.last_sync);
+                            }
+                            $result.html('<span style="color: green;">' + res.data.imported + ' importados, ' + res.data.errors + ' errores</span>');
+                        } else {
+                            showToast(res.data.message || 'Error desconocido', 'error');
+                            $result.html('<span style="color: red;">' + (res.data.message || 'Error') + '</span>');
+                        }
+                    }).fail(function() {
+                        showToast('Error de red', 'error');
+                        $result.html('<span style="color: red;">Error de red</span>');
+                    }).always(function() {
+                        $btn.prop('disabled', false).html('<span class="dashicons dashicons-update" style="vertical-align: middle;"></span> Sincronizar clientes ahora');
+                    });
+                });
+
+                // Vista previa del email de bienvenida
+                $('#sapwc-preview-welcome-email').on('click', function(e) {
+                    e.preventDefault();
+                    
+                    $.post(ajaxurl, {
+                        action: 'sapwc_preview_welcome_email',
+                        nonce: sapwc_ajax.nonce
+                    }).done(function(res) {
+                        if (res.success) {
+                            // Abrir en nueva ventana
+                            const win = window.open('', '_blank', 'width=700,height=800');
+                            win.document.write(res.data.html);
+                            win.document.close();
+                        } else {
+                            alert('Error al generar vista previa');
+                        }
+                    });
+                });
 
 
             });
@@ -836,7 +1040,7 @@ add_action('wp_ajax_sapwc_toggle_option', function () {
     $key = sanitize_text_field($_POST['key']);
     $value = $_POST['value'] === '1' ? '1' : '0';
 
-    if (!in_array($key, ['sapwc_sync_orders_auto', 'sapwc_sync_stock_auto'])) {
+    if (!in_array($key, ['sapwc_sync_orders_auto', 'sapwc_sync_stock_auto', 'sapwc_sync_customers_auto', 'sapwc_sync_products_auto', 'sapwc_sync_categories_auto'])) {
         wp_send_json_error('Clave no válida');
     }
 
@@ -902,6 +1106,20 @@ add_action('admin_init', function () {
     register_setting('sapwc_sync_settings', 'sapwc_sync_shipping_expenses');
     register_setting('sapwc_sync_settings', 'sapwc_shipping_expense_code');
     register_setting('sapwc_sync_settings', 'sapwc_shipping_tax_code');
+
+    // Configuración de sincronización de clientes B2B
+    register_setting('sapwc_sync_settings', 'sapwc_sync_customers_auto');
+    register_setting('sapwc_sync_settings', 'sapwc_customer_udf_field');
+    register_setting('sapwc_sync_settings', 'sapwc_customer_udf_value');
+    register_setting('sapwc_sync_settings', 'sapwc_customer_sync_time');
+    register_setting('sapwc_sync_settings', 'sapwc_send_welcome_email');
+    register_setting('sapwc_sync_settings', 'sapwc_customers_last_sync');
+
+    // Sincronización automática de productos y categorías
+    register_setting('sapwc_sync_settings', 'sapwc_sync_products_auto');
+    register_setting('sapwc_sync_settings', 'sapwc_sync_categories_auto');
+    register_setting('sapwc_sync_settings', 'sapwc_products_last_sync');
+    register_setting('sapwc_sync_settings', 'sapwc_categories_last_sync');
 });
 
 function sapwc_cron_sync_stock_callback()
@@ -990,6 +1208,44 @@ add_action('update_option_sapwc_sync_stock_auto', function ($old, $new) {
     }
 }, 10, 2);
 
+// Cron para sincronización automática de PRODUCTOS (SAP → Woo)
+add_action('update_option_sapwc_sync_products_auto', function ($old, $new) {
+    if ($old !== $new) {
+        if ($new === '1') {
+            if (!wp_next_scheduled('sapwc_cron_sync_products')) {
+                wp_schedule_event(time() + 180, get_option('sapwc_cron_interval', 'hourly'), 'sapwc_cron_sync_products');
+            }
+        } else {
+            wp_clear_scheduled_hook('sapwc_cron_sync_products');
+        }
+    }
+}, 10, 2);
+
+add_action('sapwc_cron_sync_products', function () {
+    if (class_exists('SAPWC_Product_Sync')) {
+        SAPWC_Product_Sync::cron_callback();
+    }
+});
+
+// Cron para sincronización automática de CATEGORÍAS (SAP → Woo)
+add_action('update_option_sapwc_sync_categories_auto', function ($old, $new) {
+    if ($old !== $new) {
+        if ($new === '1') {
+            if (!wp_next_scheduled('sapwc_cron_sync_categories')) {
+                wp_schedule_event(time() + 150, get_option('sapwc_cron_interval', 'hourly'), 'sapwc_cron_sync_categories');
+            }
+        } else {
+            wp_clear_scheduled_hook('sapwc_cron_sync_categories');
+        }
+    }
+}, 10, 2);
+
+add_action('sapwc_cron_sync_categories', function () {
+    if (class_exists('SAPWC_Category_Sync')) {
+        SAPWC_Category_Sync::cron_callback();
+    }
+});
+
 
 function sapwc_sync_stock_items()
 {
@@ -1018,7 +1274,7 @@ function sapwc_sync_stock_items_ecommerce()
         error_log('[SAPWC Sync Stock] ' . $msg);
         if ($is_ajax) {
             SAPWC_Logger::log(0, 'stock', 'error', $msg);
-            wp_send_json_error(['message' => '❌ ' . $msg]);
+            wp_send_json_error(['message' => $msg]);
         }
     };
 
@@ -1140,7 +1396,7 @@ function sapwc_sync_stock_items_ecommerce()
 
     if ($is_ajax) {
         wp_send_json_success([
-            'message'   => '✅ Stock actualizado con éxito.',
+            'message'   => 'Stock actualizado con éxito.',
             'last_sync' => wp_date('Y-m-d H:i:s')
         ]);
     }
@@ -1152,7 +1408,7 @@ function sapwc_sync_stock_items_b2b()
         error_log('[SAPWC Sync B2B] ' . $msg);
         if ($is_ajax) {
             SAPWC_Logger::log(0, 'stock_b2b', 'error', $msg);
-            wp_send_json_error(['message' => '❌ ' . $msg]);
+            wp_send_json_error(['message' => $msg]);
         }
     };
     // Validación de campos obligatorios antes de empezar
@@ -1176,7 +1432,7 @@ function sapwc_sync_stock_items_b2b()
     }
 
     if ($errores > 0) {
-        return $log_error("❌ Hay $errores productos sin SKU o almacén. Corrige esto antes de sincronizar.");
+        return $log_error("Hay $errores productos sin SKU o almacén. Corrige esto antes de sincronizar.");
     }
 
 
@@ -1254,7 +1510,7 @@ function sapwc_sync_stock_items_b2b()
 
     if ($is_ajax) {
         wp_send_json_success([
-            'message' => '✅ Stock B2B actualizado con éxito.',
+            'message' => 'Stock B2B actualizado con éxito.',
             'last_sync' => wp_date('Y-m-d H:i:s')
         ]);
     }
@@ -1286,7 +1542,7 @@ function sapwc_sync_existing_products()
         error_log('[SAPWC Sync Existing] ' . $msg);
         if ($is_ajax) {
             SAPWC_Logger::log(0, 'existing_manual', 'error', $msg);
-            wp_send_json_error(['message' => '❌ ' . $msg]);
+            wp_send_json_error(['message' => $msg]);
         }
     };
 
@@ -1376,7 +1632,7 @@ function sapwc_sync_existing_products()
 
     if ($is_ajax) {
         wp_send_json_success([
-            'message'   => "✅ Se sincronizaron $success productos existentes.",
+            'message'   => "Se sincronizaron $success productos existentes.",
             'last_sync' => wp_date('Y-m-d H:i:s')
         ]);
     }

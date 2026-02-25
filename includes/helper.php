@@ -15,7 +15,7 @@ function sapwc_get_active_connection()
     $index = get_option('sapwc_connection_index', 0);
 
     if (!isset($all_connections[$index])) {
-        error_log(__('❌ No hay conexión activa configurada en SAP Woo Sync.', 'sapwoo'));
+        error_log('[SAPWC] ' . __('No hay conexión activa configurada en SAP Woo Sync.', 'sapwoo'));
         return null;
     }
 
@@ -27,7 +27,7 @@ function sapwc_get_active_connection()
     }
 
     if (empty($connection['url']) || empty($connection['user']) || empty($connection['pass']) || empty($connection['db'])) {
-        error_log(__('❌ Conexión activa incompleta: ', 'sapwoo') . print_r($connection, true));
+        error_log('[SAPWC] ' . __('Conexión activa incompleta: ', 'sapwoo') . print_r($connection, true));
         return null;
     }
 

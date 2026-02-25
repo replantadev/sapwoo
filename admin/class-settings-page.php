@@ -67,7 +67,7 @@ if ($conn) {
 }
 
 if ($version_info): ?>
-    <h2>ℹ️ <?php echo esc_html__('Información de SAP', 'sapwoo'); ?></h2>
+    <h2><span class="dashicons dashicons-info" style="font-family:dashicons;"></span> <?php echo esc_html__('Información de SAP', 'sapwoo'); ?></h2>
     <table class="form-table">
         <tr>
             <th scope="row"><?php echo esc_html__('Versión de Service Layer', 'sapwoo'); ?></th>
@@ -87,11 +87,11 @@ if ($version_info): ?>
         </tr>
     </table>
 <?php elseif ($conn): ?>
-    <p style="color: red; font-weight: bold;">❌ <?php echo esc_html__('No se pudo obtener la versión de SAP.', 'sapwoo'); ?></p>
+    <p style="color: red; font-weight: bold;"><?php echo esc_html__('No se pudo obtener la versión de SAP.', 'sapwoo'); ?></p>
 <?php endif; ?>
 <?php
         echo '<hr>';
-        echo '<h2>ℹ️ ' . esc_html__('Compatibilidad', 'sapwoo') . '</h2>';
+        echo '<h2><span class="dashicons dashicons-info" style="font-family:dashicons;"></span> ' . esc_html__('Compatibilidad', 'sapwoo') . '</h2>';
         echo '<p>' . esc_html__('Este plugin ha sido probado y es compatible con:', 'sapwoo') . '</p>';
         echo '<ul style="margin-left:1.5em;">
             <li><strong>' . esc_html__('SAP Business One 10.0 FP 2111', 'sapwoo') . '</strong> (' . esc_html__('recomendado', 'sapwoo') . ')</li>

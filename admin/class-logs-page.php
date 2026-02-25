@@ -11,15 +11,15 @@ class SAPWC_Logs_Page
 
         // Si se hizo clic en el botón de test, insertar un log de prueba
         if (isset($_GET['sapwc_test_log'])) {
-            SAPWC_Logger::log(0, 'test', 'info', '🧪 Log de prueba manual desde la interfaz.');
-            echo '<div class="notice notice-success"><p>✅ Log de prueba insertado correctamente.</p></div>';
+            SAPWC_Logger::log(0, 'test', 'info', 'Log de prueba manual desde la interfaz.');
+            echo '<div class="notice notice-success"><p>Log de prueba insertado correctamente.</p></div>';
         }
 
         $logs = $wpdb->get_results("SELECT * FROM {$wpdb->prefix}sapwc_logs ORDER BY created_at DESC LIMIT 100");
 
-        echo '<div class="wrap"><h1>📋 Registro de Logs SAP</h1>';
+        echo '<div class="wrap"><h1><span class="dashicons dashicons-clipboard" style="font-family:dashicons;"></span> Registro de Logs SAP</h1>';
 
-        echo '<p><button class="button button-secondary" id="sapwc-insert-test-log">🧪 Insertar Log de Prueba</button></p>
+        echo '<p><button class="button button-secondary" id="sapwc-insert-test-log">Insertar Log de Prueba</button></p>
 <div id="sapwc-test-log-message"></div>
 ';
 
@@ -75,6 +75,6 @@ add_action('wp_ajax_sapwc_insert_test_log', function () {
         wp_send_json_error('Logger no está cargado.');
     }
 
-    SAPWC_Logger::log(null, 'test', 'info', '🧪 Log de prueba manual (AJAX)');
-    wp_send_json_success('✅ Log de prueba insertado.');
+    SAPWC_Logger::log(null, 'test', 'info', 'Log de prueba manual (AJAX)');
+    wp_send_json_success('Log de prueba insertado.');
 });

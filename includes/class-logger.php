@@ -17,7 +17,7 @@ class SAPWC_Logger
         ]);
 
         if ($result === false) {
-            error_log('[SAPWC_LOGGER] ❌ Error al insertar log: ' . $wpdb->last_error);
+            error_log('[SAPWC_LOGGER] Error al insertar log: ' . $wpdb->last_error);
             error_log('[SAPWC_LOGGER] Última query: ' . $wpdb->last_query);
         }
     }

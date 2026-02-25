@@ -30,7 +30,7 @@ class SAPWC_Sync_Handler
                 $order->get_id(),
                 'sync',
                 'error',
-                '❌ Mapeo de campos incompleto. Faltan: ' . json_encode(array_keys($this->mapping))
+                'Mapeo de campos incompleto. Faltan: ' . json_encode(array_keys($this->mapping))
             );
             error_log('Mapeo actual: ' . print_r(get_option('sapwc_field_mapping'), true));
             return ['success' => false, 'message' => 'Mapeo de campos incompleto. Verifica los ajustes.'];
@@ -64,7 +64,7 @@ class SAPWC_Sync_Handler
         $payload = $mode === 'b2b' ? $this->build_payload_b2b($order) : $this->build_payload_ecommerce($order);
 
         if (!$payload) {
-            SAPWC_Logger::log($order->get_id(), 'sync', 'error', '⚠️ Payload vacío o inválido. Puede deberse a falta de SKU o CardCode.');
+            SAPWC_Logger::log($order->get_id(), 'sync', 'error', 'Payload vacío o inválido. Puede deberse a falta de SKU o CardCode.');
             $this->store_order_fallback($order->get_id(), 'Error al generar el payload.');
             return ['success' => false, 'message' => 'Error al generar el payload.'];
         }
@@ -98,7 +98,7 @@ class SAPWC_Sync_Handler
                     ]);
 
                     if (!is_wp_error($patch_response) && wp_remote_retrieve_response_code($patch_response) === 204) {
-                        $order->add_order_note('🟢 Cliente B2B marcado como cliente web en SAP.');
+                        $order->add_order_note('Cliente B2B marcado como cliente web en SAP.');
                         SAPWC_Logger::log($order->get_id(), 'bp_patch_b2b', 'success', 'Cliente marcado como web (U_ARTES_CLIW = S)');
                     } else {
                         SAPWC_Logger::log($order->get_id(), 'bp_patch_b2b', 'warning', 'No se pudo marcar como cliente web');
@@ -122,13 +122,13 @@ class SAPWC_Sync_Handler
                     "SKU inválido: producto sin SKU → " . json_encode($line)
                 );
                 $product_name = $line['ItemDescription'] ?? '[Sin nombre]';
-                $order->add_order_note('❌ Producto sin SKU válido: ' . $product_name);
+                $order->add_order_note('Producto sin SKU válido: ' . $product_name);
                 $order->save();
 
                 
                 return [
                     'success' => false,
-                    'message' => "❌ Error: el producto \"$product_name\" no tiene SKU válido. Corrige esto antes de enviar a SAP."
+                    'message' => "Error: el producto \"$product_name\" no tiene SKU válido. Corrige esto antes de enviar a SAP."
                 ];
             }
         }
@@ -150,7 +150,7 @@ class SAPWC_Sync_Handler
 
         if (is_wp_error($response)) {
             $msg = $response->get_error_message();
-            $order->add_order_note('❌ Error al enviar a SAP: ' . $msg);
+            $order->add_order_note('Error al enviar a SAP: ' . $msg);
 
             $order->save();
             $this->store_order_fallback($order->get_id(), $msg);
@@ -173,8 +173,8 @@ class SAPWC_Sync_Handler
             update_post_meta($order->get_id(), '_sap_docentry', $sap_id);
             update_post_meta($order->get_id(), '_sap_address_synced', '1');
 
-            $order->add_order_note('✅ Pedido enviado a SAP. DocEntry: ' . $sap_id);
-            $order->update_status('processing', '✅ Pedido enviado a SAP. DocEntry: ' . $sap_id);
+            $order->add_order_note('Pedido enviado a SAP. DocEntry: ' . $sap_id);
+            $order->update_status('processing', 'Pedido enviado a SAP. DocEntry: ' . $sap_id);
             $entrega_address = [
                 'Street'    => $order->get_shipping_address_1(),
                 'ZipCode'   => $order->get_shipping_postcode(),
@@ -185,10 +185,10 @@ class SAPWC_Sync_Handler
 
             if (get_option('sapwc_mode') === 'b2b') {
                 $this->add_shipping_address_to_bp_b2b($payload['CardCode'], $order);
-                $order->add_order_note('📦 Dirección B2B añadida a SAP.');
+                $order->add_order_note('Dirección B2B añadida a SAP.');
             } else {
                 $this->add_shipping_address_to_bp($payload['CardCode'], $order, $entrega_address);
-                $order->add_order_note('✅ Dirección de envío añadida a SAP. ID: ' . $payload['CardCode']);
+                $order->add_order_note('Dirección de envío añadida a SAP. ID: ' . $payload['CardCode']);
             }
 
             $order->save();
@@ -217,17 +217,17 @@ class SAPWC_Sync_Handler
                 ]);
 
                 if (is_wp_error($patch_response)) {
-                    $order->add_order_note('❌ Error al hacer PATCH para actualizar el comentario: ' . $patch_response->get_error_message());
+                    $order->add_order_note('Error al hacer PATCH para actualizar el comentario: ' . $patch_response->get_error_message());
                 } else {
                     $patch_code = wp_remote_retrieve_response_code($patch_response);
                     $patch_body = wp_remote_retrieve_body($patch_response);
 
                     if ($patch_code === 204) {
-                        $order->add_order_note('🔄 Comentario actualizado correctamente con PATCH.');
+                        $order->add_order_note('Comentario actualizado correctamente con PATCH.');
                     } else {
                         $decoded_patch = json_decode($patch_body, true);
                         $patch_error = $decoded_patch['error']['message']['value'] ?? $patch_body ?? 'Error desconocido en PATCH';
-                        $order->add_order_note('⚠️ El comentario no pudo actualizarse con PATCH. ' . $patch_error);
+                        $order->add_order_note('El comentario no pudo actualizarse con PATCH. ' . $patch_error);
                         SAPWC_Logger::log($order->get_id(), 'patch', 'warning', 'Comentario vacío, se intentó PATCH.', $sap_id);
                     }
                 }
@@ -238,7 +238,7 @@ class SAPWC_Sync_Handler
 
         $error = $body['error']['message']['value'] ?? json_encode($body) ?? 'Error desconocido';
         SAPWC_Logger::log($order->get_id(), 'sync', 'error', 'Error al enviar a SAP: ' . $error);
-        $order->add_order_note('❌ Error al enviar a SAP: ' . $error);
+        $order->add_order_note('Error al enviar a SAP: ' . $error);
         $order->save();
         $this->store_order_fallback($order->get_id(), $error);
         error_log("[ERROR SAP] Código $code - Respuesta: " . print_r($body, true));
@@ -579,7 +579,7 @@ class SAPWC_Sync_Handler
 
             // Ajustar si la cantidad es menor al pack mínimo
             if ($pack_size > 0 && $quantity < $pack_size) {
-                error_log("[BUILD_ITEMS_SIN_CARGO] ⚠️ SKU: $sku_clean seleccionó $quantity, ajustado a mínimo $pack_size");
+                error_log("[BUILD_ITEMS_SIN_CARGO] SKU: $sku_clean seleccionó $quantity, ajustado a mínimo $pack_size");
                 SAPWC_Logger::log($order->get_id(), 'sync', 'error', sprintf('SKU %s seleccionado con %d uds. Corregido a %d (mínimo)', $sku_clean, $quantity, $pack_size));
                 $order->add_order_note("Producto {$product->get_name()} ajustado a $pack_size por mínimo de compra");
                 $quantity  = $pack_size;
@@ -587,7 +587,7 @@ class SAPWC_Sync_Handler
                 if ($regular > 0) {
                     $subtotal  = $regular * $quantity;
                 } else {
-                    error_log("[BUILD_ITEMS_SIN_CARGO] ❌ Precio regular inválido para SKU $sku_clean");
+                    error_log("[BUILD_ITEMS_SIN_CARGO] Precio regular inválido para SKU $sku_clean");
                     $subtotal = 0;
                 }
 
@@ -608,11 +608,11 @@ class SAPWC_Sync_Handler
 
                 // Validación suave: si no cuadra, asumir todo pagado
                 if (abs(($units_paid + $units_gifted) - $quantity) > 0.1) {
-                    error_log("[BUILD_ITEMS_SIN_CARGO] ❌ Ajuste por descuadre decimal en SKU $sku_clean. TOTAL: $quantity ≠ CALCULADAS: " . ($units_paid + $units_gifted));
+                    error_log("[BUILD_ITEMS_SIN_CARGO] Ajuste por descuadre decimal en SKU $sku_clean. TOTAL: $quantity ≠ CALCULADAS: " . ($units_paid + $units_gifted));
                     $units_paid = $quantity;
                     $units_gifted = 0;
                 } else {
-                    error_log("[BUILD_ITEMS_SIN_CARGO] 🎁 Promo detectada SKU $sku_clean → $units_paid pagadas + $units_gifted regaladas");
+                    error_log("[BUILD_ITEMS_SIN_CARGO] Promo detectada SKU $sku_clean → $units_paid pagadas + $units_gifted regaladas");
                 }
             }
 
@@ -675,7 +675,7 @@ class SAPWC_Sync_Handler
 
             // Ajustar si la cantidad es menor al pack mínimo
             if ($pack_size > 0 && $quantity < $pack_size) {
-                error_log("[BUILD_ITEMS_SIN_CARGO] ⚠️ SKU: $sku_clean seleccionó $quantity, ajustado a mínimo $pack_size");
+                error_log("[BUILD_ITEMS_SIN_CARGO] SKU: $sku_clean seleccionó $quantity, ajustado a mínimo $pack_size");
                 SAPWC_Logger::log($order->get_id(), 'sync', 'error', sprintf('SKU %s seleccionado con %d uds. Corregido a %d (mínimo)', $sku_clean, $quantity, $pack_size));
                 $order->add_order_note("Producto {$product->get_name()} ajustado a $pack_size por mínimo de compra");
                 $quantity  = $pack_size;
@@ -683,7 +683,7 @@ class SAPWC_Sync_Handler
                 if ($regular > 0) {
                     $subtotal  = $regular * $quantity;
                 } else {
-                    error_log("[BUILD_ITEMS_SIN_CARGO] ❌ Precio regular inválido para SKU $sku_clean");
+                    error_log("[BUILD_ITEMS_SIN_CARGO] Precio regular inválido para SKU $sku_clean");
                     $subtotal = 0;
                 }
 
@@ -704,11 +704,11 @@ class SAPWC_Sync_Handler
 
                 // Validación suave: si no cuadra, asumir todo pagado
                 if (abs(($units_paid + $units_gifted) - $quantity) > 0.1) {
-                    error_log("[BUILD_ITEMS_SIN_CARGO] ❌ Ajuste por descuadre decimal en SKU $sku_clean. TOTAL: $quantity ≠ CALCULADAS: " . ($units_paid + $units_gifted));
+                    error_log("[BUILD_ITEMS_SIN_CARGO] Ajuste por descuadre decimal en SKU $sku_clean. TOTAL: $quantity ≠ CALCULADAS: " . ($units_paid + $units_gifted));
                     $units_paid = $quantity;
                     $units_gifted = 0;
                 } else {
-                    error_log("[BUILD_ITEMS_SIN_CARGO] 🎁 Promo detectada SKU $sku_clean → $units_paid pagadas + $units_gifted regaladas");
+                    error_log("[BUILD_ITEMS_SIN_CARGO] Promo detectada SKU $sku_clean → $units_paid pagadas + $units_gifted regaladas");
                 }
             }
 
@@ -1327,7 +1327,7 @@ class SAPWC_Sync_Handler
                 $code = wp_remote_retrieve_response_code($patch_response);
                 if ($code === 204) {
                     SAPWC_Logger::log($order->get_id(), 'ajuste', 'success', "Ajuste de redondeo aplicado: $ajuste EUR (IVA: $vatGroup)");
-                    $order->add_order_note("🔄 Se ha aplicado un ajuste de redondeo en SAP de $ajuste EUR (IVA: $vatGroup).");
+                    $order->add_order_note("Se ha aplicado un ajuste de redondeo en SAP de $ajuste EUR (IVA: $vatGroup).");
                 } else {
                     $body = wp_remote_retrieve_body($patch_response);
                     SAPWC_Logger::log($order->get_id(), 'ajuste', 'error', "Error PATCH ajuste ($code): $body");
@@ -1350,14 +1350,14 @@ add_action('wp_ajax_sapwc_send_order', function () {
     }
     $conn = sapwc_get_active_connection();
     if (!$conn) {
-        wp_send_json_error(['message' => '❌ No hay conexión activa con SAP.']);
+        wp_send_json_error(['message' => 'No hay conexión activa con SAP.']);
     }
 
     $client = new SAPWC_API_Client($conn['url']);
     $login  = $client->login($conn['user'], $conn['pass'], $conn['db'], $conn['ssl'] ?? false);
 
     if (!$login['success']) {
-        wp_send_json_error(['message' => '❌ Error al conectar con SAP: ' . $login['message']]);
+        wp_send_json_error(['message' => 'Error al conectar con SAP: ' . $login['message']]);
     }
 
     $sync_handler = new SAPWC_Sync_Handler($client);
@@ -1386,7 +1386,7 @@ add_action('wp_ajax_sapwc_test_connection', function () {
 });
 
 add_filter('manage_edit-shop_order_columns', function ($columns) {
-    $columns['sap_address'] = '📍 Dirección SAP';
+    $columns['sap_address'] = 'Dirección SAP';
     return $columns;
 });
 
@@ -1411,14 +1411,14 @@ add_action('wp_ajax_sapwc_retry_failed_order', function () {
 
     $conn = sapwc_get_active_connection();
     if (!$conn) {
-        wp_send_json_error(['message' => '❌ No hay conexión activa con SAP.']);
+        wp_send_json_error(['message' => 'No hay conexión activa con SAP.']);
     }
 
     $client = new SAPWC_API_Client($conn['url']);
     $login  = $client->login($conn['user'], $conn['pass'], $conn['db'], $conn['ssl'] ?? false);
 
     if (!$login['success']) {
-        wp_send_json_error(['message' => '❌ Error al conectar con SAP: ' . $login['message']]);
+        wp_send_json_error(['message' => 'Error al conectar con SAP: ' . $login['message']]);
     }
 
     $sync = new SAPWC_Sync_Handler($client);

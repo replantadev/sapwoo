@@ -21,10 +21,10 @@ class SAPWC_Orders_Page
         $query_data = sapwc_build_orders_query();
         $mode_label = strtoupper($query_data['mode']) === 'B2B' ? 'B2B (clientes individuales)' : 'Ecommerce (cliente genérico)';
         echo '<div class="notice notice-info" style="padding: 15px 20px; margin: 20px 0;">';
-        echo '<p><strong>🔍 Modo actual:</strong> ' . esc_html($mode_label) . '</p>';
+        echo '<p><strong><span class="dashicons dashicons-search" style="font-family:dashicons;"></span> Modo actual:</strong> ' . esc_html($mode_label) . '</p>';
 
         if ($query_data['mode'] === 'ecommerce') {
-            echo '<p><strong>🧾 Clientes consultados:</strong> ';
+            echo '<p><strong><span class="dashicons dashicons-clipboard" style="font-family:dashicons;"></span> Clientes consultados:</strong> ';
             echo '<code>' . esc_html($query_data['params']['peninsula']) . '</code> y ';
             echo '<code>' . esc_html($query_data['params']['canarias']) . '</code></p>';
         } elseif ($query_data['mode'] === 'b2b') {
@@ -39,16 +39,16 @@ class SAPWC_Orders_Page
                 $type_label = 'que comienzan con el prefijo seguido de números';
             }
 
-            echo '<p><strong>🔤 Filtro aplicado:</strong> Mostrar clientes ' . esc_html($type_label) . ' <code>' . esc_html($query_data['params']['filter_value']) . '</code></p>';
+            echo '<p><strong><span class="dashicons dashicons-filter" style="font-family:dashicons;"></span> Filtro aplicado:</strong> Mostrar clientes ' . esc_html($type_label) . ' <code>' . esc_html($query_data['params']['filter_value']) . '</code></p>';
         }
 
-        echo '<details style="margin-top: 10px;"><summary style="cursor: pointer;">📄 Ver consulta SAP</summary>';
+        echo '<details style="margin-top: 10px;"><summary style="cursor: pointer;"><span class="dashicons dashicons-media-text" style="font-family:dashicons;"></span> Ver consulta SAP</summary>';
         echo '<pre style="white-space: pre-wrap; word-break: break-word; background: #f6f8fa; padding: 10px; margin-top: 8px; border-left: 3px solid #2271b1;">';
         echo esc_html($query_data['query']);
         echo '</pre></details>';
         echo '</div>';
 
-        echo '<button id="sapwc-send-orders" class="button button-primary">🛫 Enviar todos a SAP</button>';
+        echo '<button id="sapwc-send-orders" class="button button-primary"><span class="dashicons dashicons-upload" style="font-family:dashicons;vertical-align:middle;"></span> Enviar todos a SAP</button>';
         echo '<span id="sapwc-connection-status" style="margin-left: 1em; font-weight: bold;">Conectando...</span>';
         echo '<p id="sapwc-send-result" style="font-weight: bold; margin-top: 1em;"></p>';
 
@@ -72,10 +72,10 @@ class SAPWC_Orders_Page
             $is_sent = in_array($sap_sent, [true, '1', 1], true);
 
             if ($is_sent) {
-                $status = '✅ Enviado';
-                $status .= $docentry ? " (#$docentry)" : ' ⚠️ (sin DocEntry)';
+                $status = '<span class="dashicons dashicons-yes-alt" style="font-family:dashicons;color:green;"></span> Enviado';
+                $status .= $docentry ? " (#$docentry)" : ' <span style="color:orange;">(sin DocEntry)</span>';
             } else {
-                $status = '❌ Pendiente';
+                $status = '<span class="dashicons dashicons-warning" style="font-family:dashicons;color:#dc3232;"></span> Pendiente';
             }
 
 
@@ -85,7 +85,7 @@ class SAPWC_Orders_Page
                 <td>" . esc_html($order->get_date_created()->date('Y-m-d H:i')) . "</td>
                 <td>" . wc_price($order->get_total()) . "</td>
                 <td class='sapwc-status'>$status</td>
-                <td><button class='button sapwc-send-single' data-id='{$id}'>📤 Enviar</button></td>
+                <td><button class='button sapwc-send-single' data-id='{$id}'><span class='dashicons dashicons-upload' style='font-family:dashicons;vertical-align:middle;'></span> Enviar</button></td>
             </tr>";
         }
 
@@ -110,9 +110,9 @@ class SAPWC_Orders_Page
                     }, function(response) {
                         const el = $('#sapwc-connection-status');
                         if (response.success) {
-                            el.text('🟢 Conexión OK');
+                            el.html('<span class="dashicons dashicons-yes" style="font-family:dashicons;color:green;"></span> Conexión OK');
                         } else {
-                            el.text('🔴 Conexión fallida');
+                            el.html('<span class="dashicons dashicons-no" style="font-family:dashicons;color:red;"></span> Conexión fallida');
                         }
                     });
                 }
@@ -143,14 +143,14 @@ add_action('wp_ajax_sapwc_send_order', function () {
 
     $conn = sapwc_get_active_connection();
     if (!$conn) {
-        wp_send_json_error(['message' => '❌ No hay conexión activa con SAP.']);
+        wp_send_json_error(['message' => 'No hay conexión activa con SAP.']);
     }
 
     $client = new SAPWC_API_Client($conn['url']);
     $login  = $client->login($conn['user'], $conn['pass'], $conn['db'], $conn['ssl'] ?? false);
 
     if (!$login['success']) {
-        wp_send_json_error(['message' => '❌ Error al conectar con SAP: ' . $login['message']]);
+        wp_send_json_error(['message' => 'Error al conectar con SAP: ' . $login['message']]);
     }
 
     $sync_handler = new SAPWC_Sync_Handler($client);
@@ -180,14 +180,14 @@ add_action('wp_ajax_sapwc_test_connection', function () {
 
     $conn = sapwc_get_active_connection();
     if (!$conn) {
-        wp_send_json_error(['message' => '❌ No hay conexión activa con SAP.']);
+        wp_send_json_error(['message' => 'No hay conexión activa con SAP.']);
     }
 
     $client = new SAPWC_API_Client($conn['url']);
     $login  = $client->login($conn['user'], $conn['pass'], $conn['db'], $conn['ssl'] ?? false);
 
     if (!$login['success']) {
-        wp_send_json_error(['message' => '❌ Error al conectar con SAP: ' . $login['message']]);
+        wp_send_json_error(['message' => 'Error al conectar con SAP: ' . $login['message']]);
     } else {
         wp_send_json_success('Conexión exitosa.');
     }
@@ -201,7 +201,7 @@ add_action('wp_ajax_sapwc_logout', function () {
 
     $conn = sapwc_get_active_connection();
     if (!$conn) {
-        wp_send_json_error(['message' => '❌ No hay conexión activa con SAP.']);
+        wp_send_json_error(['message' => 'No hay conexión activa con SAP.']);
     }
 
     $client = new SAPWC_API_Client($conn['url']);
@@ -226,7 +226,7 @@ add_action('manage_shop_order_posts_custom_column', function ($column, $post_id)
             if ($docentry) {
                 echo '<br><small>ID: ' . esc_html($docentry) . '</small>';
             } else {
-                echo '<br><small style="color:orange;">⚠️ Sin DocEntry</small>';
+                echo '<br><small style="color:orange;">Sin DocEntry</small>';
             }
         } else {
             echo '<span style="color:#999;">–</span>';
