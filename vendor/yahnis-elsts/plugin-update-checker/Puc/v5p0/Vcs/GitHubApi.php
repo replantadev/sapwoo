@@ -430,7 +430,9 @@ if ( !class_exists(GitHubApi::class, false) ):
 		 * @return string
 		 */
 		protected function getAuthorizationHeader() {
-			return 'Basic ' . base64_encode($this->userName . ':' . $this->accessToken);
+			// Use "token" scheme instead of "Basic" to support fine-grained GitHub PATs (github_pat_)
+			// Basic auth no longer works with fine-grained personal access tokens.
+			return 'token ' . $this->accessToken;
 		}
 	}
 

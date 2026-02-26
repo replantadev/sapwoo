@@ -3,7 +3,7 @@
 Plugin Name: SAP Woo Sync
 Plugin URI: https://replanta.es
 Description: Sincroniza pedidos de WooCommerce con SAP Business One.
-Version: 1.4.8-beta
+Version: 1.4.9-beta
 Author: Replanta Dev
 Author URI: https://replanta.es
 License: GPLv2 or later
@@ -62,30 +62,14 @@ $updateChecker = PucFactory::buildUpdateChecker(
     __FILE__,
     'sap-woo'
 );
-
-// Autenticación con Bearer (necesario para fine-grained PATs de GitHub)
-// NO usar setAuthentication() porque PUC usa Basic auth que no funciona con github_pat_
-add_filter('http_request_args', function($args, $url) {
-    if (strpos($url, 'api.github.com/repos/replantadev/sapwoo') !== false) {
-        if (defined('SAPWC_GITHUB_TOKEN')) {
-            $args['headers']['Authorization'] = 'Bearer ' . SAPWC_GITHUB_TOKEN;
-        }
-    }
-    return $args;
-}, 10, 2);
-
-// También añadir cabecera al descargar el ZIP
-add_filter('http_request_args', function($args, $url) {
-    if (strpos($url, 'codeload.github.com/replantadev/sapwoo') !== false ||
-        strpos($url, 'github.com/replantadev/sapwoo/archive') !== false) {
-        if (defined('SAPWC_GITHUB_TOKEN')) {
-            $args['headers']['Authorization'] = 'Bearer ' . SAPWC_GITHUB_TOKEN;
-        }
-    }
-    return $args;
-}, 10, 2);
-
 $updateChecker->setBranch('main');
+
+// Autenticación para repositorio privado.
+// NOTA: getAuthorizationHeader() en vendor/GitHubApi.php se ha parcheado para usar
+// "token TOKEN" en lugar de "Basic base64(...)" — necesario para fine-grained PATs.
+if (defined('SAPWC_GITHUB_TOKEN')) {
+    $updateChecker->getVcsApi()->setAuthentication(SAPWC_GITHUB_TOKEN);
+}
 
 // Renombrar la carpeta del ZIP (sapwoo-vX.X.X) a sap-woo durante la actualización
 add_filter('upgrader_source_selection', function($source, $remote_source, $upgrader, $hook_extra) {
