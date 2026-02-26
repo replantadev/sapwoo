@@ -3,7 +3,7 @@
 Plugin Name: SAP Woo Sync
 Plugin URI: https://replanta.es
 Description: Sincroniza pedidos de WooCommerce con SAP Business One.
-Version: 1.4.9-beta
+Version: 1.5.0-beta
 Author: Replanta Dev
 Author URI: https://replanta.es
 License: GPLv2 or later
@@ -600,6 +600,28 @@ add_action('wp_ajax_sapwc_preview_welcome_email', function () {
 
     $html = SAPWC_Welcome_Mailer::get_preview();
     wp_send_json_success(['html' => $html]);
+});
+
+// AJAX para enviar email de prueba de bienvenida
+add_action('wp_ajax_sapwc_send_test_welcome_email', function () {
+    check_ajax_referer('sapwc_nonce', 'nonce');
+
+    if (!current_user_can('manage_options')) {
+        wp_send_json_error(['message' => 'Sin permisos']);
+    }
+
+    $html    = SAPWC_Welcome_Mailer::get_preview();
+    $to      = get_option('admin_email');
+    $subject = '[TEST] ' . sprintf(__('Email bienvenida - %s', 'sapwoo'), get_bloginfo('name'));
+    $headers = ['Content-Type: text/html; charset=UTF-8'];
+    $sent    = wp_mail($to, $subject, $html, $headers);
+
+    if ($sent) {
+        wp_send_json_success(['message' => sprintf(__('Email de prueba enviado a %s', 'sapwoo'), $to)]);
+    } else {
+        wp_send_json_error(['message' => __('Error al enviar el email de prueba.', 'sapwoo')]);
+    }
+    wp_die();
 });
 
 // AJAX para reenviar email de bienvenida a un usuario

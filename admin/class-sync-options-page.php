@@ -355,9 +355,21 @@ class SAPWC_Sync_Options_Page
                                 </label>
                                 <p class="description"><?php esc_html_e('El email incluye un enlace para que el cliente establezca su contraseña y acceda a la tienda.', 'sapwoo'); ?></p>
                                 <p style="margin-top: 10px;">
+                                    <label style="display: block; margin-bottom: 8px;">
+                                        <strong><?php esc_html_e('Color primario del email', 'sapwoo'); ?></strong><br>
+                                        <input type="color" name="sapwc_email_primary_color" value="<?php echo esc_attr(get_option('sapwc_email_primary_color', '#c7aba9')); ?>" style="margin-top: 5px; height: 36px; width: 80px; cursor: pointer;">
+                                        <span class="description" style="margin-left: 8px;"><?php esc_html_e('Color de cabecera y botones del email de bienvenida.', 'sapwoo'); ?></span>
+                                    </label>
+                                </p>
+                                <p style="margin-top: 8px;">
                                     <button type="button" id="sapwc-preview-welcome-email" class="button button-secondary">
                                         <span class="dashicons dashicons-visibility" style="vertical-align: middle;"></span> <?php esc_html_e('Vista previa del email', 'sapwoo'); ?>
                                     </button>
+                                    &nbsp;
+                                    <button type="button" id="sapwc-send-test-email" class="button button-secondary">
+                                        <span class="dashicons dashicons-email-alt" style="vertical-align: middle;"></span> <?php esc_html_e('Enviar email de prueba', 'sapwoo'); ?>
+                                    </button>
+                                    <span id="sapwc-test-email-result" style="margin-left: 10px;"></span>
                                 </p>
                             </td>
                         </tr>
@@ -975,13 +987,39 @@ class SAPWC_Sync_Options_Page
                         nonce: sapwc_ajax.nonce
                     }).done(function(res) {
                         if (res.success) {
-                            // Abrir en nueva ventana
                             const win = window.open('', '_blank', 'width=700,height=800');
                             win.document.write(res.data.html);
                             win.document.close();
                         } else {
                             alert('Error al generar vista previa');
                         }
+                    });
+                });
+
+                // Enviar email de prueba de bienvenida
+                $('#sapwc-send-test-email').on('click', function(e) {
+                    e.preventDefault();
+                    const $btn = $(this);
+                    const $result = $('#sapwc-test-email-result');
+                    $btn.prop('disabled', true).html('<span class="spinner is-active" style="float:none;margin:0 6px 0 0"></span> Enviando...');
+                    $result.text('');
+
+                    $.post(ajaxurl, {
+                        action: 'sapwc_send_test_welcome_email',
+                        nonce: sapwc_ajax.nonce
+                    }).done(function(res) {
+                        if (res.success) {
+                            showToast(res.data.message);
+                            $result.html('<span style="color:green;">' + res.data.message + '</span>');
+                        } else {
+                            showToast(res.data.message || 'Error al enviar', 'error');
+                            $result.html('<span style="color:red;">' + (res.data.message || 'Error') + '</span>');
+                        }
+                    }).fail(function() {
+                        showToast('Error de red', 'error');
+                        $result.html('<span style="color:red;">Error de red</span>');
+                    }).always(function() {
+                        $btn.prop('disabled', false).html('<span class="dashicons dashicons-email-alt" style="vertical-align:middle;"></span> Enviar email de prueba');
                     });
                 });
 
@@ -1093,6 +1131,7 @@ add_action('admin_init', function () {
     register_setting('sapwc_sync_settings', 'sapwc_customer_udf_value');
     register_setting('sapwc_sync_settings', 'sapwc_customer_sync_time');
     register_setting('sapwc_sync_settings', 'sapwc_send_welcome_email');
+    register_setting('sapwc_sync_settings', 'sapwc_email_primary_color');
     register_setting('sapwc_sync_settings', 'sapwc_customers_last_sync');
 
     // Sincronización automática de productos y categorías
