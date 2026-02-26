@@ -613,13 +613,13 @@ add_action('wp_ajax_sapwc_send_test_welcome_email', function () {
     $html       = SAPWC_Welcome_Mailer::get_preview();
     $to         = get_option('admin_email');
     $site_name  = get_bloginfo('name');
-    $domain     = wp_parse_url(home_url(), PHP_URL_HOST);
-    $from_email = 'noreply@' . $domain;
+    $from_name  = get_option('woocommerce_email_from_name',    $site_name);
+    $from_email = get_option('woocommerce_email_from_address', $to);
     $subject    = sprintf(__('Vista previa: Email bienvenida - %s', 'sapwoo'), $site_name);
     $headers    = [
         'Content-Type: text/html; charset=UTF-8',
-        'From: ' . $site_name . ' <' . $from_email . '>',
-        'Reply-To: ' . $to,
+        'From: ' . $from_name . ' <' . $from_email . '>',
+        'Reply-To: ' . $from_email,
     ];
     $sent = wp_mail($to, $subject, $html, $headers);
 

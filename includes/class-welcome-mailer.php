@@ -65,14 +65,11 @@ class SAPWC_Welcome_Mailer
         // Asunto del email
         $subject = sprintf(__('¡Bienvenido/a a %s! Configura tu acceso', 'sapwoo'), $site_name);
 
-        // Headers — usar noreply@dominio para evitar spam
-        $domain      = wp_parse_url(home_url(), PHP_URL_HOST);
-        $from_email  = 'noreply@' . $domain;
-        $headers = [
-            'Content-Type: text/html; charset=UTF-8',
-            'From: ' . $site_name . ' <' . $from_email . '>',
-            'Reply-To: ' . get_option('admin_email'),
-        ];
+        // Headers — usar el mismo From que WooCommerce (respeta WP Mail SMTP y similares)
+        $headers = array_merge(
+            ['Content-Type: text/html; charset=UTF-8'],
+            self::get_from_headers()
+        );
 
         // Enviar
         $sent = wp_mail($user->user_email, $subject, $html_content, $headers);
@@ -85,6 +82,31 @@ class SAPWC_Welcome_Mailer
         }
 
         return $sent;
+    }
+
+    /**
+     * Devuelve los headers From/Reply-To reutilizando la configuración
+     * de WooCommerce (o WP Mail SMTP si lo sobreescribe).
+     */
+    private static function get_from_headers(): array
+    {
+        // WooCommerce guarda su propio From — es el que pasa por WP Mail SMTP
+        if (function_exists('WC') || class_exists('WooCommerce')) {
+            $from_name  = get_option('woocommerce_email_from_name',    get_bloginfo('name'));
+            $from_email = get_option('woocommerce_email_from_address', get_option('admin_email'));
+        } else {
+            // Sin WooCommerce: dejar que WP (o el plugin SMTP activo) decida
+            return [];
+        }
+
+        if (empty($from_email)) {
+            return [];
+        }
+
+        return [
+            'From: ' . $from_name . ' <' . $from_email . '>',
+            'Reply-To: ' . $from_email,
+        ];
     }
 
     /**
