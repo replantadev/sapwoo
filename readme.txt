@@ -3,7 +3,7 @@ Contributors: replantadev
 Tags: woocommerce, sap, b2b, sync, erp, business one
 Requires at least: 5.8
 Tested up to: 6.5
-Stable tag: 1.4.2-beta
+Stable tag: 1.4.3-beta
 Requires PHP: 7.4
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -71,6 +71,19 @@ Sí, cada instalación de WordPress puede conectarse a una base de datos SAP dif
 5. Logs de sincronización
 
 == Changelog ==
+
+= 1.4.3-beta =
+* Unificación de menús: Importación Selectiva integrada en página de Importación
+* Fix: Fallback de filtros en productos SAP (Valid/ItemType dinámico)
+* Fix: Clientes pendientes ahora funcionan sin UDF configurado
+* Modal de preview para ver campos antes de importar
+* Importación individual y en lote desde tablas de pendientes
+* Mejorado el manejo de errores y mensajes
+
+= 1.4.2-beta =
+* Nueva página de Importación Selectiva con preview de campos
+* Listas de productos, categorías y clientes pendientes de importar
+* Importación individual o en lote con progreso visual
 
 = 1.4.0-beta =
 * Nueva página de Importación Unificada con 3 pestañas

@@ -41,32 +41,49 @@ class SAPWC_Customer_Sync
     {
         $conn = sapwc_get_active_connection();
         if (!$conn) {
-            error_log('[SAPWC Customer Sync] No hay conexión activa');
-            return [];
+            return ['error' => __('No hay conexión activa con SAP.', 'sapwoo')];
         }
 
         $client = new SAPWC_API_Client($conn['url']);
         $login = $client->login($conn['user'], $conn['pass'], $conn['db'], $conn['ssl'] ?? false);
 
         if (!$login['success']) {
-            error_log('[SAPWC Customer Sync] Error de login: ' . $login['message']);
-            return [];
+            return ['error' => __('Error de login SAP: ', 'sapwoo') . $login['message']];
         }
 
         $udf_field = self::get_udf_field();
         $udf_value = self::get_udf_value();
 
-        // Filtrar por clientes web y obtener campos necesarios
+        // Campos a obtener
         $select = 'CardCode,CardName,CardForeignName,FederalTaxID,EmailAddress,Phone1,Address,City,ZipCode,State,Country,BPAddresses';
-        $filter = urlencode("{$udf_field} eq '{$udf_value}'");
         
         $all_customers = [];
         $skip = 0;
         $batch_size = 20;
 
+        // Intentar con filtro UDF primero
+        $use_udf_filter = !empty($udf_field) && !empty($udf_value);
+        $filter_failed = false;
+
         do {
-            $query = "/BusinessPartners?\$filter={$filter}&\$select={$select}&\$top={$batch_size}&\$skip={$skip}";
+            if ($use_udf_filter && !$filter_failed) {
+                $filter = urlencode("{$udf_field} eq '{$udf_value}'");
+                $query = "/BusinessPartners?\$filter={$filter}&\$select={$select}&\$top={$batch_size}&\$skip={$skip}";
+            } else {
+                // Fallback: obtener todos los clientes (CardType = 'cCustomer')
+                $filter = urlencode("CardType eq 'cCustomer'");
+                $query = "/BusinessPartners?\$filter={$filter}&\$select={$select}&\$top={$batch_size}&\$skip={$skip}";
+            }
+
             $response = $client->get($query);
+
+            // Si el filtro UDF falla, intentar sin él
+            if (!isset($response['value']) && $use_udf_filter && !$filter_failed) {
+                $filter_failed = true;
+                $filter = urlencode("CardType eq 'cCustomer'");
+                $query = "/BusinessPartners?\$filter={$filter}&\$select={$select}&\$top={$batch_size}&\$skip={$skip}";
+                $response = $client->get($query);
+            }
 
             if (!isset($response['value']) || empty($response['value'])) {
                 break;
@@ -86,7 +103,7 @@ class SAPWC_Customer_Sync
 
             $skip += $batch_size;
             
-            // Máximo 500 consultas para evitar loops infinitos
+            // Máximo para evitar loops infinitos
         } while (count($response['value']) === $batch_size && $skip < 10000);
 
         $client->logout();
@@ -569,6 +586,43 @@ class SAPWC_Customer_Sync
             'existing_user_id' => $existing_user ? $existing_user->ID : null,
             'existing_user_email' => $existing_user ? $existing_user->user_email : null,
             'raw' => $response,
+        ];
+    }
+
+    /**
+     * Obtiene clientes de SAP que no existen en WooCommerce
+     *
+     * @param int $skip Número de registros a saltar
+     * @param int $top Número máximo de registros
+     * @return array
+     */
+    public static function get_pending_customers($skip = 0, $top = 50)
+    {
+        $result = self::get_pending_web_customers($skip, $top);
+
+        if (isset($result['error'])) {
+            return ['error' => $result['error']];
+        }
+
+        $sap_items = $result['items'] ?? [];
+        $pending = [];
+
+        foreach ($sap_items as $item) {
+            $cardcode = $item['CardCode'] ?? '';
+            if (empty($cardcode)) {
+                continue;
+            }
+
+            // Verificar si ya existe en WooCommerce
+            if (!self::customer_exists_in_woo($cardcode)) {
+                $pending[] = $item;
+            }
+        }
+
+        return [
+            'items' => $pending,
+            'total_sap' => count($sap_items),
+            'total_pending' => count($pending)
         ];
     }
 }

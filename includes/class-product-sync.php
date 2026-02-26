@@ -61,17 +61,34 @@ class SAPWC_Product_Sync
 
         $select = self::get_select_fields();
 
-        // Filtrar solo artículos activos y de tipo inventario (no servicios)
+        // Intentar primero con filtro completo
         $filter = "Valid eq 'tYES' and ItemType eq 'itItems'";
         $filter_encoded = urlencode($filter);
-
         $query = "/Items?\$filter={$filter_encoded}&\$select={$select}&\$orderby=ItemCode&\$top={$top}&\$skip={$skip}";
         $response = $client->get($query);
+
+        // Si falla, intentar solo con ItemType
+        if (!isset($response['value'])) {
+            $filter = "ItemType eq 'itItems'";
+            $filter_encoded = urlencode($filter);
+            $query = "/Items?\$filter={$filter_encoded}&\$select={$select}&\$orderby=ItemCode&\$top={$top}&\$skip={$skip}";
+            $response = $client->get($query);
+        }
+
+        // Si sigue fallando, intentar sin filtro
+        if (!isset($response['value'])) {
+            $query = "/Items?\$select={$select}&\$orderby=ItemCode&\$top={$top}&\$skip={$skip}";
+            $response = $client->get($query);
+        }
+
         $client->logout();
 
         if (!isset($response['value'])) {
-            // Algunos SAP no soportan todos los filtros, intentar sin Valid
-            return ['error' => __('No se pudieron obtener los artículos de SAP.', 'sapwoo'), 'raw' => $response];
+            $error_msg = __('No se pudieron obtener los artículos de SAP.', 'sapwoo');
+            if (isset($response['error']) && isset($response['error']['message'])) {
+                $error_msg .= ' ' . $response['error']['message']['value'];
+            }
+            return ['error' => $error_msg];
         }
 
         return [
@@ -594,5 +611,55 @@ class SAPWC_Product_Sync
             ],
             'raw' => $response,
         ];
+    }
+
+    /**
+     * Importar un producto individual por su ItemCode
+     *
+     * @param string $item_code
+     * @param array $options
+     * @return array
+     */
+    public static function import_single($item_code, $options = [])
+    {
+        $default_options = [
+            'update_existing'  => true,
+            'import_prices'    => true,
+            'import_stock'     => true,
+            'assign_category'  => true,
+            'default_status'   => 'draft',
+        ];
+        $options = wp_parse_args($options, $default_options);
+
+        $conn = sapwc_get_active_connection();
+        if (!$conn) {
+            return ['error' => __('No hay conexión activa con SAP.', 'sapwoo')];
+        }
+
+        $client = new SAPWC_API_Client($conn['url']);
+        $login = $client->login($conn['user'], $conn['pass'], $conn['db'], $conn['ssl'] ?? false);
+
+        if (!$login['success']) {
+            return ['error' => __('Error de login SAP: ', 'sapwoo') . $login['message']];
+        }
+
+        $select = self::get_select_fields();
+        $item_code_enc = urlencode($item_code);
+        $query = "/Items('{$item_code_enc}')?\$select={$select}";
+        $response = $client->get($query);
+        $client->logout();
+
+        if (empty($response) || isset($response['error'])) {
+            return ['error' => __('Producto no encontrado en SAP.', 'sapwoo')];
+        }
+
+        // Procesar el producto
+        $result = self::process_product($response, $options);
+
+        if (isset($result['error'])) {
+            return ['error' => $result['error']];
+        }
+
+        return ['success' => true, 'message' => $result['message'] ?? __('Producto importado correctamente.', 'sapwoo')];
     }
 }

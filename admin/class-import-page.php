@@ -70,8 +70,54 @@ class SAPWC_Import_Page
             </div>
         </div>
 
+        <!-- Modal de Preview para Importación Selectiva -->
+        <div id="sapwc-preview-modal" class="sapwc-modal" style="display:none;">
+            <div class="sapwc-modal-overlay"></div>
+            <div class="sapwc-modal-content">
+                <div class="sapwc-modal-header">
+                    <h2 id="sapwc-modal-title"><?php esc_html_e('Vista Previa de Importación', 'sapwoo'); ?></h2>
+                    <button class="sapwc-modal-close" type="button">&times;</button>
+                </div>
+                <div class="sapwc-modal-body">
+                    <div class="sapwc-preview-loading" style="display:none;">
+                        <span class="spinner is-active"></span> <?php esc_html_e('Cargando datos...', 'sapwoo'); ?>
+                    </div>
+                    <div class="sapwc-preview-content">
+                        <div class="sapwc-preview-columns">
+                            <div class="sapwc-preview-sap">
+                                <h3><span class="dashicons dashicons-database" style="font-family:dashicons;"></span> <?php esc_html_e('Datos en SAP', 'sapwoo'); ?></h3>
+                                <table class="wp-list-table widefat striped" id="sapwc-preview-sap-table">
+                                    <thead><tr><th><?php esc_html_e('Campo', 'sapwoo'); ?></th><th><?php esc_html_e('Valor', 'sapwoo'); ?></th></tr></thead>
+                                    <tbody></tbody>
+                                </table>
+                            </div>
+                            <div class="sapwc-preview-arrow">
+                                <span class="dashicons dashicons-arrow-right-alt" style="font-family:dashicons;font-size:32px;"></span>
+                            </div>
+                            <div class="sapwc-preview-woo">
+                                <h3><span class="dashicons dashicons-wordpress" style="font-family:dashicons;"></span> <?php esc_html_e('Destino en WooCommerce', 'sapwoo'); ?></h3>
+                                <table class="wp-list-table widefat striped" id="sapwc-preview-woo-table">
+                                    <thead><tr><th><?php esc_html_e('Campo WooCommerce', 'sapwoo'); ?></th><th><?php esc_html_e('Origen SAP', 'sapwoo'); ?></th></tr></thead>
+                                    <tbody></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="sapwc-preview-status" id="sapwc-preview-status"></div>
+                </div>
+                <div class="sapwc-modal-footer">
+                    <button type="button" class="button" id="sapwc-modal-cancel"><?php esc_html_e('Cancelar', 'sapwoo'); ?></button>
+                    <button type="button" class="button button-primary" id="sapwc-modal-import">
+                        <span class="dashicons dashicons-download" style="font-family:dashicons;vertical-align:middle;"></span>
+                        <?php esc_html_e('Importar Ahora', 'sapwoo'); ?>
+                    </button>
+                </div>
+            </div>
+        </div>
+
         <?php self::render_shared_styles(); ?>
         <?php self::render_shared_scripts(); ?>
+        <?php self::render_selective_scripts(); ?>
         <?php
     }
 
@@ -149,6 +195,51 @@ class SAPWC_Import_Page
                 </div>
                 <div class="sapwc-progress-log" id="products-progress-log"></div>
             </div>
+
+            <!-- Importación Selectiva de Productos -->
+            <div class="sapwc-selective-section" style="margin-top: 30px; border-top: 1px solid #ddd; padding-top: 20px;">
+                <div class="sapwc-section-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+                    <h3 style="margin:0;"><span class="dashicons dashicons-filter" style="font-family:dashicons;"></span> <?php esc_html_e('Importación Selectiva', 'sapwoo'); ?></h3>
+                    <div class="sapwc-section-actions">
+                        <button id="sapwc-load-pending-products" class="button button-secondary">
+                            <span class="dashicons dashicons-update" style="font-family:dashicons;vertical-align:middle;"></span>
+                            <?php esc_html_e('Cargar Pendientes', 'sapwoo'); ?>
+                        </button>
+                        <button id="sapwc-import-selected-products" class="button" disabled>
+                            <span class="dashicons dashicons-download" style="font-family:dashicons;vertical-align:middle;"></span>
+                            <?php esc_html_e('Importar Seleccionados', 'sapwoo'); ?>
+                            <span class="sapwc-selected-count">(0)</span>
+                        </button>
+                    </div>
+                </div>
+                <p class="description"><?php esc_html_e('Muestra productos que están en SAP pero todavía no se han importado a WooCommerce. Puedes previsualizar y seleccionar cuáles importar.', 'sapwoo'); ?></p>
+
+                <div class="sapwc-loading-indicator" id="products-pending-loading" style="display:none;">
+                    <span class="spinner is-active"></span> <?php esc_html_e('Consultando SAP...', 'sapwoo'); ?>
+                </div>
+                <div class="sapwc-results-info" id="products-results-info" style="display:none;">
+                    <span class="dashicons dashicons-info" style="font-family:dashicons;"></span>
+                    <span id="products-count-text"></span>
+                </div>
+                <table id="sapwc-pending-products-table" class="wp-list-table widefat fixed striped" style="display:none;">
+                    <thead>
+                        <tr>
+                            <th class="check-column"><input type="checkbox" id="sapwc-select-all-products"></th>
+                            <th><?php esc_html_e('Código', 'sapwoo'); ?></th>
+                            <th><?php esc_html_e('Nombre', 'sapwoo'); ?></th>
+                            <th><?php esc_html_e('Grupo', 'sapwoo'); ?></th>
+                            <th style="width:180px;"><?php esc_html_e('Acciones', 'sapwoo'); ?></th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+                <div class="sapwc-import-progress" id="products-selective-progress" style="display:none;">
+                    <div class="sapwc-progress-bar">
+                        <div class="sapwc-progress-fill" id="products-selective-fill">0%</div>
+                    </div>
+                    <div class="sapwc-progress-log" id="products-selective-log"></div>
+                </div>
+            </div>
         </div>
         <?php
     }
@@ -216,6 +307,50 @@ class SAPWC_Import_Page
                     </thead>
                     <tbody></tbody>
                 </table>
+            </div>
+
+            <!-- Importación Selectiva de Categorías -->
+            <div class="sapwc-selective-section" style="margin-top: 30px; border-top: 1px solid #ddd; padding-top: 20px;">
+                <div class="sapwc-section-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+                    <h3 style="margin:0;"><span class="dashicons dashicons-filter" style="font-family:dashicons;"></span> <?php esc_html_e('Importación Selectiva', 'sapwoo'); ?></h3>
+                    <div class="sapwc-section-actions">
+                        <button id="sapwc-load-pending-categories" class="button button-secondary">
+                            <span class="dashicons dashicons-update" style="font-family:dashicons;vertical-align:middle;"></span>
+                            <?php esc_html_e('Cargar Pendientes', 'sapwoo'); ?>
+                        </button>
+                        <button id="sapwc-import-selected-categories" class="button" disabled>
+                            <span class="dashicons dashicons-download" style="font-family:dashicons;vertical-align:middle;"></span>
+                            <?php esc_html_e('Importar Seleccionadas', 'sapwoo'); ?>
+                            <span class="sapwc-selected-count">(0)</span>
+                        </button>
+                    </div>
+                </div>
+                <p class="description"><?php esc_html_e('Categorías de SAP que todavía no existen en WooCommerce.', 'sapwoo'); ?></p>
+
+                <div class="sapwc-loading-indicator" id="categories-pending-loading" style="display:none;">
+                    <span class="spinner is-active"></span> <?php esc_html_e('Consultando SAP...', 'sapwoo'); ?>
+                </div>
+                <div class="sapwc-results-info" id="categories-results-info" style="display:none;">
+                    <span class="dashicons dashicons-info" style="font-family:dashicons;"></span>
+                    <span id="categories-count-text"></span>
+                </div>
+                <table id="sapwc-pending-categories-table" class="wp-list-table widefat fixed striped" style="display:none;">
+                    <thead>
+                        <tr>
+                            <th class="check-column"><input type="checkbox" id="sapwc-select-all-categories"></th>
+                            <th style="width:100px;"><?php esc_html_e('Nº Grupo', 'sapwoo'); ?></th>
+                            <th><?php esc_html_e('Nombre', 'sapwoo'); ?></th>
+                            <th style="width:180px;"><?php esc_html_e('Acciones', 'sapwoo'); ?></th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+                <div class="sapwc-import-progress" id="categories-selective-progress" style="display:none;">
+                    <div class="sapwc-progress-bar">
+                        <div class="sapwc-progress-fill" id="categories-selective-fill">0%</div>
+                    </div>
+                    <div class="sapwc-progress-log" id="categories-selective-log"></div>
+                </div>
             </div>
         </div>
         <?php
@@ -297,6 +432,51 @@ class SAPWC_Import_Page
                 </thead>
                 <tbody></tbody>
             </table>
+
+            <!-- Importación Selectiva de Clientes -->
+            <div class="sapwc-selective-section" style="margin-top: 30px; border-top: 1px solid #ddd; padding-top: 20px;">
+                <div class="sapwc-section-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+                    <h3 style="margin:0;"><span class="dashicons dashicons-filter" style="font-family:dashicons;"></span> <?php esc_html_e('Importación Selectiva - Clientes Pendientes', 'sapwoo'); ?></h3>
+                    <div class="sapwc-section-actions">
+                        <button id="sapwc-load-pending-customers" class="button button-secondary">
+                            <span class="dashicons dashicons-update" style="font-family:dashicons;vertical-align:middle;"></span>
+                            <?php esc_html_e('Cargar Pendientes', 'sapwoo'); ?>
+                        </button>
+                        <button id="sapwc-import-selected-customers" class="button" disabled>
+                            <span class="dashicons dashicons-download" style="font-family:dashicons;vertical-align:middle;"></span>
+                            <?php esc_html_e('Importar Seleccionados', 'sapwoo'); ?>
+                            <span class="sapwc-selected-count">(0)</span>
+                        </button>
+                    </div>
+                </div>
+                <p class="description"><?php esc_html_e('Clientes de SAP que todavía no tienen usuario en WooCommerce.', 'sapwoo'); ?></p>
+
+                <div class="sapwc-loading-indicator" id="customers-pending-loading" style="display:none;">
+                    <span class="spinner is-active"></span> <?php esc_html_e('Consultando SAP...', 'sapwoo'); ?>
+                </div>
+                <div class="sapwc-results-info" id="customers-results-info" style="display:none;">
+                    <span class="dashicons dashicons-info" style="font-family:dashicons;"></span>
+                    <span id="customers-count-text"></span>
+                </div>
+                <table id="sapwc-pending-customers-table" class="wp-list-table widefat fixed striped" style="display:none;">
+                    <thead>
+                        <tr>
+                            <th class="check-column"><input type="checkbox" id="sapwc-select-all-customers"></th>
+                            <th><?php esc_html_e('CardCode', 'sapwoo'); ?></th>
+                            <th><?php esc_html_e('Nombre', 'sapwoo'); ?></th>
+                            <th><?php esc_html_e('Email', 'sapwoo'); ?></th>
+                            <th style="width:180px;"><?php esc_html_e('Acciones', 'sapwoo'); ?></th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+                <div class="sapwc-import-progress" id="customers-selective-progress" style="display:none;">
+                    <div class="sapwc-progress-bar">
+                        <div class="sapwc-progress-fill" id="customers-selective-fill">0%</div>
+                    </div>
+                    <div class="sapwc-progress-log" id="customers-selective-log"></div>
+                </div>
+            </div>
         </div>
 
         <?php self::render_customers_scripts(); ?>
@@ -421,6 +601,167 @@ class SAPWC_Import_Page
             /* DataTable styles */
             #sapwc-customers-table { margin-top: 10px; }
             .nav-tab .dashicons { vertical-align: middle; margin-right: 4px; }
+
+            /* Modal de Preview */
+            .sapwc-modal {
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                z-index: 100000;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+            .sapwc-modal-overlay {
+                position: absolute;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: rgba(0,0,0,0.6);
+            }
+            .sapwc-modal-content {
+                position: relative;
+                background: #fff;
+                border-radius: 8px;
+                max-width: 900px;
+                width: 95%;
+                max-height: 85vh;
+                overflow: hidden;
+                display: flex;
+                flex-direction: column;
+                box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+            }
+            .sapwc-modal-header {
+                padding: 16px 20px;
+                border-bottom: 1px solid #ddd;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                background: #f7f7f7;
+            }
+            .sapwc-modal-header h2 {
+                margin: 0;
+                font-size: 18px;
+            }
+            .sapwc-modal-close {
+                background: none;
+                border: none;
+                font-size: 28px;
+                cursor: pointer;
+                color: #666;
+                padding: 0 8px;
+            }
+            .sapwc-modal-close:hover {
+                color: #d63638;
+            }
+            .sapwc-modal-body {
+                padding: 20px;
+                overflow-y: auto;
+                flex: 1;
+            }
+            .sapwc-modal-footer {
+                padding: 16px 20px;
+                border-top: 1px solid #ddd;
+                display: flex;
+                justify-content: flex-end;
+                gap: 10px;
+                background: #f7f7f7;
+            }
+            .sapwc-preview-columns {
+                display: flex;
+                gap: 20px;
+                align-items: flex-start;
+            }
+            .sapwc-preview-sap,
+            .sapwc-preview-woo {
+                flex: 1;
+            }
+            .sapwc-preview-sap h3,
+            .sapwc-preview-woo h3 {
+                font-size: 14px;
+                margin: 0 0 10px;
+                color: #2271b1;
+            }
+            .sapwc-preview-arrow {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                padding: 20px 10px;
+                color: #2271b1;
+            }
+            .sapwc-preview-loading {
+                text-align: center;
+                padding: 40px;
+            }
+            .sapwc-preview-loading .spinner {
+                float: none;
+            }
+            .sapwc-preview-status {
+                margin-top: 15px;
+                padding: 10px;
+                border-radius: 4px;
+            }
+            .sapwc-preview-status.success {
+                background: #d4edda;
+                color: #155724;
+            }
+            .sapwc-preview-status.error {
+                background: #f8d7da;
+                color: #721c24;
+            }
+
+            /* Selective import styles */
+            .sapwc-loading-indicator {
+                padding: 20px;
+                text-align: center;
+                background: #f7f7f7;
+                border-radius: 4px;
+                margin: 10px 0;
+            }
+            .sapwc-loading-indicator .spinner {
+                float: none;
+                margin-right: 8px;
+            }
+            .sapwc-results-info {
+                padding: 12px 16px;
+                background: #e7f3fe;
+                border-left: 4px solid #2271b1;
+                margin: 10px 0;
+            }
+            .sapwc-results-info .dashicons {
+                color: #2271b1;
+                margin-right: 8px;
+            }
+            .sapwc-import-progress {
+                background: #fff;
+                border: 1px solid #ddd;
+                border-radius: 4px;
+                padding: 15px;
+                margin-top: 15px;
+            }
+            #sapwc-pending-products-table .check-column,
+            #sapwc-pending-categories-table .check-column,
+            #sapwc-pending-customers-table .check-column {
+                width: 40px;
+            }
+            .sapwc-row-imported {
+                background: #d4edda !important;
+            }
+            .sapwc-row-imported td {
+                color: #155724;
+            }
+            @media (max-width: 782px) {
+                .sapwc-preview-columns {
+                    flex-direction: column;
+                }
+                .sapwc-preview-arrow {
+                    transform: rotate(90deg);
+                    padding: 10px;
+                }
+            }
         </style>
         <?php
     }
@@ -787,6 +1128,544 @@ class SAPWC_Import_Page
         </script>
         <?php
     }
+
+    // =========================================================================
+    // SCRIPTS IMPORTACIÓN SELECTIVA
+    // =========================================================================
+    private static function render_selective_scripts()
+    {
+        ?>
+        <script>
+        jQuery(document).ready(function($) {
+            // Estado actual del modal
+            let currentPreviewItem = null;
+            let currentPreviewType = null;
+
+            // ==============================================================
+            // MODAL PREVIEW
+            // ==============================================================
+            const $modal = $('#sapwc-preview-modal');
+            const $modalTitle = $('#sapwc-modal-title');
+            const $modalLoading = $('.sapwc-preview-loading');
+            const $modalContent = $('.sapwc-preview-content');
+            const $modalStatus = $('#sapwc-preview-status');
+            const $sapTable = $('#sapwc-preview-sap-table tbody');
+            const $wooTable = $('#sapwc-preview-woo-table tbody');
+
+            function openModal(title) {
+                $modalTitle.text(title);
+                $modalLoading.show();
+                $modalContent.hide();
+                $modalStatus.hide().removeClass('success error').empty();
+                $sapTable.empty();
+                $wooTable.empty();
+                $modal.fadeIn(200);
+            }
+
+            function closeModal() {
+                $modal.fadeOut(200);
+                currentPreviewItem = null;
+                currentPreviewType = null;
+            }
+
+            function showPreviewData(sapData, wooMapping) {
+                $sapTable.empty();
+                // sapData es un array de objetos con field, label, value
+                if (Array.isArray(sapData)) {
+                    sapData.forEach(item => {
+                        if (item.value !== null && item.value !== '' && item.value !== undefined) {
+                            const label = item.label || item.field;
+                            $sapTable.append(`<tr><td><strong>${$('<span>').text(label).html()}</strong></td><td>${$('<span>').text(item.value).html()}</td></tr>`);
+                        }
+                    });
+                } else {
+                    // Formato objeto simple
+                    Object.keys(sapData).forEach(key => {
+                        const val = sapData[key];
+                        if (val !== null && val !== '' && typeof val !== 'object') {
+                            $sapTable.append(`<tr><td><strong>${key}</strong></td><td>${$('<span>').text(val).html()}</td></tr>`);
+                        }
+                    });
+                }
+
+                $wooTable.empty();
+                // wooMapping es un array de objetos con field/label y source
+                wooMapping.forEach(item => {
+                    const label = item.label || item.woo_field || item.field;
+                    const source = item.source || item.sap_source;
+                    $wooTable.append(`<tr><td><strong>${$('<span>').text(label).html()}</strong></td><td>${$('<span>').text(source).html()}</td></tr>`);
+                });
+
+                $modalLoading.hide();
+                $modalContent.show();
+            }
+
+            // Cerrar modal
+            $('.sapwc-modal-close, #sapwc-modal-cancel, .sapwc-modal-overlay').on('click', closeModal);
+            $(document).on('keydown', function(e) {
+                if (e.key === 'Escape') closeModal();
+            });
+
+            // Importar desde modal
+            $('#sapwc-modal-import').on('click', function() {
+                if (!currentPreviewItem || !currentPreviewType) return;
+
+                const $btn = $(this);
+                $btn.prop('disabled', true).text('Importando...');
+                $modalStatus.hide();
+
+                let action, dataKey;
+                if (currentPreviewType === 'product') {
+                    action = 'sapwc_import_single_product';
+                    dataKey = 'item_code';
+                } else if (currentPreviewType === 'category') {
+                    action = 'sapwc_import_single_category';
+                    dataKey = 'group_number';
+                } else {
+                    action = 'sapwc_import_single_customer';
+                    dataKey = 'cardcode';
+                }
+
+                const postData = {
+                    action: action,
+                    nonce: sapwc_ajax.nonce
+                };
+                postData[dataKey] = currentPreviewItem;
+
+                $.post(sapwc_ajax.ajax_url, postData).done(function(res) {
+                    if (res.success) {
+                        $modalStatus.addClass('success').text('✓ ' + (res.data?.message || 'Importado correctamente')).show();
+                        // Marcar fila como importada
+                        const selector = currentPreviewType === 'product' ? '#sapwc-pending-products-table' :
+                                          currentPreviewType === 'category' ? '#sapwc-pending-categories-table' :
+                                          '#sapwc-pending-customers-table';
+                        $(selector + ' tr[data-id="' + currentPreviewItem + '"]').addClass('sapwc-row-imported');
+                        setTimeout(closeModal, 1500);
+                    } else {
+                        $modalStatus.addClass('error').text('✗ ' + (res.data?.message || 'Error al importar')).show();
+                    }
+                }).fail(function() {
+                    $modalStatus.addClass('error').text('✗ Error de conexión').show();
+                }).always(function() {
+                    $btn.prop('disabled', false).html('<span class="dashicons dashicons-download" style="font-family:dashicons;vertical-align:middle;"></span> Importar Ahora');
+                });
+            });
+
+            // ==============================================================
+            // PRODUCTOS PENDIENTES
+            // ==============================================================
+            $('#sapwc-load-pending-products').on('click', function() {
+                const $btn = $(this);
+                const $loading = $('#products-pending-loading');
+                const $info = $('#products-results-info');
+                const $table = $('#sapwc-pending-products-table');
+
+                $btn.prop('disabled', true);
+                $loading.show();
+                $info.hide();
+                $table.hide();
+
+                $.post(sapwc_ajax.ajax_url, {
+                    action: 'sapwc_get_pending_products',
+                    nonce: sapwc_ajax.nonce
+                }).done(function(res) {
+                    if (res.success) {
+                        const items = res.data.items || [];
+                        $('#products-count-text').text(items.length + ' productos pendientes de importar');
+                        $info.show();
+
+                        const $tbody = $table.find('tbody');
+                        $tbody.empty();
+
+                        items.forEach(function(item) {
+                            $tbody.append(`
+                                <tr data-id="${item.ItemCode}">
+                                    <td><input type="checkbox" class="sapwc-select-product" value="${item.ItemCode}"></td>
+                                    <td><strong>${$('<span>').text(item.ItemCode).html()}</strong></td>
+                                    <td>${$('<span>').text(item.ItemName).html()}</td>
+                                    <td>${item.ItemsGroupCode || '-'}</td>
+                                    <td>
+                                        <button class="button sapwc-preview-product" data-code="${item.ItemCode}">
+                                            <span class="dashicons dashicons-visibility" style="font-family:dashicons;vertical-align:middle;"></span> Ver
+                                        </button>
+                                        <button class="button button-primary sapwc-import-single-product" data-code="${item.ItemCode}">
+                                            <span class="dashicons dashicons-download" style="font-family:dashicons;vertical-align:middle;"></span>
+                                        </button>
+                                    </td>
+                                </tr>
+                            `);
+                        });
+
+                        $table.show();
+                    } else {
+                        alert(res.data?.message || 'Error al cargar productos');
+                    }
+                }).fail(function() {
+                    alert('Error de conexión');
+                }).always(function() {
+                    $btn.prop('disabled', false);
+                    $loading.hide();
+                });
+            });
+
+            // Preview producto
+            $(document).on('click', '.sapwc-preview-product', function() {
+                const code = $(this).data('code');
+                currentPreviewItem = code;
+                currentPreviewType = 'product';
+                openModal('Vista Previa: Producto ' + code);
+
+                $.post(sapwc_ajax.ajax_url, {
+                    action: 'sapwc_preview_product',
+                    nonce: sapwc_ajax.nonce,
+                    item_code: code
+                }).done(function(res) {
+                    if (res.success) {
+                        showPreviewData(res.data.sap_data, res.data.woo_mapping);
+                    } else {
+                        $modalLoading.hide();
+                        $modalStatus.addClass('error').text(res.data?.message || 'Error').show();
+                    }
+                });
+            });
+
+            // Importar producto individual
+            $(document).on('click', '.sapwc-import-single-product', function() {
+                const $btn = $(this);
+                const code = $btn.data('code');
+                $btn.prop('disabled', true);
+
+                $.post(sapwc_ajax.ajax_url, {
+                    action: 'sapwc_import_single_product',
+                    nonce: sapwc_ajax.nonce,
+                    item_code: code
+                }).done(function(res) {
+                    if (res.success) {
+                        $btn.closest('tr').addClass('sapwc-row-imported');
+                        $btn.replaceWith('<span class="dashicons dashicons-yes-alt" style="font-family:dashicons;color:green;"></span>');
+                    } else {
+                        $btn.prop('disabled', false);
+                        alert(res.data?.message || 'Error');
+                    }
+                });
+            });
+
+            // Select all productos
+            $('#sapwc-select-all-products').on('change', function() {
+                $('.sapwc-select-product').prop('checked', $(this).is(':checked'));
+                updateSelectedCount('products');
+            });
+            $(document).on('change', '.sapwc-select-product', function() {
+                updateSelectedCount('products');
+            });
+
+            // ==============================================================
+            // CATEGORÍAS PENDIENTES
+            // ==============================================================
+            $('#sapwc-load-pending-categories').on('click', function() {
+                const $btn = $(this);
+                const $loading = $('#categories-pending-loading');
+                const $info = $('#categories-results-info');
+                const $table = $('#sapwc-pending-categories-table');
+
+                $btn.prop('disabled', true);
+                $loading.show();
+                $info.hide();
+                $table.hide();
+
+                $.post(sapwc_ajax.ajax_url, {
+                    action: 'sapwc_get_pending_categories',
+                    nonce: sapwc_ajax.nonce
+                }).done(function(res) {
+                    if (res.success) {
+                        const items = res.data.items || [];
+                        $('#categories-count-text').text(items.length + ' categorías pendientes de importar');
+                        $info.show();
+
+                        const $tbody = $table.find('tbody');
+                        $tbody.empty();
+
+                        items.forEach(function(item) {
+                            $tbody.append(`
+                                <tr data-id="${item.Number}">
+                                    <td><input type="checkbox" class="sapwc-select-category" value="${item.Number}"></td>
+                                    <td><strong>${item.Number}</strong></td>
+                                    <td>${$('<span>').text(item.GroupName).html()}</td>
+                                    <td>
+                                        <button class="button sapwc-preview-category" data-number="${item.Number}">
+                                            <span class="dashicons dashicons-visibility" style="font-family:dashicons;vertical-align:middle;"></span> Ver
+                                        </button>
+                                        <button class="button button-primary sapwc-import-single-category" data-number="${item.Number}">
+                                            <span class="dashicons dashicons-download" style="font-family:dashicons;vertical-align:middle;"></span>
+                                        </button>
+                                    </td>
+                                </tr>
+                            `);
+                        });
+
+                        $table.show();
+                    } else {
+                        alert(res.data?.message || 'Error al cargar categorías');
+                    }
+                }).fail(function() {
+                    alert('Error de conexión');
+                }).always(function() {
+                    $btn.prop('disabled', false);
+                    $loading.hide();
+                });
+            });
+
+            // Preview categoría
+            $(document).on('click', '.sapwc-preview-category', function() {
+                const num = $(this).data('number');
+                currentPreviewItem = num;
+                currentPreviewType = 'category';
+                openModal('Vista Previa: Categoría ' + num);
+
+                $.post(sapwc_ajax.ajax_url, {
+                    action: 'sapwc_preview_category',
+                    nonce: sapwc_ajax.nonce,
+                    group_number: num
+                }).done(function(res) {
+                    if (res.success) {
+                        showPreviewData(res.data.sap_data, res.data.woo_mapping);
+                    } else {
+                        $modalLoading.hide();
+                        $modalStatus.addClass('error').text(res.data?.message || 'Error').show();
+                    }
+                });
+            });
+
+            // Importar categoría individual
+            $(document).on('click', '.sapwc-import-single-category', function() {
+                const $btn = $(this);
+                const num = $btn.data('number');
+                $btn.prop('disabled', true);
+
+                $.post(sapwc_ajax.ajax_url, {
+                    action: 'sapwc_import_single_category',
+                    nonce: sapwc_ajax.nonce,
+                    group_number: num
+                }).done(function(res) {
+                    if (res.success) {
+                        $btn.closest('tr').addClass('sapwc-row-imported');
+                        $btn.replaceWith('<span class="dashicons dashicons-yes-alt" style="font-family:dashicons;color:green;"></span>');
+                    } else {
+                        $btn.prop('disabled', false);
+                        alert(res.data?.message || 'Error');
+                    }
+                });
+            });
+
+            // Select all categorías
+            $('#sapwc-select-all-categories').on('change', function() {
+                $('.sapwc-select-category').prop('checked', $(this).is(':checked'));
+                updateSelectedCount('categories');
+            });
+            $(document).on('change', '.sapwc-select-category', function() {
+                updateSelectedCount('categories');
+            });
+
+            // ==============================================================
+            // CLIENTES PENDIENTES
+            // ==============================================================
+            $('#sapwc-load-pending-customers').on('click', function() {
+                const $btn = $(this);
+                const $loading = $('#customers-pending-loading');
+                const $info = $('#customers-results-info');
+                const $table = $('#sapwc-pending-customers-table');
+
+                $btn.prop('disabled', true);
+                $loading.show();
+                $info.hide();
+                $table.hide();
+
+                $.post(sapwc_ajax.ajax_url, {
+                    action: 'sapwc_get_pending_customers',
+                    nonce: sapwc_ajax.nonce
+                }).done(function(res) {
+                    if (res.success) {
+                        const items = res.data.items || [];
+                        $('#customers-count-text').text(items.length + ' clientes pendientes de importar');
+                        $info.show();
+
+                        const $tbody = $table.find('tbody');
+                        $tbody.empty();
+
+                        items.forEach(function(item) {
+                            $tbody.append(`
+                                <tr data-id="${item.CardCode}">
+                                    <td><input type="checkbox" class="sapwc-select-customer" value="${item.CardCode}"></td>
+                                    <td><strong>${$('<span>').text(item.CardCode).html()}</strong></td>
+                                    <td>${$('<span>').text(item.CardName || '').html()}</td>
+                                    <td>${$('<span>').text(item.EmailAddress || '-').html()}</td>
+                                    <td>
+                                        <button class="button sapwc-preview-customer" data-code="${item.CardCode}">
+                                            <span class="dashicons dashicons-visibility" style="font-family:dashicons;vertical-align:middle;"></span> Ver
+                                        </button>
+                                        <button class="button button-primary sapwc-import-single-customer-btn" data-code="${item.CardCode}">
+                                            <span class="dashicons dashicons-download" style="font-family:dashicons;vertical-align:middle;"></span>
+                                        </button>
+                                    </td>
+                                </tr>
+                            `);
+                        });
+
+                        $table.show();
+                    } else {
+                        alert(res.data?.message || 'Error al cargar clientes');
+                    }
+                }).fail(function() {
+                    alert('Error de conexión');
+                }).always(function() {
+                    $btn.prop('disabled', false);
+                    $loading.hide();
+                });
+            });
+
+            // Preview cliente
+            $(document).on('click', '.sapwc-preview-customer', function() {
+                const code = $(this).data('code');
+                currentPreviewItem = code;
+                currentPreviewType = 'customer';
+                openModal('Vista Previa: Cliente ' + code);
+
+                $.post(sapwc_ajax.ajax_url, {
+                    action: 'sapwc_preview_customer',
+                    nonce: sapwc_ajax.nonce,
+                    cardcode: code
+                }).done(function(res) {
+                    if (res.success) {
+                        showPreviewData(res.data.sap_data, res.data.woo_mapping);
+                    } else {
+                        $modalLoading.hide();
+                        $modalStatus.addClass('error').text(res.data?.message || 'Error').show();
+                    }
+                });
+            });
+
+            // Importar cliente individual desde tabla pendientes
+            $(document).on('click', '.sapwc-import-single-customer-btn', function() {
+                const $btn = $(this);
+                const code = $btn.data('code');
+                $btn.prop('disabled', true);
+
+                $.post(sapwc_ajax.ajax_url, {
+                    action: 'sapwc_import_single_customer',
+                    nonce: sapwc_ajax.nonce,
+                    cardcode: code
+                }).done(function(res) {
+                    if (res.success) {
+                        $btn.closest('tr').addClass('sapwc-row-imported');
+                        $btn.replaceWith('<span class="dashicons dashicons-yes-alt" style="font-family:dashicons;color:green;"></span>');
+                    } else {
+                        $btn.prop('disabled', false);
+                        alert(res.data?.message || res.data || 'Error');
+                    }
+                });
+            });
+
+            // Select all clientes
+            $('#sapwc-select-all-customers').on('change', function() {
+                $('.sapwc-select-customer').prop('checked', $(this).is(':checked'));
+                updateSelectedCount('customers');
+            });
+            $(document).on('change', '.sapwc-select-customer', function() {
+                updateSelectedCount('customers');
+            });
+
+            // ==============================================================
+            // IMPORTAR SELECCIONADOS (bulk)
+            // ==============================================================
+            function updateSelectedCount(type) {
+                const count = $(`.sapwc-select-${type.slice(0,-1)}:checked`).length;
+                $(`#sapwc-import-selected-${type} .sapwc-selected-count`).text('(' + count + ')');
+                $(`#sapwc-import-selected-${type}`).prop('disabled', count === 0);
+            }
+
+            // Importar productos seleccionados
+            $('#sapwc-import-selected-products').on('click', function() {
+                const codes = [];
+                $('.sapwc-select-product:checked').each(function() {
+                    codes.push($(this).val());
+                });
+                if (codes.length === 0) return;
+
+                importBulk('products', codes, 'sapwc_import_single_product', 'item_code');
+            });
+
+            // Importar categorías seleccionadas
+            $('#sapwc-import-selected-categories').on('click', function() {
+                const nums = [];
+                $('.sapwc-select-category:checked').each(function() {
+                    nums.push($(this).val());
+                });
+                if (nums.length === 0) return;
+
+                importBulk('categories', nums, 'sapwc_import_single_category', 'group_number');
+            });
+
+            // Importar clientes seleccionados
+            $('#sapwc-import-selected-customers').on('click', function() {
+                const codes = [];
+                $('.sapwc-select-customer:checked').each(function() {
+                    codes.push($(this).val());
+                });
+                if (codes.length === 0) return;
+
+                importBulk('customers', codes, 'sapwc_import_single_customer', 'cardcode');
+            });
+
+            function importBulk(type, items, action, dataKey) {
+                const $progress = $(`#${type}-selective-progress`);
+                const $fill = $(`#${type}-selective-fill`);
+                const $log = $(`#${type}-selective-log`);
+
+                $progress.show();
+                $fill.css('width', '0%').text('0%');
+                $log.empty();
+
+                let current = 0;
+                const total = items.length;
+
+                function importNext() {
+                    if (current >= total) {
+                        $fill.css('width', '100%').text('100%').addClass('sapwc-done');
+                        const ts = new Date().toLocaleTimeString();
+                        $log.append(`<div class="log-success">[${ts}] Importación completada: ${total} elementos</div>`);
+                        return;
+                    }
+
+                    const item = items[current];
+                    const postData = { action: action, nonce: sapwc_ajax.nonce };
+                    postData[dataKey] = item;
+
+                    $.post(sapwc_ajax.ajax_url, postData).done(function(res) {
+                        const ts = new Date().toLocaleTimeString();
+                        if (res.success) {
+                            $(`#sapwc-pending-${type}-table tr[data-id="${item}"]`).addClass('sapwc-row-imported');
+                            $log.append(`<div class="log-success">[${ts}] ✓ ${item}</div>`);
+                        } else {
+                            $log.append(`<div class="log-error">[${ts}] ✗ ${item}: ${res.data?.message || res.data || 'Error'}</div>`);
+                        }
+                    }).fail(function() {
+                        const ts = new Date().toLocaleTimeString();
+                        $log.append(`<div class="log-error">[${ts}] ✗ ${item}: Error de conexión</div>`);
+                    }).always(function() {
+                        current++;
+                        const pct = Math.round((current / total) * 100);
+                        $fill.css('width', pct + '%').text(pct + '%');
+                        $log.scrollTop($log[0].scrollHeight);
+                        setTimeout(importNext, 300); // Delay para no saturar
+                    });
+                }
+
+                importNext();
+            }
+        });
+        </script>
+        <?php
+    }
 }
 
 // =============================================================================
@@ -894,4 +1773,217 @@ add_action('wp_ajax_sapwc_import_all_customers_v2', function () {
         'skipped'   => $result['skipped'] ?? 0,
         'last_sync' => get_option('sapwc_customers_last_sync', ''),
     ]);
+});
+
+// =============================================================================
+// AJAX ENDPOINTS - IMPORTACIÓN SELECTIVA
+// =============================================================================
+
+/**
+ * Obtener productos pendientes (en SAP pero no en Woo)
+ */
+add_action('wp_ajax_sapwc_get_pending_products', function () {
+    check_ajax_referer('sapwc_nonce', 'nonce');
+
+    if (!current_user_can('edit_others_shop_orders')) {
+        wp_send_json_error(['message' => __('Sin permisos.', 'sapwoo')]);
+    }
+
+    if (!class_exists('SAPWC_Product_Sync')) {
+        wp_send_json_error(['message' => __('Clase de sincronización no disponible.', 'sapwoo')]);
+    }
+
+    $result = SAPWC_Product_Sync::get_pending_products();
+
+    if (isset($result['error'])) {
+        wp_send_json_error(['message' => $result['error']]);
+    }
+
+    wp_send_json_success(['items' => $result['items'] ?? []]);
+});
+
+/**
+ * Preview de un producto antes de importar
+ */
+add_action('wp_ajax_sapwc_preview_product', function () {
+    check_ajax_referer('sapwc_nonce', 'nonce');
+
+    if (!current_user_can('edit_others_shop_orders')) {
+        wp_send_json_error(['message' => __('Sin permisos.', 'sapwoo')]);
+    }
+
+    $item_code = sanitize_text_field($_POST['item_code'] ?? '');
+    if (empty($item_code)) {
+        wp_send_json_error(['message' => __('Código de producto requerido.', 'sapwoo')]);
+    }
+
+    if (!class_exists('SAPWC_Product_Sync')) {
+        wp_send_json_error(['message' => __('Clase de sincronización no disponible.', 'sapwoo')]);
+    }
+
+    $result = SAPWC_Product_Sync::get_product_preview($item_code);
+
+    if (isset($result['error'])) {
+        wp_send_json_error(['message' => $result['error']]);
+    }
+
+    wp_send_json_success($result);
+});
+
+/**
+ * Importar un producto individual
+ */
+add_action('wp_ajax_sapwc_import_single_product', function () {
+    check_ajax_referer('sapwc_nonce', 'nonce');
+
+    if (!current_user_can('edit_others_shop_orders')) {
+        wp_send_json_error(['message' => __('Sin permisos.', 'sapwoo')]);
+    }
+
+    $item_code = sanitize_text_field($_POST['item_code'] ?? '');
+    if (empty($item_code)) {
+        wp_send_json_error(['message' => __('Código de producto requerido.', 'sapwoo')]);
+    }
+
+    if (!class_exists('SAPWC_Product_Sync')) {
+        wp_send_json_error(['message' => __('Clase de sincronización no disponible.', 'sapwoo')]);
+    }
+
+    $result = SAPWC_Product_Sync::import_single($item_code);
+
+    if (isset($result['error'])) {
+        wp_send_json_error(['message' => $result['error']]);
+    }
+
+    wp_send_json_success(['message' => $result['message'] ?? __('Producto importado correctamente.', 'sapwoo')]);
+});
+
+/**
+ * Obtener categorías pendientes (en SAP pero no en Woo)
+ */
+add_action('wp_ajax_sapwc_get_pending_categories', function () {
+    check_ajax_referer('sapwc_nonce', 'nonce');
+
+    if (!current_user_can('edit_others_shop_orders')) {
+        wp_send_json_error(['message' => __('Sin permisos.', 'sapwoo')]);
+    }
+
+    if (!class_exists('SAPWC_Category_Sync')) {
+        wp_send_json_error(['message' => __('Clase de sincronización no disponible.', 'sapwoo')]);
+    }
+
+    $result = SAPWC_Category_Sync::get_pending_categories();
+
+    if (isset($result['error'])) {
+        wp_send_json_error(['message' => $result['error']]);
+    }
+
+    wp_send_json_success(['items' => $result['items'] ?? []]);
+});
+
+/**
+ * Preview de una categoría antes de importar
+ */
+add_action('wp_ajax_sapwc_preview_category', function () {
+    check_ajax_referer('sapwc_nonce', 'nonce');
+
+    if (!current_user_can('edit_others_shop_orders')) {
+        wp_send_json_error(['message' => __('Sin permisos.', 'sapwoo')]);
+    }
+
+    $group_number = intval($_POST['group_number'] ?? 0);
+    if ($group_number <= 0) {
+        wp_send_json_error(['message' => __('Número de grupo requerido.', 'sapwoo')]);
+    }
+
+    if (!class_exists('SAPWC_Category_Sync')) {
+        wp_send_json_error(['message' => __('Clase de sincronización no disponible.', 'sapwoo')]);
+    }
+
+    $result = SAPWC_Category_Sync::get_category_preview($group_number);
+
+    if (isset($result['error'])) {
+        wp_send_json_error(['message' => $result['error']]);
+    }
+
+    wp_send_json_success($result);
+});
+
+/**
+ * Importar una categoría individual
+ */
+add_action('wp_ajax_sapwc_import_single_category', function () {
+    check_ajax_referer('sapwc_nonce', 'nonce');
+
+    if (!current_user_can('edit_others_shop_orders')) {
+        wp_send_json_error(['message' => __('Sin permisos.', 'sapwoo')]);
+    }
+
+    $group_number = intval($_POST['group_number'] ?? 0);
+    if ($group_number <= 0) {
+        wp_send_json_error(['message' => __('Número de grupo requerido.', 'sapwoo')]);
+    }
+
+    if (!class_exists('SAPWC_Category_Sync')) {
+        wp_send_json_error(['message' => __('Clase de sincronización no disponible.', 'sapwoo')]);
+    }
+
+    $result = SAPWC_Category_Sync::import_single($group_number);
+
+    if (isset($result['error'])) {
+        wp_send_json_error(['message' => $result['error']]);
+    }
+
+    wp_send_json_success(['message' => $result['message'] ?? __('Categoría importada correctamente.', 'sapwoo')]);
+});
+
+/**
+ * Obtener clientes pendientes (en SAP pero no en Woo)
+ */
+add_action('wp_ajax_sapwc_get_pending_customers', function () {
+    check_ajax_referer('sapwc_nonce', 'nonce');
+
+    if (!current_user_can('edit_others_shop_orders')) {
+        wp_send_json_error(['message' => __('Sin permisos.', 'sapwoo')]);
+    }
+
+    if (!class_exists('SAPWC_Customer_Sync')) {
+        wp_send_json_error(['message' => __('Clase de sincronización no disponible.', 'sapwoo')]);
+    }
+
+    $result = SAPWC_Customer_Sync::get_pending_customers();
+
+    if (isset($result['error'])) {
+        wp_send_json_error(['message' => $result['error']]);
+    }
+
+    wp_send_json_success(['items' => $result['items'] ?? []]);
+});
+
+/**
+ * Preview de un cliente antes de importar
+ */
+add_action('wp_ajax_sapwc_preview_customer', function () {
+    check_ajax_referer('sapwc_nonce', 'nonce');
+
+    if (!current_user_can('edit_others_shop_orders')) {
+        wp_send_json_error(['message' => __('Sin permisos.', 'sapwoo')]);
+    }
+
+    $cardcode = sanitize_text_field($_POST['cardcode'] ?? '');
+    if (empty($cardcode)) {
+        wp_send_json_error(['message' => __('CardCode requerido.', 'sapwoo')]);
+    }
+
+    if (!class_exists('SAPWC_Customer_Sync')) {
+        wp_send_json_error(['message' => __('Clase de sincronización no disponible.', 'sapwoo')]);
+    }
+
+    $result = SAPWC_Customer_Sync::get_customer_preview($cardcode);
+
+    if (isset($result['error'])) {
+        wp_send_json_error(['message' => $result['error']]);
+    }
+
+    wp_send_json_success($result);
 });

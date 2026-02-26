@@ -439,4 +439,43 @@ class SAPWC_Category_Sync
             'raw' => $response,
         ];
     }
+
+    /**
+     * Importar una categoría individual por su número de grupo
+     *
+     * @param int $group_number
+     * @return array
+     */
+    public static function import_single($group_number)
+    {
+        $conn = sapwc_get_active_connection();
+        if (!$conn) {
+            return ['error' => __('No hay conexión activa con SAP.', 'sapwoo')];
+        }
+
+        $client = new SAPWC_API_Client($conn['url']);
+        $login = $client->login($conn['user'], $conn['pass'], $conn['db'], $conn['ssl'] ?? false);
+
+        if (!$login['success']) {
+            return ['error' => __('Error de login SAP: ', 'sapwoo') . $login['message']];
+        }
+
+        $query = "/ItemGroups({$group_number})";
+        $response = $client->get($query);
+        $client->logout();
+
+        if (empty($response) || isset($response['error'])) {
+            return ['error' => __('Categoría no encontrada en SAP.', 'sapwoo')];
+        }
+
+        // Procesar la categoría
+        $result = self::process_category($response);
+
+        if ($result === 'error') {
+            return ['error' => __('Error al crear la categoría.', 'sapwoo')];
+        }
+
+        $action = $result === 'created' ? __('Categoría creada', 'sapwoo') : __('Categoría actualizada', 'sapwoo');
+        return ['success' => true, 'message' => $action . ': ' . ($response['GroupName'] ?? '')];
+    }
 }
