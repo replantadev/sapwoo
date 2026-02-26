@@ -3,7 +3,7 @@ Contributors: replantadev
 Tags: woocommerce, sap, b2b, sync, erp, business one
 Requires at least: 5.8
 Tested up to: 6.5
-Stable tag: 1.4.3-beta
+Stable tag: 1.4.4-beta
 Requires PHP: 7.4
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -71,6 +71,10 @@ Sí, cada instalación de WordPress puede conectarse a una base de datos SAP dif
 5. Logs de sincronización
 
 == Changelog ==
+
+= 1.4.4-beta =
+* Fix: Sistema de actualización ahora usa GitHub Releases (soluciona problemas con repos privados)
+* Mejor compatibilidad con tokens de acceso
 
 = 1.4.3-beta =
 * Unificación de menús: Importación Selectiva integrada en página de Importación
