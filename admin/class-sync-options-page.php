@@ -274,11 +274,6 @@ class SAPWC_Sync_Options_Page
                                                         'user_id' => $emp['ApplicationUserID']
                                                     ];
                                                     $employees[] = $employee;
-
-                                                    // Debug: ¿Sandra está?
-                                                    if ($employee['employee_id'] === 97 || $employee['user_id'] === 47) {
-                                                        error_log("[SAPWC] SANDRA GONZÁLEZ está en la lista de empleados");
-                                                    }
                                                 }
                                             }
                                             $skip += 20;
@@ -548,11 +543,6 @@ class SAPWC_Sync_Options_Page
                                             <?php endif; ?>
                                         </select>
                                         <p class="description"><?php esc_html_e('Tarifa TARIFA WEB PVP para Península y Baleares.', 'sapwoo'); ?></p>
-                                        <?php if (current_user_can('manage_options')) : ?>
-                                            <p class="description" style="font-size: 11px; color: #666;">
-                                                Debug: <?php echo 'Tarifas cargadas: ' . count($tariffs) . ' | Península actual: ' . $tariff_peninsula; ?>
-                                            </p>
-                                        <?php endif; ?>
                                     </td>
                                 </tr>
                                 <tr>
@@ -571,11 +561,6 @@ class SAPWC_Sync_Options_Page
                                             <?php endif; ?>
                                         </select>
                                         <p class="description"><?php esc_html_e('Tarifa específica para Canarias (GC, TF, LP, HI, TE, CN).', 'sapwoo'); ?></p>
-                                        <?php if (current_user_can('manage_options')) : ?>
-                                            <p class="description" style="font-size: 11px; color: #666;">
-                                                Debug: <?php echo 'Tarifas cargadas: ' . count($tariffs) . ' | Canarias actual: ' . $tariff_canarias; ?>
-                                            </p>
-                                        <?php endif; ?>
                                     </td>
                                 </tr>
                                 <tr>
@@ -594,11 +579,6 @@ class SAPWC_Sync_Options_Page
                                             <?php endif; ?>
                                         </select>
                                         <p class="description"><?php esc_html_e('Tarifa específica para Portugal (PT).', 'sapwoo'); ?></p>
-                                        <?php if (current_user_can('manage_options')) : ?>
-                                            <p class="description" style="font-size: 11px; color: #666;">
-                                                Debug: <?php echo 'Tarifas cargadas: ' . count($tariffs) . ' | Portugal actual: ' . $tariff_portugal; ?>
-                                            </p>
-                                        <?php endif; ?>
                                     </td>
                                 </tr>
                                 <tr>
@@ -808,7 +788,7 @@ class SAPWC_Sync_Options_Page
                                     <?php
                                     $next_prod = wp_next_scheduled('sapwc_cron_sync_products');
                                     if ($next_prod) {
-                                        echo '<p><small>⏰ ' . esc_html__('Próx. ejecución:', 'sapwoo') . ' <strong>' . esc_html(wp_date('Y-m-d H:i:s', $next_prod)) . '</strong></small></p>';
+                                        echo '<p><small><span class="dashicons dashicons-clock" style="font-size:14px;vertical-align:middle;"></span> ' . esc_html__('Próx. ejecución:', 'sapwoo') . ' <strong>' . esc_html(wp_date('Y-m-d H:i:s', $next_prod)) . '</strong></small></p>';
                                     }
                                     $products_last = get_option('sapwc_products_last_sync', __('Nunca', 'sapwoo'));
                                     echo '<p><small>' . esc_html__('Última sync:', 'sapwoo') . ' <strong>' . esc_html($products_last) . '</strong></small></p>';
@@ -827,7 +807,7 @@ class SAPWC_Sync_Options_Page
                                     <?php
                                     $next_cat = wp_next_scheduled('sapwc_cron_sync_categories');
                                     if ($next_cat) {
-                                        echo '<p><small>⏰ ' . esc_html__('Próx. ejecución:', 'sapwoo') . ' <strong>' . esc_html(wp_date('Y-m-d H:i:s', $next_cat)) . '</strong></small></p>';
+                                        echo '<p><small><span class="dashicons dashicons-clock" style="font-size:14px;vertical-align:middle;"></span> ' . esc_html__('Próx. ejecución:', 'sapwoo') . ' <strong>' . esc_html(wp_date('Y-m-d H:i:s', $next_cat)) . '</strong></small></p>';
                                     }
                                     $cats_last = get_option('sapwc_categories_last_sync', __('Nunca', 'sapwoo'));
                                     echo '<p><small>' . esc_html__('Última sync:', 'sapwoo') . ' <strong>' . esc_html($cats_last) . '</strong></small></p>';
@@ -1178,7 +1158,7 @@ add_action('update_option_sapwc_cron_interval', function ($old, $new) {
         }
         wp_schedule_event(time() + 60, $new, 'sapwc_cron_sync_orders');
 
-        // También para stock 👇
+        // También reprogramar stock
         if (wp_next_scheduled('sapwc_cron_sync_stock')) {
             wp_clear_scheduled_hook('sapwc_cron_sync_stock');
         }

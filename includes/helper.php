@@ -27,7 +27,9 @@ function sapwc_get_active_connection()
     }
 
     if (empty($connection['url']) || empty($connection['user']) || empty($connection['pass']) || empty($connection['db'])) {
-        error_log('[SAPWC] ' . __('Conexión activa incompleta: ', 'sapwoo') . print_r($connection, true));
+        if (defined('WP_DEBUG') && WP_DEBUG) {
+            error_log('[SAPWC] ' . __('Conexión activa incompleta. Revisa URL, usuario, contraseña y base de datos.', 'sapwoo'));
+        }
         return null;
     }
 

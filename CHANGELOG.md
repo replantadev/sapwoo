@@ -7,6 +7,26 @@ y este proyecto adhiere a [Versionado Semántico](https://semver.org/lang/es/).
 
 ---
 
+## [1.4.1-beta] - 2026-02-26
+
+### Seguridad
+- Eliminado `print_r($connection)` que exponía credenciales en logs
+- Eliminado código de testing hardcoded ("Sandra González")
+- Eliminadas líneas de debug visibles en el panel de administración
+- Todos los `error_log` sensibles ahora requieren `WP_DEBUG` activo
+
+### Eliminado
+- Emojis restantes reemplazados por dashicons (\u23f0, \ud83d\udc47)
+- Emojis en JavaScript (\u274c, \u2705, \u231b, \ud83d\udee9)
+- Logs verbose de BUILD_ITEMS que escribían por cada producto
+- Logs de debug regional que escribían por cada pedido
+
+### Corregido
+- `DocumentsOwner` ahora usa `sapwc_user_sign` configurable en lugar de valor hardcoded
+- Tipo de log cambiado de 'error' a 'warning' para ajustes de cantidad mínima
+
+---
+
 ## [1.4.0-beta] - 2026-02-25
 
 ### Añadido

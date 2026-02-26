@@ -24,7 +24,7 @@ jQuery(document).ready(function ($) {
                 } else {
                     let msg = (response.data && typeof response.data === 'object' && response.data.message)
                         ? response.data.message
-                        : response.data || '❌ Error desconocido.';
+                        : response.data || 'Error desconocido.';
                     result.css('color', 'red').text(msg);
                 }
             }
@@ -45,7 +45,7 @@ jQuery(document).ready(function ($) {
         let $button = $(this);
         let $result = $('#sapwc-send-result');
     
-        $button.prop('disabled', true).text('⌛ Enviando todos...');
+        $button.prop('disabled', true).text('Enviando todos...');
         $result.text('Enviando pedidos...').css('color', '#333');
     
         let $rows = $('#sapwc-orders-table tbody tr');
@@ -60,7 +60,7 @@ jQuery(document).ready(function ($) {
             let $statusCell = $row.find('.sapwc-status');
             let $buttonSingle = $row.find('.sapwc-send-single');
     
-            $buttonSingle.prop('disabled', true).text('⌛ Enviando...');
+            $buttonSingle.prop('disabled', true).text('Enviando...');
     
             $.post(sapwc_ajax.ajax_url, {
                 action: 'sapwc_send_order',
@@ -69,19 +69,19 @@ jQuery(document).ready(function ($) {
             }, function (response) {
                 if (response.success) {
                     let docentry = response.data.docentry || 'N/A';
-                    $statusCell.html('✅ Enviado (#' + docentry + ')');
-                    $buttonSingle.text('✅ Ok').removeClass('button-primary button-danger').addClass('button-success');
+                    $statusCell.html('Enviado (#' + docentry + ')');
+                    $buttonSingle.text('Ok').removeClass('button-primary button-danger').addClass('button-success');
                     success++;
                 } else {
-                    $statusCell.text('❌ Error');
-                    $buttonSingle.text('❌ Reintentar').removeClass('button-primary button-success').addClass('button-danger').prop('disabled', false);
+                    $statusCell.text('Error');
+                    $buttonSingle.text('Reintentar').removeClass('button-primary button-success').addClass('button-danger').prop('disabled', false);
                     errors++;
                 }
             }).always(function () {
                 completed++;
                 if (completed === total) {
-                    const msg = `✅ ${success} enviados correctamente. ❌ ${errors} fallaron.`;
-                    $button.prop('disabled', false).text('🛫 Enviar todos a SAP');
+                    const msg = `${success} enviados correctamente. ${errors} fallaron.`;
+                    $button.prop('disabled', false).text('Enviar todos a SAP');
                     $result.text(msg).css('color', success ? 'green' : 'red');
                     showToast(msg, success ? 'success' : 'error');
                     refreshSAPOrders();
@@ -118,7 +118,7 @@ jQuery(document).ready(function ($) {
         let $row = $button.closest('tr');
         let $statusCell = $row.find('.sapwc-status');
 
-        $button.prop('disabled', true).text('⌛ Enviando...');
+        $button.prop('disabled', true).text('Enviando...');
 
         $.post(sapwc_ajax.ajax_url, {
             action: 'sapwc_send_order',
@@ -127,8 +127,8 @@ jQuery(document).ready(function ($) {
         }, function (response) {
 
             if (!response.success && response.data && response.data.message === 'Pedido ya fue enviado a SAP') {
-                $statusCell.html('✅ Ya enviado');
-                $button.text('✅ Ok')
+                $statusCell.html('Ya enviado');
+                $button.text('Ok')
                     .removeClass('button-primary button-danger')
                     .addClass('button-success')
                     .prop('disabled', true);
@@ -138,8 +138,8 @@ jQuery(document).ready(function ($) {
 
             if (response.success) {
                 let docentry = response.data.docentry || '-';
-                $statusCell.html('✅ Enviado (#' + docentry + ')');
-                $button.text('✅ Ok')
+                $statusCell.html('Enviado (#' + docentry + ')');
+                $button.text('Ok')
                     .removeClass('button-primary button-danger')
                     .addClass('button-success');
                 // Actualizar resumen si existe
@@ -154,15 +154,15 @@ jQuery(document).ready(function ($) {
                     .insertAfter('.wrap h1').delay(2000).fadeOut();
                 refreshSAPOrders();
             } else {
-                $statusCell.html('❌ Error');
-                $button.text('❌ Reintentar')
+                $statusCell.html('Error');
+                $button.text('Reintentar')
                     .removeClass('button-primary button-success')
                     .addClass('button-danger')
                     .prop('disabled', false);
             }
         }).fail(function () {
-            $statusCell.html('❌ Error de red');
-            $button.text('❌ Reintentar')
+            $statusCell.html('Error de red');
+            $button.text('Reintentar')
                 .removeClass('button-primary button-success')
                 .addClass('button-danger')
                 .prop('disabled', false);
@@ -185,7 +185,7 @@ jQuery(document).ready(function ($) {
             action: 'sapwc_send_orders',
             nonce: sapwc_ajax.nonce
         }).done(function (res) {
-            const message = res.success ? '✅ Pedidos sincronizados correctamente' : '❌ Error: ' + res.data;
+            const message = res.success ? 'Pedidos sincronizados correctamente' : 'Error: ' + res.data;
             showToast(message, res.success ? 'success' : 'error');
             if (res.success && res.data.last_sync && res.data.last_docentry) {
                 $('#sapwc-last-sync').text(res.data.last_sync);
@@ -193,7 +193,7 @@ jQuery(document).ready(function ($) {
                 refreshSAPOrders();
             }
         }).fail(function () {
-            showToast('❌ Error de red al sincronizar', 'error');
+            showToast('Error de red al sincronizar', 'error');
         }).always(function () {
             $trigger.removeClass('loading');
             $text.text(originalText);
@@ -233,7 +233,7 @@ jQuery(document).ready(function ($) {
                     $('td:contains("Última sincronización")').next('td, strong').html('<strong>' + response.data.last_sync + '</strong>');
                 }
             } else {
-                alert('❌ Error al sincronizar: ' + response.data);
+                alert('Error al sincronizar: ' + response.data);
             }
         });
     });
@@ -246,9 +246,9 @@ jQuery(document).ready(function ($) {
             nonce: sapwc_ajax.nonce
         }, function (res) {
             if (res.success) {
-                alert('✅ Cron ejecutado manualmente.');
+                alert('Cron ejecutado manualmente.');
             } else {
-                alert('❌ Error: ' + res.data.message);
+                alert('Error: ' + res.data.message);
             }
         });
     });
@@ -258,7 +258,7 @@ jQuery(document).ready(function ($) {
             action: 'sapwc_force_stock_cron',
             nonce: sapwc_ajax.nonce
         }, function(res) {
-            alert(res.success ? '✅ Stock ejecutado.' : '❌ Error.');
+            alert(res.success ? 'Stock ejecutado.' : 'Error.');
         });
     });
     

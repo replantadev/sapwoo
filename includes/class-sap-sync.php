@@ -32,7 +32,9 @@ class SAPWC_Sync_Handler
                 'error',
                 'Mapeo de campos incompleto. Faltan: ' . json_encode(array_keys($this->mapping))
             );
-            error_log('Mapeo actual: ' . print_r(get_option('sapwc_field_mapping'), true));
+            if (defined('WP_DEBUG') && WP_DEBUG) {
+                error_log('[SAPWC] Mapeo de campos incompleto. Revisa la configuración.');
+            }
             return ['success' => false, 'message' => 'Mapeo de campos incompleto. Verifica los ajustes.'];
         }
 
@@ -112,9 +114,9 @@ class SAPWC_Sync_Handler
         //  VALIDACIÓN: asegurar que todos los productos tienen SKU
         foreach ($payload['DocumentLines'] as $line) {
             if (empty($line['ItemCode'])) {
-                $msg = 'Producto sin SKU en payload: ' . print_r($line, true);
-
-                error_log('[ERROR] ' . $msg);
+                if (defined('WP_DEBUG') && WP_DEBUG) {
+                    error_log('[SAPWC] Producto sin SKU detectado en pedido #' . $order->get_id());
+                }
                 SAPWC_Logger::log(
                     $order->get_id(),
                     'sync',
@@ -134,7 +136,9 @@ class SAPWC_Sync_Handler
         }
 
 
-        error_log("\n========== ENVÍO A SAP ==========\nPedido ID: {$order->get_id()}\nPayload enviado:\n" . json_encode($payload, JSON_PRETTY_PRINT));
+        if (defined('WP_DEBUG') && WP_DEBUG) {
+            error_log("[SAPWC] Enviando pedido #{$order->get_id()} a SAP");
+        }
 
         $endpoint = untrailingslashit($this->client->get_base_url()) . '/Orders';
 
@@ -241,7 +245,9 @@ class SAPWC_Sync_Handler
         $order->add_order_note('Error al enviar a SAP: ' . $error);
         $order->save();
         $this->store_order_fallback($order->get_id(), $error);
-        error_log("[ERROR SAP] Código $code - Respuesta: " . print_r($body, true));
+        if (defined('WP_DEBUG') && WP_DEBUG) {
+            error_log("[SAPWC] Error SAP Código $code en pedido #" . $order->get_id());
+        }
 
         return ['success' => false, 'message' => $error];
     }
@@ -319,9 +325,6 @@ class SAPWC_Sync_Handler
                     'U_ARTES_DtoAR1' => $discount_percent
                 ];
             }
-
-            // LOG para auditoría (quítalo si no quieres ruido)
-            error_log("[BUILD_ITEMS] SKU: $sku_clean | MODE: $mode | ALMACÉN: $warehouse | PVP NETO: $pvp_neto | PVP IVA: $pvp_con_iva | REGULAR: $regular_price | SALE: $sale_price | IVA: $iva_percent | DESC: $discount_percent | QTY: $quantity");
 
             $items[] = $line;
         }
@@ -408,9 +411,6 @@ class SAPWC_Sync_Handler
                 $applicable_tariff = $warehouse_tariffs[$warehouse];
             }
 
-            // LOG de debug para verificar la tarifa
-            error_log("[BUILD_ITEMS_TARIFF] SKU: {$sku} | Tarifa específica: {$specific_tariff} | Tarifa aplicada: {$applicable_tariff} | Almacén: {$warehouse}");
-
             // Construir línea SIN precio, usando PriceList
             $line = [
                 'ItemCode'      => $sku,
@@ -471,9 +471,6 @@ class SAPWC_Sync_Handler
             if (!$include_vat) {
                 $line['TaxCode'] = 'EXE'; // Código de exención de impuestos en SAP
             }
-
-            // LOG de debug para verificar configuración
-            error_log("[BUILD_ITEMS_VAT] SKU: {$sku} | Tarifa: {$applicable_tariff} | Incluir IVA: " . ($include_vat ? 'SÍ' : 'NO') . " | TaxCode: " . ($include_vat ? 'Default' : 'EXE'));
             
             $items[] = $line;
         }
@@ -608,11 +605,8 @@ class SAPWC_Sync_Handler
 
                 // Validación suave: si no cuadra, asumir todo pagado
                 if (abs(($units_paid + $units_gifted) - $quantity) > 0.1) {
-                    error_log("[BUILD_ITEMS_SIN_CARGO] Ajuste por descuadre decimal en SKU $sku_clean. TOTAL: $quantity ≠ CALCULADAS: " . ($units_paid + $units_gifted));
                     $units_paid = $quantity;
                     $units_gifted = 0;
-                } else {
-                    error_log("[BUILD_ITEMS_SIN_CARGO] Promo detectada SKU $sku_clean → $units_paid pagadas + $units_gifted regaladas");
                 }
             }
 
@@ -624,8 +618,6 @@ class SAPWC_Sync_Handler
                 'WarehouseCode'   => $warehouse,
                 'U_ARTES_CantSC'  => $units_gifted
             ];
-
-            error_log("[BUILD_ITEMS_SIN_CARGO] SKU: $sku_clean | TOTAL: $quantity | PAGADAS: $units_paid | REGALADAS: $units_gifted");
 
             $items[] = $line;
         }
@@ -675,15 +667,13 @@ class SAPWC_Sync_Handler
 
             // Ajustar si la cantidad es menor al pack mínimo
             if ($pack_size > 0 && $quantity < $pack_size) {
-                error_log("[BUILD_ITEMS_SIN_CARGO] SKU: $sku_clean seleccionó $quantity, ajustado a mínimo $pack_size");
-                SAPWC_Logger::log($order->get_id(), 'sync', 'error', sprintf('SKU %s seleccionado con %d uds. Corregido a %d (mínimo)', $sku_clean, $quantity, $pack_size));
+                SAPWC_Logger::log($order->get_id(), 'sync', 'warning', sprintf('SKU %s seleccionado con %d uds. Corregido a %d (mínimo)', $sku_clean, $quantity, $pack_size));
                 $order->add_order_note("Producto {$product->get_name()} ajustado a $pack_size por mínimo de compra");
                 $quantity  = $pack_size;
 
                 if ($regular > 0) {
                     $subtotal  = $regular * $quantity;
                 } else {
-                    error_log("[BUILD_ITEMS_SIN_CARGO] Precio regular inválido para SKU $sku_clean");
                     $subtotal = 0;
                 }
 
@@ -704,11 +694,8 @@ class SAPWC_Sync_Handler
 
                 // Validación suave: si no cuadra, asumir todo pagado
                 if (abs(($units_paid + $units_gifted) - $quantity) > 0.1) {
-                    error_log("[BUILD_ITEMS_SIN_CARGO] Ajuste por descuadre decimal en SKU $sku_clean. TOTAL: $quantity ≠ CALCULADAS: " . ($units_paid + $units_gifted));
                     $units_paid = $quantity;
                     $units_gifted = 0;
-                } else {
-                    error_log("[BUILD_ITEMS_SIN_CARGO] Promo detectada SKU $sku_clean → $units_paid pagadas + $units_gifted regaladas");
                 }
             }
 
@@ -720,8 +707,6 @@ class SAPWC_Sync_Handler
                 'WarehouseCode'   => $warehouse,
                 'U_ARTES_CantSC'  => $units_gifted
             ];
-
-            error_log("[BUILD_ITEMS_SIN_CARGO] SKU: $sku_clean | TOTAL: $quantity | PAGADAS: $units_paid | REGALADAS: $units_gifted");
 
             $items[] = $line;
         }
@@ -744,7 +729,7 @@ class SAPWC_Sync_Handler
         }
 
         if (!$card_code || !is_string($card_code)) {
-            SAPWC_Logger::log($order->get_id(), 'sync', 'error', 'CardCode no válido: ' . print_r($card_code, true));
+            SAPWC_Logger::log($order->get_id(), 'sync', 'error', 'CardCode no válido para usuario #' . $user->ID);
             return ['success' => false, 'message' => 'CardCode no válido para el cliente.'];
         }
 
@@ -920,16 +905,10 @@ class SAPWC_Sync_Handler
         $fecha_creacion = $order->get_date_created();
         $doc_date = $fecha_creacion ? $fecha_creacion->date('Y-m-d') : date('Y-m-d');
         $user_sign = get_option('sapwc_user_sign');
-        //if (!empty($user_sign)) {
-            $DocumentsOwner = 97; //sandra a mano
-        //}
+        $DocumentsOwner = !empty($user_sign) ? (int) $user_sign : 97;
 
-        // LOG para debug regional
-        error_log("[REGIONAL_DEBUG] Pedido: {$order_number} | Región: {$region_name} | País: {$target_country} | Estado: {$target_state} | Cliente: {$card_code} | Tarifa: {$region_tariff}");
-        
         // Determinar si incluir IVA según configuración regional
         $include_vat = $this->should_include_vat_for_region($order);
-        error_log("[REGIONAL_VAT_DEBUG] Pedido: {$order_number} | Región: {$region_name} | Incluir IVA: " . ($include_vat ? 'SÍ' : 'NO'));
 
         // Construir gastos de envío (portes) para SAP
         $shipping_expenses = $this->build_shipping_expenses($order);
