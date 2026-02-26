@@ -3,7 +3,7 @@
 Plugin Name: SAP Woo Sync
 Plugin URI: https://replanta.es
 Description: Sincroniza pedidos de WooCommerce con SAP Business One.
-Version: 1.4.7-beta
+Version: 1.4.8-beta
 Author: Replanta Dev
 Author URI: https://replanta.es
 License: GPLv2 or later
@@ -63,10 +63,27 @@ $updateChecker = PucFactory::buildUpdateChecker(
     'sap-woo'
 );
 
-// Si el repositorio es privado, agrega autenticación de forma segura
-if (defined('SAPWC_GITHUB_TOKEN')) {
-    $updateChecker->setAuthentication(SAPWC_GITHUB_TOKEN);
-}
+// Autenticación con Bearer (necesario para fine-grained PATs de GitHub)
+// NO usar setAuthentication() porque PUC usa Basic auth que no funciona con github_pat_
+add_filter('http_request_args', function($args, $url) {
+    if (strpos($url, 'api.github.com/repos/replantadev/sapwoo') !== false) {
+        if (defined('SAPWC_GITHUB_TOKEN')) {
+            $args['headers']['Authorization'] = 'Bearer ' . SAPWC_GITHUB_TOKEN;
+        }
+    }
+    return $args;
+}, 10, 2);
+
+// También añadir cabecera al descargar el ZIP
+add_filter('http_request_args', function($args, $url) {
+    if (strpos($url, 'codeload.github.com/replantadev/sapwoo') !== false ||
+        strpos($url, 'github.com/replantadev/sapwoo/archive') !== false) {
+        if (defined('SAPWC_GITHUB_TOKEN')) {
+            $args['headers']['Authorization'] = 'Bearer ' . SAPWC_GITHUB_TOKEN;
+        }
+    }
+    return $args;
+}, 10, 2);
 
 $updateChecker->setBranch('main');
 
