@@ -142,33 +142,46 @@ class SAPWC_Welcome_Mailer
      */
     private static function get_logo_html()
     {
-        // Intentar logo personalizado de WooCommerce
-        if (function_exists('wc_get_email_logo')) {
-            $wc_logo = get_option('woocommerce_email_header_image');
-            if (!empty($wc_logo)) {
-                return '<img src="' . esc_url($wc_logo) . '" alt="' . esc_attr(get_bloginfo('name')) . '" style="max-width: 200px; height: auto;">';
-            }
+        $alt = esc_attr(get_bloginfo('name'));
+
+        // 1. URL configurada manualmente en el plugin (más fiable)
+        $saved_url = get_option('sapwc_email_logo_url', '');
+        if (!empty($saved_url)) {
+            return '<img src="' . esc_url($saved_url) . '" alt="' . $alt . '" style="max-width: 200px; height: auto; display: block;">';
         }
 
-        // Logo del tema
+        // 2. Logo personalizado de WooCommerce
+        $wc_logo = get_option('woocommerce_email_header_image', '');
+        if (!empty($wc_logo)) {
+            return '<img src="' . esc_url($wc_logo) . '" alt="' . $alt . '" style="max-width: 200px; height: auto; display: block;">';
+        }
+
+        // 3. Logo del tema (custom_logo)
         $custom_logo_id = get_theme_mod('custom_logo');
         if ($custom_logo_id) {
+            // Intentar versión 'medium' primero, luego URL original
             $logo_url = wp_get_attachment_image_url($custom_logo_id, 'medium');
+            if (!$logo_url) {
+                $logo_url = wp_get_attachment_url($custom_logo_id);
+            }
             if ($logo_url) {
-                return '<img src="' . esc_url($logo_url) . '" alt="' . esc_attr(get_bloginfo('name')) . '" style="max-width: 200px; height: auto;">';
+                return '<img src="' . esc_url($logo_url) . '" alt="' . $alt . '" style="max-width: 200px; height: auto; display: block;">';
             }
         }
 
-        // Site icon como fallback
+        // 4. Site icon como fallback
         $site_icon_id = get_option('site_icon');
         if ($site_icon_id) {
             $icon_url = wp_get_attachment_image_url($site_icon_id, 'full');
+            if (!$icon_url) {
+                $icon_url = wp_get_attachment_url($site_icon_id);
+            }
             if ($icon_url) {
-                return '<img src="' . esc_url($icon_url) . '" alt="' . esc_attr(get_bloginfo('name')) . '" style="max-width: 80px; height: auto;">';
+                return '<img src="' . esc_url($icon_url) . '" alt="' . $alt . '" style="max-width: 80px; height: auto; display: block;">';
             }
         }
 
-        // Solo texto como último recurso
+        // 5. Solo texto como último recurso
         return '<h1 style="margin: 0; font-size: 28px; color: #333;">' . esc_html(get_bloginfo('name')) . '</h1>';
     }
 

@@ -360,6 +360,11 @@ class SAPWC_Sync_Options_Page
                                         <input type="color" name="sapwc_email_primary_color" value="<?php echo esc_attr(get_option('sapwc_email_primary_color', '#c7aba9')); ?>" style="margin-top: 5px; height: 36px; width: 80px; cursor: pointer;">
                                         <span class="description" style="margin-left: 8px;"><?php esc_html_e('Color de cabecera y botones del email de bienvenida.', 'sapwoo'); ?></span>
                                     </label>
+                                    <label style="display: block; margin-top: 10px;">
+                                        <strong><?php esc_html_e('URL del logo del email', 'sapwoo'); ?></strong><br>
+                                        <input type="url" name="sapwc_email_logo_url" value="<?php echo esc_attr(get_option('sapwc_email_logo_url', '')); ?>" class="large-text" style="margin-top: 5px;" placeholder="https://tusitio.com/wp-content/uploads/.../logo.png">
+                                        <span class="description"><?php esc_html_e('URL completa de la imagen del logo para el email. Déjalo vacío para detectarlo automáticamente.', 'sapwoo'); ?></span>
+                                    </label>
                                 </p>
                                 <p style="margin-top: 8px;">
                                     <button type="button" id="sapwc-preview-welcome-email" class="button button-secondary">
@@ -1132,6 +1137,7 @@ add_action('admin_init', function () {
     register_setting('sapwc_sync_settings', 'sapwc_customer_sync_time');
     register_setting('sapwc_sync_settings', 'sapwc_send_welcome_email');
     register_setting('sapwc_sync_settings', 'sapwc_email_primary_color');
+    register_setting('sapwc_sync_settings', 'sapwc_email_logo_url');
     register_setting('sapwc_sync_settings', 'sapwc_customers_last_sync');
 
     // Sincronización automática de productos y categorías
