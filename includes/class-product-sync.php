@@ -26,6 +26,7 @@ class SAPWC_Product_Sync
             'ItemName',
             'ForeignName',
             'ItemsGroupCode',
+            'FirmName',      // Marca / Fabricante
             'BarCode',
             'SalesUnit',
             'ItemPrices',
@@ -44,7 +45,7 @@ class SAPWC_Product_Sync
      * @param int $top   Tamaño de lote
      * @return array
      */
-    public static function fetch_from_sap($skip = 0, $top = 20)
+    public static function fetch_from_sap($skip = 0, $top = 20, $brand = '')
     {
         $conn = sapwc_get_active_connection();
         if (!$conn) {
@@ -60,21 +61,36 @@ class SAPWC_Product_Sync
 
         $select = self::get_select_fields();
 
+        // Sufijo de filtro de marca (escapa comillas simples para OData)
+        $brand_filter = '';
+        if (!empty($brand)) {
+            $brand_safe = str_replace("'", "''", trim($brand));
+            $brand_filter = " and FirmName eq '{$brand_safe}'";
+        }
+
         // Intentar primero con filtro completo
-        $filter = "Valid eq 'tYES' and ItemType eq 'itItems'";
+        $filter = "Valid eq 'tYES' and ItemType eq 'itItems'" . $brand_filter;
         $filter_encoded = urlencode($filter);
         $query = "/Items?\$filter={$filter_encoded}&\$select={$select}&\$orderby=ItemCode&\$top={$top}&\$skip={$skip}";
         $response = $client->get($query);
 
         // Si falla, intentar solo con ItemType
         if (!isset($response['value'])) {
-            $filter = "ItemType eq 'itItems'";
+            $filter = "ItemType eq 'itItems'" . $brand_filter;
             $filter_encoded = urlencode($filter);
             $query = "/Items?\$filter={$filter_encoded}&\$select={$select}&\$orderby=ItemCode&\$top={$top}&\$skip={$skip}";
             $response = $client->get($query);
         }
 
-        // Si sigue fallando, intentar sin filtro
+        // Si sigue fallando, intentar sin filtro de estado pero manteniendo marca
+        if (!isset($response['value']) && !empty($brand_filter)) {
+            $filter = "FirmName eq '" . str_replace("'", "''", trim($brand)) . "'";
+            $filter_encoded = urlencode($filter);
+            $query = "/Items?\$filter={$filter_encoded}&\$select={$select}&\$orderby=ItemCode&\$top={$top}&\$skip={$skip}";
+            $response = $client->get($query);
+        }
+
+        // Fallback final: sin filtro
         if (!isset($response['value'])) {
             $query = "/Items?\$select={$select}&\$orderby=ItemCode&\$top={$top}&\$skip={$skip}";
             $response = $client->get($query);
@@ -488,9 +504,9 @@ class SAPWC_Product_Sync
      * @param int $top   Límite
      * @return array
      */
-    public static function get_pending_products($skip = 0, $top = 50)
+    public static function get_pending_products($skip = 0, $top = 50, $brand = '')
     {
-        $all_sap = self::fetch_from_sap($skip, $top);
+        $all_sap = self::fetch_from_sap($skip, $top, $brand);
 
         if (isset($all_sap['error'])) {
             return $all_sap;

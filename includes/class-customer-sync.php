@@ -37,7 +37,7 @@ class SAPWC_Customer_Sync
      * @param int $limit Máximo de clientes a obtener
      * @return array Lista de clientes de SAP
      */
-    public static function get_pending_web_customers($limit = 50)
+    public static function get_pending_web_customers($limit = 50, $show_all = false)
     {
         $conn = sapwc_get_active_connection();
         if (!$conn) {
@@ -61,8 +61,8 @@ class SAPWC_Customer_Sync
         $skip = 0;
         $batch_size = 20;
 
-        // Intentar con filtro UDF primero
-        $use_udf_filter = !empty($udf_field) && !empty($udf_value);
+        // Intentar con filtro UDF primero (omitir si show_all = true)
+        $use_udf_filter = !$show_all && !empty($udf_field) && !empty($udf_value);
         $filter_failed = false;
 
         do {

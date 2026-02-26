@@ -64,9 +64,7 @@ $updateChecker = PucFactory::buildUpdateChecker(
 );
 $updateChecker->setBranch('main');
 
-// Autenticación para repositorio privado.
-// NOTA: getAuthorizationHeader() en vendor/GitHubApi.php se ha parcheado para usar
-// "token TOKEN" en lugar de "Basic base64(...)" — necesario para fine-grained PATs.
+// Autenticación con classic PAT (ghp_...) — compatible con Basic auth de PUC.
 if (defined('SAPWC_GITHUB_TOKEN')) {
     $updateChecker->getVcsApi()->setAuthentication(SAPWC_GITHUB_TOKEN);
 }

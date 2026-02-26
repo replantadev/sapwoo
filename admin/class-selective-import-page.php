@@ -142,6 +142,15 @@ class SAPWC_Selective_Import_Page
                 </div>
             </div>
 
+            <div class="sapwc-filter-bar" style="margin:12px 0;padding:12px 16px;background:#f0f6fc;border:1px solid #c3d9f7;border-radius:6px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+                <label for="sapwc-brand-filter" style="font-weight:600;white-space:nowrap;">
+                    <span class="dashicons dashicons-tag" style="font-family:dashicons;vertical-align:middle;"></span>
+                    <?php esc_html_e('Filtrar por marca:', 'sapwoo'); ?>
+                </label>
+                <input type="text" id="sapwc-brand-filter" placeholder="<?php esc_attr_e('Nombre exacto en SAP (campo FirmName)...', 'sapwoo'); ?>" style="width:280px;" class="regular-text">
+                <small style="color:#646970;"><?php esc_html_e('Vacío = todas las marcas. Pulsa "Cargar" para aplicar.', 'sapwoo'); ?></small>
+            </div>
+
             <div class="sapwc-loading-indicator" id="products-loading" style="display:none;">
                 <span class="spinner is-active"></span> <?php esc_html_e('Consultando SAP...', 'sapwoo'); ?>
             </div>
@@ -157,6 +166,7 @@ class SAPWC_Selective_Import_Page
                         <th class="check-column"><input type="checkbox" id="sapwc-select-all-products"></th>
                         <th><?php esc_html_e('Código', 'sapwoo'); ?></th>
                         <th><?php esc_html_e('Nombre', 'sapwoo'); ?></th>
+                        <th><?php esc_html_e('Marca', 'sapwoo'); ?></th>
                         <th><?php esc_html_e('Grupo', 'sapwoo'); ?></th>
                         <th style="width:180px;"><?php esc_html_e('Acciones', 'sapwoo'); ?></th>
                     </tr>
@@ -256,6 +266,21 @@ class SAPWC_Selective_Import_Page
                         <span class="sapwc-selected-count">(0)</span>
                     </button>
                 </div>
+            </div>
+
+            <?php
+            $udf_field = get_option('sapwc_customer_udf_field', 'U_ARTES_CLIW');
+            $udf_value = get_option('sapwc_customer_udf_value', 'S');
+            ?>
+            <div class="sapwc-filter-bar" style="margin:12px 0;padding:12px 16px;background:#f0f6fc;border:1px solid #c3d9f7;border-radius:6px;display:flex;align-items:center;gap:16px;flex-wrap:wrap;">
+                <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-weight:600;">
+                    <input type="checkbox" id="sapwc-only-web-customers" checked>
+                    <?php esc_html_e('Solo clientes web', 'sapwoo'); ?>
+                </label>
+                <span style="color:#1d2327;background:#fff;border:1px solid #ddd;border-radius:4px;padding:3px 8px;font-family:monospace;font-size:12px;">
+                    <?php echo esc_html($udf_field . ' = "' . $udf_value . '"'); ?>
+                </span>
+                <small style="color:#646970;"><?php esc_html_e('Desmarca para ver todos los clientes de SAP (no solo los marcados como web).', 'sapwoo'); ?></small>
             </div>
 
             <div class="sapwc-loading-indicator" id="customers-loading" style="display:none;">
@@ -432,7 +457,8 @@ class SAPWC_Selective_Import_Page
 
                 $.post(sapwc_ajax.ajax_url, {
                     action: 'sapwc_get_pending_products',
-                    nonce: sapwc_ajax.nonce
+                    nonce: sapwc_ajax.nonce,
+                    brand: $('#sapwc-brand-filter').val().trim()
                 }).done(function(res) {
                     if (res.success) {
                         const items = res.data.items || [];
@@ -448,6 +474,7 @@ class SAPWC_Selective_Import_Page
                             items.forEach(function(item) {
                                 const code = $('<div>').text(item.ItemCode || '').html();
                                 const name = $('<div>').text(item.ItemName || '').html();
+                                const brand = item.FirmName ? $('<div>').text(item.FirmName).html() : '<em style="color:#999;">-</em>';
                                 const group = item.ItemsGroupCode || '-';
                                 
                                 $tbody.append(`
@@ -455,6 +482,7 @@ class SAPWC_Selective_Import_Page
                                         <td class="check-column"><input type="checkbox" class="sapwc-select-product" value="${code}"></td>
                                         <td><code>${code}</code></td>
                                         <td>${name}</td>
+                                        <td>${brand}</td>
                                         <td>${group}</td>
                                         <td class="sapwc-row-actions">
                                             <button class="button sapwc-preview-product" data-code="${code}" title="Vista previa">
@@ -674,7 +702,8 @@ class SAPWC_Selective_Import_Page
 
                 $.post(sapwc_ajax.ajax_url, {
                     action: 'sapwc_get_pending_customers',
-                    nonce: sapwc_ajax.nonce
+                    nonce: sapwc_ajax.nonce,
+                    show_all: $('#sapwc-only-web-customers').is(':checked') ? '0' : '1'
                 }).done(function(res) {
                     if (res.success) {
                         const items = res.data.items || [];
@@ -982,7 +1011,8 @@ add_action('wp_ajax_sapwc_get_pending_products', function () {
         wp_send_json_error(['message' => __('Clase de sincronización no disponible.', 'sapwoo')]);
     }
 
-    $result = SAPWC_Product_Sync::get_pending_products(0, 100);
+    $brand = sanitize_text_field($_POST['brand'] ?? '');
+    $result = SAPWC_Product_Sync::get_pending_products(0, 100, $brand);
 
     if (isset($result['error'])) {
         wp_send_json_error(['message' => $result['error']]);
@@ -1156,7 +1186,8 @@ add_action('wp_ajax_sapwc_get_pending_customers', function () {
         wp_send_json_error(['message' => __('Clase de sincronización no disponible.', 'sapwoo')]);
     }
 
-    $items = SAPWC_Customer_Sync::get_pending_web_customers(100);
+    $show_all = isset($_POST['show_all']) && $_POST['show_all'] === '1';
+    $items = SAPWC_Customer_Sync::get_pending_web_customers(100, $show_all);
 
     wp_send_json_success(['items' => $items, 'total' => count($items)]);
 });
