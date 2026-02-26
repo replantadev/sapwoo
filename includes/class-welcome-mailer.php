@@ -65,10 +65,13 @@ class SAPWC_Welcome_Mailer
         // Asunto del email
         $subject = sprintf(__('¡Bienvenido/a a %s! Configura tu acceso', 'sapwoo'), $site_name);
 
-        // Headers
+        // Headers — usar noreply@dominio para evitar spam
+        $domain      = wp_parse_url(home_url(), PHP_URL_HOST);
+        $from_email  = 'noreply@' . $domain;
         $headers = [
             'Content-Type: text/html; charset=UTF-8',
-            'From: ' . $site_name . ' <' . get_option('admin_email') . '>'
+            'From: ' . $site_name . ' <' . $from_email . '>',
+            'Reply-To: ' . get_option('admin_email'),
         ];
 
         // Enviar
@@ -92,44 +95,30 @@ class SAPWC_Welcome_Mailer
     private static function get_site_colors()
     {
         $defaults = [
-            'primary' => '#0073aa',
-            'secondary' => '#23282d',
-            'accent' => '#00a0d2',
-            'text' => '#333333',
-            'background' => '#f7f7f7',
-            'button_text' => '#ffffff'
+            'primary'      => '#c7aba9',
+            'secondary'    => '#23282d',
+            'accent'       => '#c7aba9',
+            'text'         => '#333333',
+            'background'   => '#f7f7f7',
+            'button_text'  => '#ffffff'
         ];
 
-        // Intentar obtener colores de WooCommerce
-        if (function_exists('wc_get_theme_support')) {
-            $wc_colors = wc_get_theme_support('woocommerce', 'colors', []);
-            if (!empty($wc_colors['primary'])) {
-                $defaults['primary'] = $wc_colors['primary'];
-            }
+        // La opción del plugin tiene MÁXIMA prioridad — si está configurada, se usa directamente
+        $plugin_color = get_option('sapwc_email_primary_color', '');
+        if (!empty($plugin_color)) {
+            $defaults['primary'] = $plugin_color;
+            return $defaults;
         }
 
-        // Intentar obtener del Customizer
-        $custom_primary = get_theme_mod('primary_color', '');
-        if (!empty($custom_primary)) {
-            $defaults['primary'] = $custom_primary;
-        }
-
-        // Storefront specific
+        // Si no hay color guardado en el plugin, intentar detectar del tema
         $storefront_accent = get_theme_mod('storefront_accent_color', '');
         if (!empty($storefront_accent)) {
             $defaults['primary'] = $storefront_accent;
         }
 
-        // Astra specific
         $astra_primary = get_option('astra-settings', []);
         if (!empty($astra_primary['link-color'])) {
             $defaults['primary'] = $astra_primary['link-color'];
-        }
-
-        // Permitir override desde opciones del plugin
-        $custom_color = get_option('sapwc_email_primary_color', '');
-        if (!empty($custom_color)) {
-            $defaults['primary'] = $custom_color;
         }
 
         return $defaults;

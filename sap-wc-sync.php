@@ -610,11 +610,18 @@ add_action('wp_ajax_sapwc_send_test_welcome_email', function () {
         wp_send_json_error(['message' => 'Sin permisos']);
     }
 
-    $html    = SAPWC_Welcome_Mailer::get_preview();
-    $to      = get_option('admin_email');
-    $subject = '[TEST] ' . sprintf(__('Email bienvenida - %s', 'sapwoo'), get_bloginfo('name'));
-    $headers = ['Content-Type: text/html; charset=UTF-8'];
-    $sent    = wp_mail($to, $subject, $html, $headers);
+    $html       = SAPWC_Welcome_Mailer::get_preview();
+    $to         = get_option('admin_email');
+    $site_name  = get_bloginfo('name');
+    $domain     = wp_parse_url(home_url(), PHP_URL_HOST);
+    $from_email = 'noreply@' . $domain;
+    $subject    = sprintf(__('Vista previa: Email bienvenida - %s', 'sapwoo'), $site_name);
+    $headers    = [
+        'Content-Type: text/html; charset=UTF-8',
+        'From: ' . $site_name . ' <' . $from_email . '>',
+        'Reply-To: ' . $to,
+    ];
+    $sent = wp_mail($to, $subject, $html, $headers);
 
     if ($sent) {
         wp_send_json_success(['message' => sprintf(__('Email de prueba enviado a %s', 'sapwoo'), $to)]);
