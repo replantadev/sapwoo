@@ -3,7 +3,7 @@
 Plugin Name: SAP Woo Sync
 Plugin URI: https://replanta.es
 Description: Sincroniza pedidos de WooCommerce con SAP Business One.
-Version: 1.4.1-beta
+Version: 1.4.2-beta
 Author: Replanta Dev
 Author URI: https://replanta.es
 License: GPLv2 or later
@@ -47,6 +47,7 @@ function sapwc_load_dependencies()
     require_once SAPWC_PLUGIN_PATH . 'includes/class-category-sync.php';
     require_once SAPWC_PLUGIN_PATH . 'includes/class-product-sync.php';
     require_once SAPWC_PLUGIN_PATH . 'admin/class-import-page.php';
+    require_once SAPWC_PLUGIN_PATH . 'admin/class-selective-import-page.php';
 }
 
 // Actualizaciones automáticas desde GitHub
@@ -129,6 +130,7 @@ add_action('admin_menu', function () {
     // Submenús compartidos
     add_submenu_page('sapwc-settings', __('Pedidos Woo', 'sapwoo'), __('Pedidos Woo', 'sapwoo'), $capability, 'sapwc-orders', ['SAPWC_Orders_Page', 'render']);
     add_submenu_page('sapwc-settings', __('Importación', 'sapwoo'), __('Importación', 'sapwoo'), $capability, 'sapwc-import', ['SAPWC_Import_Page', 'render']);
+    add_submenu_page('sapwc-settings', __('Importar Selectivo', 'sapwoo'), __('Importar Selectivo', 'sapwoo'), $capability, 'sapwc-selective-import', ['SAPWC_Selective_Import_Page', 'render']);
     add_submenu_page('sapwc-settings', __('Sincronización', 'sapwoo'), __('Sincronización', 'sapwoo'), $capability, 'sapwc-sync-options', ['SAPWC_Sync_Options_Page', 'render']);
     add_submenu_page('sapwc-settings', __('Mapeo de Campos', 'sapwoo'), __('Mapeo de Campos', 'sapwoo'), $capability, 'sapwc-mapping', ['SAPWC_Mapping_Page', 'render']);
     add_submenu_page('sapwc-settings', __('Pedidos Fallidos', 'sapwoo'), __('Pedidos Fallidos', 'sapwoo'), $capability, 'sapwc-failed-orders', ['SAPWC_Failed_Orders_Page', 'render']);

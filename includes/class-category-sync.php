@@ -343,8 +343,100 @@ class SAPWC_Category_Sync
             return;
         }
 
-        error_log('[SAPWC] Ejecutando sincronización automática de categorías');
+        if (defined('WP_DEBUG') && WP_DEBUG) {
+            error_log('[SAPWC] Ejecutando sincronización automática de categorías');
+        }
         $result = self::import_all();
-        error_log('[SAPWC] Resultado categorías: ' . ($result['message'] ?? json_encode($result)));
+        if (defined('WP_DEBUG') && WP_DEBUG) {
+            error_log('[SAPWC] Resultado categorías: ' . ($result['message'] ?? json_encode($result)));
+        }
+    }
+
+    /**
+     * Obtiene la lista de categorías de SAP que NO están en WooCommerce
+     *
+     * @return array
+     */
+    public static function get_pending_categories()
+    {
+        $all_sap = self::fetch_all_from_sap();
+
+        if (isset($all_sap['error'])) {
+            return $all_sap;
+        }
+
+        $mapping = self::get_mapping();
+        $pending = [];
+
+        foreach ($all_sap['items'] as $item) {
+            $number = $item['Number'] ?? null;
+            if ($number !== null && !isset($mapping[$number])) {
+                // Verificar también por nombre exacto
+                $term = get_term_by('name', $item['GroupName'], 'product_cat');
+                if (!$term) {
+                    $pending[] = $item;
+                }
+            }
+        }
+
+        return [
+            'items' => $pending,
+            'total' => count($pending),
+        ];
+    }
+
+    /**
+     * Obtiene el preview de campos de una categoría de SAP
+     *
+     * @param int $group_number Número del grupo en SAP
+     * @return array
+     */
+    public static function get_category_preview($group_number)
+    {
+        $conn = sapwc_get_active_connection();
+        if (!$conn) {
+            return ['error' => __('No hay conexión activa con SAP.', 'sapwoo')];
+        }
+
+        $client = new SAPWC_API_Client($conn['url']);
+        $login = $client->login($conn['user'], $conn['pass'], $conn['db'], $conn['ssl'] ?? false);
+
+        if (!$login['success']) {
+            return ['error' => __('Error de login SAP: ', 'sapwoo') . $login['message']];
+        }
+
+        $query = "/ItemGroups({$group_number})";
+        $response = $client->get($query);
+        $client->logout();
+
+        if (empty($response) || isset($response['error'])) {
+            return ['error' => __('Categoría no encontrada en SAP.', 'sapwoo')];
+        }
+
+        // Verificar si ya existe en WooCommerce
+        $existing_id = self::category_exists_in_woo($group_number, $response['GroupName'] ?? '');
+        $existing_name = '';
+        if ($existing_id) {
+            $term = get_term($existing_id, 'product_cat');
+            if ($term && !is_wp_error($term)) {
+                $existing_name = $term->name;
+            }
+        }
+
+        return [
+            'sap_data' => [
+                ['field' => 'Number', 'label' => 'Número de Grupo', 'value' => $response['Number'] ?? ''],
+                ['field' => 'GroupName', 'label' => 'Nombre del Grupo', 'value' => $response['GroupName'] ?? ''],
+            ],
+            'woo_mapping' => [
+                ['field' => 'term_id', 'label' => 'ID Categoría', 'source' => $existing_id ? "Ya existe: #{$existing_id}" : '(Se creará nueva)'],
+                ['field' => 'name', 'label' => 'Nombre Categoría', 'source' => 'GroupName'],
+                ['field' => 'slug', 'label' => 'Slug', 'source' => sanitize_title($response['GroupName'] ?? '')],
+                ['field' => '_meta', 'label' => 'Meta: sapwc_sap_group_number', 'source' => 'Number'],
+            ],
+            'exists_in_woo' => $existing_id ? true : false,
+            'existing_name' => $existing_name,
+            'raw' => $response,
+        ];
     }
 }

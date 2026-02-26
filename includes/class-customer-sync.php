@@ -428,11 +428,15 @@ class SAPWC_Customer_Sync
             return;
         }
 
-        error_log('[SAPWC] Ejecutando sincronización automática de clientes web');
+        if (defined('WP_DEBUG') && WP_DEBUG) {
+            error_log('[SAPWC] Ejecutando sincronización automática de clientes web');
+        }
         
         $result = self::sync_all_pending();
         
-        error_log('[SAPWC] Resultado: ' . ($result['message'] ?? json_encode($result)));
+        if (defined('WP_DEBUG') && WP_DEBUG) {
+            error_log('[SAPWC] Resultado: ' . ($result['message'] ?? json_encode($result)));
+        }
     }
 
     /**
@@ -458,6 +462,113 @@ class SAPWC_Customer_Sync
             'total_imported' => (int) $total_imported,
             'last_sync' => $last_sync,
             'emails_sent' => (int) $emails_sent
+        ];
+    }
+
+    /**
+     * Obtiene el preview de campos de un cliente de SAP
+     *
+     * @param string $cardcode CardCode del cliente
+     * @return array
+     */
+    public static function get_customer_preview($cardcode)
+    {
+        $conn = sapwc_get_active_connection();
+        if (!$conn) {
+            return ['error' => __('No hay conexión activa con SAP.', 'sapwoo')];
+        }
+
+        $client = new SAPWC_API_Client($conn['url']);
+        $login = $client->login($conn['user'], $conn['pass'], $conn['db'], $conn['ssl'] ?? false);
+
+        if (!$login['success']) {
+            return ['error' => __('Error de login SAP: ', 'sapwoo') . $login['message']];
+        }
+
+        $cardcode_enc = urlencode($cardcode);
+        $select = 'CardCode,CardName,CardForeignName,FederalTaxID,EmailAddress,Phone1,Address,City,ZipCode,State,Country,BPAddresses';
+        $query = "/BusinessPartners('{$cardcode_enc}')?\$select={$select}";
+        $response = $client->get($query);
+        $client->logout();
+
+        if (empty($response) || isset($response['error'])) {
+            return ['error' => __('Cliente no encontrado en SAP.', 'sapwoo')];
+        }
+
+        // Verificar si ya existe
+        $exists = self::customer_exists_in_woo($cardcode);
+        $existing_user = null;
+        if ($exists) {
+            $users = get_users([
+                'meta_key' => 'sapwc_cardcode',
+                'meta_value' => $cardcode,
+                'number' => 1
+            ]);
+            if (!empty($users)) {
+                $existing_user = $users[0];
+            } else {
+                $existing_user = get_user_by('login', $cardcode);
+            }
+        }
+
+        // Parsear nombre
+        $full_name = $response['CardName'] ?? '';
+        $first_name = '';
+        $last_name = '';
+        if (strpos($full_name, ',') !== false) {
+            [$last_name, $first_name] = array_map('trim', explode(',', $full_name, 2));
+        } else {
+            $parts = explode(' ', $full_name, 2);
+            $first_name = $parts[0] ?? '';
+            $last_name = $parts[1] ?? '';
+        }
+
+        // Dirección de envío
+        $shipping_addr = '';
+        if (!empty($response['BPAddresses']) && is_array($response['BPAddresses'])) {
+            foreach ($response['BPAddresses'] as $bp_addr) {
+                if (($bp_addr['AddressType'] ?? '') === 'bo_ShipTo') {
+                    $shipping_addr = implode(', ', array_filter([
+                        $bp_addr['Street'] ?? $bp_addr['Address'] ?? '',
+                        $bp_addr['City'] ?? '',
+                        $bp_addr['ZipCode'] ?? ''
+                    ]));
+                    break;
+                }
+            }
+        }
+
+        return [
+            'sap_data' => [
+                ['field' => 'CardCode', 'label' => 'Código Cliente', 'value' => $response['CardCode'] ?? ''],
+                ['field' => 'CardName', 'label' => 'Nombre / Razón Social', 'value' => $response['CardName'] ?? ''],
+                ['field' => 'CardForeignName', 'label' => 'Nombre Comercial', 'value' => $response['CardForeignName'] ?? ''],
+                ['field' => 'FederalTaxID', 'label' => 'NIF/CIF', 'value' => $response['FederalTaxID'] ?? ''],
+                ['field' => 'EmailAddress', 'label' => 'Email', 'value' => $response['EmailAddress'] ?? ''],
+                ['field' => 'Phone1', 'label' => 'Teléfono', 'value' => $response['Phone1'] ?? ''],
+                ['field' => 'Address', 'label' => 'Dirección', 'value' => $response['Address'] ?? ''],
+                ['field' => 'City', 'label' => 'Ciudad', 'value' => $response['City'] ?? ''],
+                ['field' => 'ZipCode', 'label' => 'Código Postal', 'value' => $response['ZipCode'] ?? ''],
+                ['field' => 'State', 'label' => 'Provincia', 'value' => $response['State'] ?? ''],
+                ['field' => 'BPAddresses', 'label' => 'Dir. Envío', 'value' => $shipping_addr ?: '-'],
+            ],
+            'woo_mapping' => [
+                ['field' => 'user_login', 'label' => 'Usuario', 'source' => 'CardCode'],
+                ['field' => 'first_name', 'label' => 'Nombre', 'source' => $first_name],
+                ['field' => 'last_name', 'label' => 'Apellidos', 'source' => $last_name],
+                ['field' => 'user_email', 'label' => 'Email', 'source' => $response['EmailAddress'] ?: "{$cardcode}@cliente.temp"],
+                ['field' => 'display_name', 'label' => 'Nombre Mostrado', 'source' => $response['CardForeignName'] ?: trim("{$first_name} {$last_name}")],
+                ['field' => 'billing_company', 'label' => 'Empresa (Facturación)', 'source' => 'CardName'],
+                ['field' => 'billing_nif', 'label' => 'NIF (Facturación)', 'source' => 'FederalTaxID'],
+                ['field' => 'billing_phone', 'label' => 'Teléfono (Facturación)', 'source' => 'Phone1'],
+                ['field' => 'billing_address_1', 'label' => 'Dirección (Facturación)', 'source' => 'Address'],
+                ['field' => 'billing_city', 'label' => 'Ciudad (Facturación)', 'source' => 'City'],
+                ['field' => 'shipping_address_1', 'label' => 'Dirección (Envío)', 'source' => 'BPAddresses[bo_ShipTo]'],
+            ],
+            'exists_in_woo' => $exists,
+            'existing_user_id' => $existing_user ? $existing_user->ID : null,
+            'existing_user_email' => $existing_user ? $existing_user->user_email : null,
+            'raw' => $response,
         ];
     }
 }

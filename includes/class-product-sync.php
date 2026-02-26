@@ -444,8 +444,155 @@ class SAPWC_Product_Sync
             return;
         }
 
-        error_log('[SAPWC] Ejecutando sincronización automática de productos');
+        if (defined('WP_DEBUG') && WP_DEBUG) {
+            error_log('[SAPWC] Ejecutando sincronización automática de productos');
+        }
         $result = self::import_all(['update_existing' => true, 'default_status' => 'publish']);
-        error_log('[SAPWC] Resultado productos: ' . ($result['message'] ?? json_encode($result)));
+        if (defined('WP_DEBUG') && WP_DEBUG) {
+            error_log('[SAPWC] Resultado productos: ' . ($result['message'] ?? json_encode($result)));
+        }
+    }
+
+    /**
+     * Verifica si un producto de SAP ya existe en WooCommerce
+     *
+     * @param string $item_code ItemCode/SKU del producto
+     * @return bool
+     */
+    public static function product_exists_in_woo($item_code)
+    {
+        $product_id = wc_get_product_id_by_sku($item_code);
+        return !empty($product_id);
+    }
+
+    /**
+     * Obtiene la lista de productos de SAP que NO están en WooCommerce
+     *
+     * @param int $skip  Offset
+     * @param int $top   Límite
+     * @return array
+     */
+    public static function get_pending_products($skip = 0, $top = 50)
+    {
+        $all_sap = self::fetch_from_sap($skip, $top);
+
+        if (isset($all_sap['error'])) {
+            return $all_sap;
+        }
+
+        $pending = [];
+        foreach ($all_sap['items'] as $item) {
+            $sku = $item['ItemCode'] ?? '';
+            if (!empty($sku) && !self::product_exists_in_woo($sku)) {
+                $pending[] = $item;
+            }
+        }
+
+        return [
+            'items'         => $pending,
+            'total_fetched' => count($pending),
+            'has_more'      => $all_sap['has_more'],
+            'next_skip'     => $skip + $top,
+        ];
+    }
+
+    /**
+     * Obtiene el preview de campos de un producto de SAP para mostrar antes de importar
+     *
+     * @param string $item_code ItemCode del producto
+     * @return array
+     */
+    public static function get_product_preview($item_code)
+    {
+        $conn = sapwc_get_active_connection();
+        if (!$conn) {
+            return ['error' => __('No hay conexión activa con SAP.', 'sapwoo')];
+        }
+
+        $client = new SAPWC_API_Client($conn['url']);
+        $login = $client->login($conn['user'], $conn['pass'], $conn['db'], $conn['ssl'] ?? false);
+
+        if (!$login['success']) {
+            return ['error' => __('Error de login SAP: ', 'sapwoo') . $login['message']];
+        }
+
+        $select = self::get_select_fields();
+        $item_code_enc = urlencode($item_code);
+        $query = "/Items('{$item_code_enc}')?\$select={$select}";
+        $response = $client->get($query);
+        $client->logout();
+
+        if (empty($response) || isset($response['error'])) {
+            return ['error' => __('Producto no encontrado en SAP.', 'sapwoo')];
+        }
+
+        // Construir preview de mapeo de campos
+        $tariff = get_option('sapwc_selected_tariff', '');
+        $almacenes = get_option('sapwc_selected_warehouses', ['01']);
+        $use_vat = get_option('sapwc_use_price_after_vat', '0') === '1';
+
+        // Extraer precio
+        $price = null;
+        $price_list_name = '';
+        if (!empty($tariff) && isset($response['ItemPrices'])) {
+            foreach ($response['ItemPrices'] as $p) {
+                if ((string)$p['PriceList'] === (string)$tariff) {
+                    $price_list_name = 'Lista ' . $p['PriceList'];
+                    if ($use_vat && isset($p['PriceAfterVAT']) && (float)$p['PriceAfterVAT'] > 0) {
+                        $price = round((float)$p['PriceAfterVAT'], 4);
+                    } else {
+                        $price = (float)$p['Price'];
+                    }
+                    break;
+                }
+            }
+        }
+
+        // Extraer stock
+        $stock = 0;
+        $stock_details = [];
+        if (isset($response['ItemWarehouseInfoCollection'])) {
+            foreach ($response['ItemWarehouseInfoCollection'] as $wh) {
+                if (in_array($wh['WarehouseCode'] ?? '', $almacenes)) {
+                    $stock += (float)($wh['InStock'] ?? 0);
+                    $stock_details[] = $wh['WarehouseCode'] . ': ' . ($wh['InStock'] ?? 0);
+                }
+            }
+        }
+
+        // Categoría
+        $cat_mapping = class_exists('SAPWC_Category_Sync') ? SAPWC_Category_Sync::get_mapping() : [];
+        $group_code = $response['ItemsGroupCode'] ?? '';
+        $cat_name = '';
+        if (!empty($group_code) && isset($cat_mapping[$group_code])) {
+            $term = get_term($cat_mapping[$group_code], 'product_cat');
+            if ($term && !is_wp_error($term)) {
+                $cat_name = $term->name;
+            }
+        }
+
+        return [
+            'sap_data' => [
+                ['field' => 'ItemCode', 'label' => 'Código SAP', 'value' => $response['ItemCode'] ?? ''],
+                ['field' => 'ItemName', 'label' => 'Nombre', 'value' => $response['ItemName'] ?? ''],
+                ['field' => 'ForeignName', 'label' => 'Nombre Alternativo', 'value' => $response['ForeignName'] ?? ''],
+                ['field' => 'BarCode', 'label' => 'Código de Barras', 'value' => $response['BarCode'] ?? ''],
+                ['field' => 'SalesUnit', 'label' => 'Unidad de Venta', 'value' => $response['SalesUnit'] ?? ''],
+                ['field' => 'ItemsGroupCode', 'label' => 'Grupo de Artículos', 'value' => $group_code],
+                ['field' => 'Price', 'label' => "Precio ({$price_list_name})", 'value' => $price !== null ? number_format($price, 2) : '-'],
+                ['field' => 'Stock', 'label' => 'Stock (' . implode(', ', $almacenes) . ')', 'value' => $stock . ($stock_details ? ' (' . implode(', ', $stock_details) . ')' : '')],
+            ],
+            'woo_mapping' => [
+                ['field' => 'sku', 'label' => 'SKU', 'source' => 'ItemCode'],
+                ['field' => 'name', 'label' => 'Nombre Producto', 'source' => 'ItemName'],
+                ['field' => 'short_description', 'label' => 'Descripción Corta', 'source' => 'ForeignName'],
+                ['field' => '_sapwc_barcode', 'label' => 'Meta: Código Barras', 'source' => 'BarCode'],
+                ['field' => '_sapwc_sales_unit', 'label' => 'Meta: Unidad Venta', 'source' => 'SalesUnit'],
+                ['field' => 'product_cat', 'label' => 'Categoría', 'source' => $cat_name ?: 'ItemsGroupCode → (sin mapear)'],
+                ['field' => 'regular_price', 'label' => 'Precio Regular', 'source' => 'Price'],
+                ['field' => 'stock_quantity', 'label' => 'Cantidad Stock', 'source' => 'Stock'],
+            ],
+            'raw' => $response,
+        ];
     }
 }

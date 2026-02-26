@@ -7,7 +7,32 @@ y este proyecto adhiere a [Versionado Semántico](https://semver.org/lang/es/).
 
 ---
 
-## [1.4.1-beta] - 2026-02-26
+## [1.4.2-beta] - 2025-02-26
+
+### Añadido
+- **Nueva página de Importación Selectiva** (SAP Woo > Importar Selectivo)
+- Visualización de productos, categorías y clientes de SAP que NO están en WooCommerce
+- Modal de **Vista Previa de Campos** antes de importar:
+  - Muestra campos origen de SAP
+  - Muestra mapeo hacia campos WooCommerce
+  - Indica si el elemento ya existe o se creará nuevo
+- Importación individual asíncrona con feedback visual
+- Selección múltiple para importar varios elementos a la vez
+- Barra de progreso para importaciones bulk
+- Métodos de preview en clases de sincronización:
+  - `SAPWC_Product_Sync::get_product_preview()`
+  - `SAPWC_Product_Sync::get_pending_products()`
+  - `SAPWC_Category_Sync::get_category_preview()`
+  - `SAPWC_Category_Sync::get_pending_categories()`
+  - `SAPWC_Customer_Sync::get_customer_preview()`
+
+### Mejorado
+- UI profesional con modal, tablas y feedback visual
+- Código de sincronización más modular y reutilizable
+
+---
+
+## [1.4.1-beta] - 2025-02-26
 
 ### Seguridad
 - Eliminado `print_r($connection)` que exponía credenciales en logs
