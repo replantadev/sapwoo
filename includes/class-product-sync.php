@@ -31,7 +31,6 @@ class SAPWC_Product_Sync
             'ItemPrices',
             'ItemWarehouseInfoCollection',
             'Valid',           // si el artículo está activo
-            'FrozenFor',       // si está congelado
             'QuantityOnStock', // stock global
         ];
 
