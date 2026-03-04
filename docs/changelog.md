@@ -4,6 +4,19 @@ Historial de versiones de SAP Woo Suite.
 
 ---
 
+## [2.9.1] - 2026-03-04
+
+### Corregido
+- **Importador de clientes — filtro UDF (SEGURIDAD)**: Clientes no marcados como "cliente web" ya no se importan. Triple capa de validación: AJAX individual, lote PHP-fallback y guardia en `import_customer()`. El cliente tiene que tener `U_ARTES_CLIW = S` (configurable) para ser importado
+- **Channel Manager — spam en logs**: El log "Canal registrado correctamente" se disparaba en cada petición WordPress (cada minuto), generando cientos de entradas idénticas. Eliminado — el registro de canales es bootstrap normal, no un evento auditable
+- **Vista previa de clientes pendientes**: Panel de estadísticas restaurado en la página de importación (Total SAP / Ya importados / Pendientes) con tabla de los próximos 15 clientes a importar
+
+### Lite v1.0.2
+- URLs corregidas: `replanta.dev` → `replanta.net/conector-sap-woocommerce/`
+- URL de soporte → `replanta.net/contacto/`
+
+---
+
 ## [2.9.0] - 2026-03-04
 
 ### Agregado
