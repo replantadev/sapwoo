@@ -1,4 +1,4 @@
-<p align="center">
+﻿<p align="center">
   <img src="https://replanta.net/wp-content/uploads/2026/03/sapwoosuite-ico.png" alt="SAP Woo Suite" width="100">
 </p>
 
@@ -10,7 +10,7 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/versi%C3%B3n-2.8.5-0d2a1e" alt="v2.8.5">
+  <img src="https://img.shields.io/badge/versi%C3%B3n-2.9.1-0d2a1e" alt="v2.8.5">
   <img src="https://img.shields.io/badge/WooCommerce-6.0%E2%80%939.x-7f54b3" alt="WooCommerce 6.0-9.x">
   <img src="https://img.shields.io/badge/SAP%20B1-9.3%20%7C%2010.0-e97222" alt="SAP Business One">
   <img src="https://img.shields.io/badge/PHP-7.4%2B-777BB4" alt="PHP 7.4+">
@@ -101,21 +101,21 @@ Cambia de modo en cualquier momento desde el panel de administraci&oacute;n.
 WooCommerce                          SAP Business One
 ===========                          ================
 
-Nuevo pedido ──────────────────────► Order (DocEntry)
+Nuevo pedido â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â–º Order (DocEntry)
                                      + DocumentLines
                                      + AddressExtension
                                      + DocumentAdditionalExpenses
 
-Stock actualizado ◄──────────────── Items (WarehouseInfo)
-Precios actualizados ◄──────────── PriceLists (SpecialPrices)
+Stock actualizado â—„â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ Items (WarehouseInfo)
+Precios actualizados â—„â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ PriceLists (SpecialPrices)
 
-Productos importados ◄──────────── Items
-Categor&iacute;as importadas ◄──────────── ItemGroups
-Clientes B2B sincronizados ◄────── BusinessPartners
+Productos importados â—„â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ Items
+Categor&iacute;as importadas â—„â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ ItemGroups
+Clientes B2B sincronizados â—„â”€â”€â”€â”€â”€â”€ BusinessPartners
 
-TikTok Shop  ──► Channel Manager ──► Order (canal: tiktok)
-Amazon       ──► Channel Manager ──► Order (canal: amazon)
-Miravia      ──► Channel Manager ──► Order (canal: miravia)
+TikTok Shop  â”€â”€â–º Channel Manager â”€â”€â–º Order (canal: tiktok)
+Amazon       â”€â”€â–º Channel Manager â”€â”€â–º Order (canal: amazon)
+Miravia      â”€â”€â–º Channel Manager â”€â”€â–º Order (canal: miravia)
 ```
 
 Comunicaci&oacute;n bidireccional a trav&eacute;s de SAP Service Layer (REST/OData). Sin middleware, sin servicios externos, sin cuotas mensuales por volumen de pedidos.
