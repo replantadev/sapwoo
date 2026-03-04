@@ -38,5 +38,5 @@ SAP Woo Suite es un plugin premium de WordPress/WooCommerce que conecta tu tiend
 
 ## Soporte
 
-- Email: soporte@replanta.net
+- Email: info@replanta.dev
 - Web: [replanta.net](https://replanta.net)

@@ -98,4 +98,4 @@ if (getenv('SAPWC_GITHUB_TOKEN')) {
 ## Soporte
 
 - Web: [replanta.es](https://replanta.es)
-- Email: soporte@replanta.es
+- Email: info@replanta.dev

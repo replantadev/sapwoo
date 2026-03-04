@@ -54,5 +54,5 @@ Endpoints públicos para integraciones externas:
 
 ## Soporte
 
-- **Email**: soporte@replanta.dev
+- **Email**: info@replanta.dev
 - **GitHub**: [Issues](https://github.com/replantadev/sap-woo-suite/issues)
