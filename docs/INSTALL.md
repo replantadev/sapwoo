@@ -1,6 +1,24 @@
-# Guía de Instalación - SAP Woo Sync
+# Guía de Instalación
 
-## Instalación inicial
+## SAP Woo Suite Lite (Gratis)
+
+### Instalación desde WordPress.org
+
+1. Ve a **Plugins → Añadir nuevo**
+2. Busca "SAP Woo Suite Lite"
+3. Haz clic en **Instalar ahora**
+4. Activa el plugin
+
+### Instalación manual
+
+1. Descarga el ZIP desde [GitHub](https://github.com/replantadev/sap-woo-suite-lite)
+2. Ve a **Plugins → Añadir nuevo → Subir plugin**
+3. Selecciona el archivo ZIP
+4. Haz clic en **Instalar ahora** y activa
+
+---
+
+## SAP Woo Suite PRO
 
 ### 1. Obtener el plugin
 
@@ -19,7 +37,17 @@ El plugin requiere WooCommerce activo. Si no está instalado, verás un aviso de
 
 ---
 
-## Configurar actualizaciones automáticas (repo privado)
+## Actualizar de Lite a PRO
+
+La actualización es seamless. Al instalar PRO:
+
+1. La versión Lite se desactiva automáticamente
+2. Todas las configuraciones se mantienen
+3. Los logs existentes se preservan
+
+---
+
+## Configurar actualizaciones automáticas (PRO - repo privado)
 
 Para recibir actualizaciones automáticas desde el repositorio privado de GitHub, necesitas configurar un token de acceso.
 
@@ -38,7 +66,7 @@ Para recibir actualizaciones automáticas desde el repositorio privado de GitHub
 Edita el archivo `wp-config.php` de tu instalación de WordPress y añade esta línea **ANTES** de `/* That's all, stop editing! */`:
 
 ```php
-/** Token de GitHub para actualizaciones de SAP Woo Sync */
+/** Token de GitHub para actualizaciones de SAP Woo Suite PRO */
 define('SAPWC_GITHUB_TOKEN', 'ghp_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx');
 ```
 

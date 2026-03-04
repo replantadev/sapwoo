@@ -1,6 +1,19 @@
 # SAP Woo Suite
 
-> Integración completa entre WooCommerce y SAP Business One
+<p align="center">
+  <img src="https://replanta.net/wp-content/uploads/2026/03/sapwoosuite-ico.png" alt="SAP Woo Suite" width="120">
+</p>
+
+<p align="center">
+  <strong>Integración WooCommerce con SAP Business One</strong>
+</p>
+
+<p align="center">
+  <a href="https://github.com/replantadev/sap-woo-suite-lite"><img src="https://img.shields.io/badge/Lite-v1.0.0-41999f?style=for-the-badge&logo=wordpress" alt="Lite v1.0.0"></a>
+  <a href="https://github.com/replantadev/sap-woo-suite"><img src="https://img.shields.io/badge/PRO-v2.9.0-1e2f23?style=for-the-badge&logo=sap" alt="PRO v2.9.0"></a>
+</p>
+
+---
 
 ## ¿Qué es SAP Woo Suite?
 
@@ -11,6 +24,36 @@ SAP Woo Suite es un plugin de WordPress que conecta tu tienda WooCommerce con SA
 - **Sincronización de stock** → Mantén el inventario actualizado en tiempo real
 - **Gestión de clientes** → Sincroniza clientes entre ambas plataformas
 - **Tarifas regionales** → Precios diferentes por zona geográfica
+
+## Versiones disponibles
+
+### 🆓 SAP Woo Suite Lite (Gratis)
+
+Versión gratuita disponible en WordPress.org con funcionalidad básica:
+
+- ✅ Conexión a SAP Business One vía Service Layer
+- ✅ Sincronización de stock desde SAP
+- ✅ Sincronización de precios por tarifa
+- ✅ Logs básicos de sincronización
+
+<a href="https://github.com/replantadev/sap-woo-suite-lite">📥 Descargar Lite</a>
+
+### 🚀 SAP Woo Suite PRO
+
+Versión completa con todas las características para empresas:
+
+- ✅ Todo lo incluido en Lite
+- ✅ Importación completa de productos
+- ✅ Sincronización de pedidos a SAP
+- ✅ Sincronización de clientes
+- ✅ Mapeo de campos personalizable
+- ✅ Multiple warehouses y tarifas
+- ✅ REST API para integraciones
+- ✅ Soporte multicanal (TikTok, Amazon, eBay)
+
+<a href="https://replanta.net/sap-woo-suite-pro/">🛒 Obtener PRO</a>
+
+---
 
 ## Características principales
 

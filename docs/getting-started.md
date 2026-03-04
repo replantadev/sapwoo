@@ -1,4 +1,4 @@
-# Instalación
+# Primeros Pasos
 
 ## Requisitos
 
@@ -8,33 +8,47 @@
 - SAP Business One con Service Layer habilitado
 - Acceso HTTPS al servidor SAP (puerto 50000 por defecto)
 
-## Instalación del plugin
+## Elegir versión
 
-### Opción 1: Desde archivo ZIP
+| Característica | Lite | PRO |
+|----------------|:----:|:---:|
+| Conexión SAP | ✅ | ✅ |
+| Sync stock | ✅ | ✅ |
+| Sync precios | ✅ | ✅ |
+| Importar productos | ❌ | ✅ |
+| Sync pedidos | ❌ | ✅ |
+| Sync clientes | ❌ | ✅ |
+| Mapeo de campos | ❌ | ✅ |
+| REST API | ❌ | ✅ |
+| Multicanal | ❌ | ✅ |
 
-1. Descarga el archivo `sap-woo-suite-x.x.x.zip` desde tu cuenta
-2. En WordPress, ve a **Plugins → Añadir nuevo → Subir plugin**
-3. Selecciona el archivo ZIP y haz clic en **Instalar ahora**
-4. Activa el plugin
+## Instalación
 
-### Opción 2: Actualizaciones automáticas
+### SAP Woo Suite Lite (Gratis)
 
-El plugin soporta actualizaciones automáticas desde GitHub. Para habilitarlas:
+1. En WordPress, ve a **Plugins → Añadir nuevo**
+2. Busca "SAP Woo Suite Lite"
+3. Instala y activa
 
-1. Añade tu token de GitHub en `wp-config.php`:
-   ```php
-   define('SAPWC_GITHUB_TOKEN', 'ghp_tu_token_aqui');
-   ```
+### SAP Woo Suite PRO
 
-2. Las actualizaciones aparecerán en **Plugins** como cualquier otro plugin
+1. Descarga el ZIP desde tu cuenta o el repositorio privado
+2. Ve a **Plugins → Añadir nuevo → Subir plugin**
+3. Selecciona el archivo ZIP
+4. Instala y activa
+
+> **Nota:** Si ya tienes Lite instalado, PRO lo desactivará automáticamente manteniendo tu configuración.
 
 ## Configuración inicial
 
 Tras activar el plugin:
 
-1. Ve a **SAP Woo Suite → Credenciales**
-2. Configura la conexión a SAP Business One
-3. Prueba la conexión con el botón **Test**
+1. Ve a **SAP Woo Suite → Credenciales** (PRO) o **SAP Woo Suite Lite** (Lite)
+2. Configura la conexión a SAP Business One:
+   - **URL del Service Layer**: `https://tu-servidor:50000/b1s/v1`
+   - **Base de datos SAP**
+   - **Usuario y contraseña**
+3. Prueba la conexión con el botón **Probar conexión**
 4. Guarda los cambios
 
 ## Siguiente paso

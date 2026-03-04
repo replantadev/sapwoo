@@ -4,7 +4,26 @@ Historial de versiones de SAP Woo Suite.
 
 ---
 
-## [2.9.0] - 2026-03-04
+## SAP Woo Suite Lite
+
+### [1.0.0] - 2026-03-04
+
+🎉 **Lanzamiento inicial** - Versión gratuita para WordPress.org
+
+#### Incluido
+- Conexión a SAP Business One vía Service Layer
+- Sincronización automática de stock (WP-Cron)
+- Sincronización de precios por tarifa seleccionada
+- Panel de administración con configuración
+- Logs básicos de sincronización
+- Soporte completo para i18n (español incluido)
+- Upgrade seamless a versión PRO
+
+---
+
+## SAP Woo Suite PRO
+
+### [2.9.0] - 2026-03-04
 
 ### Agregado
 - **Retry automatico 401**: Reconexion automatica cuando expira la sesion de SAP
