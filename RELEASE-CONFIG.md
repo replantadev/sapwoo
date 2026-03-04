@@ -1,21 +1,21 @@
 # SAP Woo Suite - Release Configuration
 
-> **⚠️ ARCHIVO CENTRAL DE VERSIONES**
+> **ARCHIVO CENTRAL DE VERSIONES**
 > Cuando actualices una versión, TODOS estos archivos deben sincronizarse.
 > Copia esta sección completa al asistente de IA para que actualice todo automáticamente.
 
 ---
 
-## 📦 Versiones Actuales
+## Versiones Actuales
 
 | Plugin | Versión | Estado | Repositorio |
 |--------|---------|--------|-------------|
-| **SAP Woo Suite PRO** | `2.9.0` | Estable | [replantadev/sap-woo-suite](https://github.com/replantadev/sap-woo-suite) (privado) |
-| **SAP Woo Suite Lite** | `1.0.0` | Estable | [replantadev/sap-woo-suite-lite](https://github.com/replantadev/sap-woo-suite-lite) (público) |
+| **SAP Woo Suite PRO** | `2.9.1` | Estable | [replantadev/sap-woo-suite](https://github.com/replantadev/sap-woo-suite) (privado) |
+| **SAP Woo Suite Lite** | `1.0.2` | Estable | [replantadev/sap-woo-suite-lite](https://github.com/replantadev/sap-woo-suite-lite) (público) |
 
 ---
 
-## 🎨 Assets
+## Assets
 
 | Asset | URL |
 |-------|-----|
@@ -26,7 +26,7 @@
 
 ---
 
-## 🔗 URLs Oficiales
+## URLs Oficiales
 
 | Recurso | URL |
 |---------|-----|
@@ -38,7 +38,7 @@
 
 ---
 
-## 📝 Archivos a Actualizar (Checklist)
+## Archivos a Actualizar (Checklist)
 
 Cuando cambies la versión de PRO o Lite, actualiza **TODOS** estos archivos:
 
@@ -64,7 +64,7 @@ Cuando cambies la versión de PRO o Lite, actualiza **TODOS** estos archivos:
 
 ---
 
-## 🚀 Proceso de Release
+## Proceso de Release
 
 ### 1. Actualizar versión en plugin principal
 ```bash
@@ -78,7 +78,7 @@ cd wp-content/plugins/sap-woo-suite-lite
 ```
 
 ### 2. Actualizar este archivo RELEASE-CONFIG.md
-⬆️ Cambiar la tabla de versiones al inicio
+Cambiar la tabla de versiones al inicio
 
 ### 3. Actualizar documentación
 ```bash
@@ -105,7 +105,7 @@ Las landings están en el servidor de replanta.net
 
 ---
 
-## 🤖 Prompt para Actualización Automática
+## Prompt para Actualización Automática
 
 Copia y pega esto al asistente de IA cuando necesites actualizar versiones:
 
@@ -135,7 +135,7 @@ Luego haz push a:
 
 ---
 
-## 📊 Brand Colors
+## Brand Colors
 
 ```css
 --mint-green: #93f1c9;
