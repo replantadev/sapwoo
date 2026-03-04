@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>SAP Woo Suite - Integracion WooCommerce con SAP Business One</title>
+  <meta name="description" content="Plugin WordPress para integrar WooCommerce con SAP Business One. Sincroniza pedidos, productos, stock y clientes automaticamente via Service Layer.">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="keywords" content="SAP Business One, WooCommerce, integracion SAP, plugin WordPress, sincronizacion pedidos, ERP ecommerce, Service Layer, conector SAP">
+  <meta name="author" content="Replanta">
+  <meta name="robots" content="index, follow">
+  <link rel="canonical" href="https://replantadev.github.io/sapwoo/">
+  
+  <!-- Preconnect for performance -->
+  <link rel="preconnect" href="https://cdn.jsdelivr.net">
+  <link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
+  
+  <!-- Open Graph -->
+  <meta property="og:title" content="SAP Woo Suite - Integracion WooCommerce con SAP Business One">
+  <meta property="og:description" content="Plugin WordPress para sincronizar pedidos, productos, stock y clientes entre WooCommerce y SAP Business One.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://replantadev.github.io/sapwoo/">
+  <meta property="og:site_name" content="SAP Woo Suite">
+  <meta property="og:locale" content="es_ES">
+  
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="SAP Woo Suite - Integracion WooCommerce SAP">
+  <meta name="twitter:description" content="Sincroniza tu tienda WooCommerce con SAP Business One automaticamente.">
+  
+  <!-- Schema.org JSON-LD -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "SAP Woo Suite",
+    "applicationCategory": "BusinessApplication",
+    "operatingSystem": "WordPress",
+    "description": "Plugin de WordPress para integrar WooCommerce con SAP Business One via Service Layer. Sincroniza pedidos, productos, stock y clientes.",
+    "url": "https://replantadev.github.io/sapwoo/",
+    "author": {
+      "@type": "Organization",
+      "name": "Replanta",
+      "url": "https://replanta.net"
+    },
+    "offers": {
+      "@type": "Offer",
+      "price": "0",
+      "priceCurrency": "EUR",
+      "description": "Contactar para licencia"
+    },
+    "softwareRequirements": [
+      "WordPress 5.8+",
+      "WooCommerce 6.0+",
+      "PHP 7.4+",
+      "SAP Business One 9.3+ con Service Layer"
+    ],
+    "featureList": [
+      "Sincronizacion automatica de pedidos",
+      "Importacion de productos desde SAP",
+      "Actualizacion de stock en tiempo real",
+      "Soporte multicanal (TikTok, Amazon, eBay)",
+      "REST API para integraciones"
+    ]
+  }
+  </script>
+  
+  <!-- Docsify Theme -->
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/docsify@4/lib/themes/vue.css">
+  
+  <style>
+    :root {
+      --theme-color: #3eaf7c;
+      --theme-color-dark: #2c8a5e;
+    }
+    .sidebar-nav > ul > li > a {
+      font-weight: bold;
+    }
+    .app-name-link img {
+      max-width: 120px;
+    }
+    .markdown-section h1 {
+      border-bottom: 2px solid var(--theme-color);
+      padding-bottom: 10px;
+    }
+    .markdown-section table {
+      display: table;
+      width: 100%;
+    }
+    .tip {
+      background-color: #f3f5f7;
+      border-left: 4px solid var(--theme-color);
+      padding: 12px 24px;
+      margin: 2em 0;
+    }
+  </style>
+</head>
+<body>
+  <div id="app">Cargando documentación...</div>
+  
+  <script>
+    window.$docsify = {
+      name: 'SAP Woo Suite',
+      repo: 'https://github.com/replantadev/sap-woo-suite',
+      loadSidebar: true,
+      subMaxLevel: 3,
+      auto2top: true,
+      search: {
+        placeholder: 'Buscar...',
+        noData: 'Sin resultados',
+        paths: 'auto'
+      },
+      copyCode: {
+        buttonText: 'Copiar',
+        successText: 'Copiado'
+      },
+      pagination: {
+        previousText: '← Anterior',
+        nextText: 'Siguiente →'
+      },
+      tabs: {
+        persist: true,
+        sync: true
+      }
+    }
+  </script>
+  
+  <!-- Docsify -->
+  <script src="//cdn.jsdelivr.net/npm/docsify@4"></script>
+  
+  <!-- Plugins -->
+  <script src="//cdn.jsdelivr.net/npm/docsify/lib/plugins/search.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/docsify-copy-code/dist/docsify-copy-code.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/docsify-pagination/dist/docsify-pagination.min.js"></script>
+  
+  <!-- Syntax Highlighting -->
+  <script src="//cdn.jsdelivr.net/npm/prismjs@1/components/prism-bash.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/prismjs@1/components/prism-php.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/prismjs@1/components/prism-json.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/prismjs@1/components/prism-javascript.min.js"></script>
+</body>
+</html>

@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://replantadev.github.io/sapwoo/sitemap.xml

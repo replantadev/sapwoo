@@ -97,5 +97,5 @@ if (getenv('SAPWC_GITHUB_TOKEN')) {
 
 ## Soporte
 
-- 🌐 [replanta.es](https://replanta.es)
-- 📧 soporte@replanta.es
+- Web: [replanta.es](https://replanta.es)
+- Email: soporte@replanta.es
