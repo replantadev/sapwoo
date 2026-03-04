@@ -51,7 +51,7 @@ Versión completa con todas las características para empresas:
 - ✅ REST API para integraciones
 - ✅ Soporte multicanal (TikTok, Amazon, eBay)
 
-<a href="https://replanta.net/sap-woo-suite-pro/">🛒 Obtener PRO</a>
+<a href="https://replanta.net/conector-sap-woocommerce/">Obtener PRO</a>
 
 ---
 
