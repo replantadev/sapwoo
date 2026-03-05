@@ -6,6 +6,40 @@ El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1
 y este proyecto adhiere a [Versionado Semántico](https://semver.org/lang/es/).
 
 ---
+## [2.10.0] - 2026-03-05
+
+### Agregado — Design System + Dashboard + B2B Tarifa Individual
+
+- **Design System CSS**: Sistema de diseno completo con CSS custom properties — tokens de color, tipografia, espaciado, sombras, bordes. Sin framework externo, zero bloat
+- **Dashboard con graficos**: Revenue trend (linea), Orders trend (barras), Sync rate (donut), Channel distribution (donut). Chart.js 4.4.7 via CDN, cargado condicionalmente solo en dashboard
+- **Panel B2B**: Top clientes por revenue, distribucion de tarifas individuales vs global, resumen con barra de progreso de clientes vinculados
+- **Panel B2C**: Top productos por cantidad, resumen de canales y estado de sync
+- **KPI cards**: 4 tarjetas estadisticas (pedidos 30d, revenue 30d, tasa de sync, clientes/canales) con iconos y acentos de color
+- **Tarifa Individual B2B**: Toggle `sapwc_b2b_individual_tariff` (OFF por defecto). Cuando activo, `PriceListNum` del BP en SAP se aplica a cada linea del pedido en lugar de la tarifa global
+  - `class-customer-sync.php`: Importa `PriceListNum` y lo guarda en `sapwc_price_list` user meta
+  - `class-sap-sync.php`: `build_items()` acepta `$customer_tariff_override` para aplicar tarifa del BP
+  - `class-customers-import-page.php`: Columna "Tarifa SAP" con indicadores visuales
+  - `class-sync-options-page.php`: Seccion toggle B2B con explicacion
+
+### Mejorado
+
+- **UI admin completa**: Todas las paginas admin (12) usan clase `sapwc-wrap` para estilos consistentes
+- **Tablas**: Bordes redondeados, headers uppercase, hover rows, paginacion DataTables estilizada
+- **Botones**: Primario con brand color, secundario ghost, estados disabled
+- **Badges**: Pill badges para success/warning/danger/info/neutral
+- **Toggle switch**: Rediseñado 44x24px con animacion suave
+- **Formularios**: Focus rings con brand color, inputs con radius y transiciones
+- **`sapwc-toggle.css` eliminado**: Mergeado en `sapwc-admin.css`
+- **ARCHITECTURE.md**: Actualizado con nueva estructura de assets
+
+### Lite v1.1.0
+
+- Mismo design system CSS aplicado al plugin Lite
+- Tabs, inputs, botones, badges y tablas con estilos unificados
+- PRO Features page: inline styles movidos a CSS externo
+- Version badge rediseñado
+
+---
 ## [2.9.1] - 2026-03-04
 
 ### Corregido — Importador de clientes UDF (SEGURIDAD) + log spam
