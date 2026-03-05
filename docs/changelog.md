@@ -4,6 +4,37 @@ Historial de versiones de SAP Woo Suite.
 
 ---
 
+## [2.10.1] - 2026-03-05
+
+### Corregido
+- Compliance WP.org para Lite: LICENSE GPLv2, escaping dashboard/settings, `wp_json_encode`, coding standards
+- Version sync (header, constante, readme stable tag)
+
+### Lite v1.2.3
+- Preparado para WordPress.org (Automated Plugin Scan: Pass)
+
+---
+
+## [2.10.0] - 2026-03-05
+
+### Agregado
+- **Design System CSS**: Variables custom, UI moderna unificada PRO/Lite
+- **Dashboard con Chart.js**: Graficos de sync, KPIs, SKU readiness
+- **B2B Individual Tariff**: Toggle para tarifas individuales por cliente
+- **Safe uninstall**: Borrado de datos opt-in con confirmacion
+
+### Mejorado
+- Admin UI rediseñada: tabs, forms, badges, logs
+- PRO Features page con comparativa visual
+- i18n completo: fuente en ingles, traduccion española
+
+### Lite v1.2.0
+- Dashboard con health, SKU readiness y charts
+- Soporte i18n completo
+- Filtrado de logs exclusivo Lite
+
+---
+
 ## [2.9.1] - 2026-03-04
 
 ### Corregido

@@ -6,8 +6,8 @@
   * [Changelog](changelog.md)
 
 * **Versiones**
-  * [🆓 Lite v1.0.0](https://github.com/replantadev/sap-woo-suite-lite)
-  * [🚀 PRO v2.9.0](https://github.com/replantadev/sap-woo-suite)
+  * [Lite v1.2.3](https://github.com/replantadev/sap-woo-suite-lite)
+  * [PRO v2.10.1](https://github.com/replantadev/sap-woo-suite)
 
 * **Configuración**
   * [Conexión SAP](configuration.md)

@@ -9,8 +9,8 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/replantadev/sap-woo-suite-lite"><img src="https://img.shields.io/badge/Lite-v1.0.0-41999f?style=for-the-badge&logo=wordpress" alt="Lite v1.0.0"></a>
-  <a href="https://github.com/replantadev/sap-woo-suite"><img src="https://img.shields.io/badge/PRO-v2.9.0-1e2f23?style=for-the-badge&logo=sap" alt="PRO v2.9.0"></a>
+  <a href="https://github.com/replantadev/sap-woo-suite-lite"><img src="https://img.shields.io/badge/Lite-v1.2.3-41999f?style=for-the-badge&logo=wordpress" alt="Lite v1.2.3"></a>
+  <a href="https://github.com/replantadev/sap-woo-suite"><img src="https://img.shields.io/badge/PRO-v2.10.1-1e2f23?style=for-the-badge&logo=sap" alt="PRO v2.10.1"></a>
 </p>
 
 ---
@@ -27,29 +27,29 @@ SAP Woo Suite es un plugin de WordPress que conecta tu tienda WooCommerce con SA
 
 ## Versiones disponibles
 
-### 🆓 SAP Woo Suite Lite (Gratis)
+### SAP Woo Suite Lite (Gratis)
 
-Versión gratuita disponible en WordPress.org con funcionalidad básica:
+Version gratuita disponible en WordPress.org con funcionalidad basica:
 
-- ✅ Conexión a SAP Business One vía Service Layer
-- ✅ Sincronización de stock desde SAP
-- ✅ Sincronización de precios por tarifa
-- ✅ Logs básicos de sincronización
+- Conexion a SAP Business One via Service Layer
+- Sincronizacion de stock desde SAP
+- Sincronizacion de precios por tarifa
+- Logs basicos de sincronizacion
 
-<a href="https://github.com/replantadev/sap-woo-suite-lite">📥 Descargar Lite</a>
+<a href="https://github.com/replantadev/sap-woo-suite-lite">Descargar Lite</a>
 
-### 🚀 SAP Woo Suite PRO
+### SAP Woo Suite PRO
 
-Versión completa con todas las características para empresas:
+Version completa con todas las caracteristicas para empresas:
 
-- ✅ Todo lo incluido en Lite
-- ✅ Importación completa de productos
-- ✅ Sincronización de pedidos a SAP
-- ✅ Sincronización de clientes
-- ✅ Mapeo de campos personalizable
-- ✅ Multiple warehouses y tarifas
-- ✅ REST API para integraciones
-- ✅ Soporte multicanal (TikTok, Amazon, eBay)
+- Todo lo incluido en Lite
+- Importacion completa de productos
+- Sincronizacion de pedidos a SAP
+- Sincronizacion de clientes
+- Mapeo de campos personalizable
+- Multiple warehouses y tarifas
+- REST API para integraciones
+- Soporte multicanal (TikTok, Amazon, eBay)
 
 <a href="https://replanta.net/conector-sap-woocommerce/">Obtener PRO</a>
 

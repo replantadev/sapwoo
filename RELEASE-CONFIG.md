@@ -10,8 +10,8 @@
 
 | Plugin | Versión | Estado | Repositorio |
 |--------|---------|--------|-------------|
-| **SAP Woo Suite PRO** | `2.9.1` | Estable | [replantadev/sap-woo-suite](https://github.com/replantadev/sap-woo-suite) (privado) |
-| **SAP Woo Suite Lite** | `1.0.2` | Estable | [replantadev/sap-woo-suite-lite](https://github.com/replantadev/sap-woo-suite-lite) (público) |
+| **SAP Woo Suite PRO** | `2.10.1` | Estable | [replantadev/sap-woo-suite](https://github.com/replantadev/sap-woo-suite) (privado) |
+| **SAP Woo Suite Lite** | `1.2.3` | Estable / WP.org pendiente | [replantadev/sap-woo-suite-lite](https://github.com/replantadev/sap-woo-suite-lite) (publico) |
 
 ---
 
@@ -147,4 +147,4 @@ Luego haz push a:
 
 ---
 
-*Última actualización: 2026-03-04*
+*Ultima actualizacion: 2026-03-05*
