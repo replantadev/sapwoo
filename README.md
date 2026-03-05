@@ -26,6 +26,10 @@
   <a href="https://replanta.net/contacto"><strong>Solicitar demo</strong></a>
 </p>
 
+<p align="center">
+  <a href="https://github.com/replantadev/sap-woo-suite-lite/releases/latest"><img src="https://img.shields.io/badge/Descargar%20Lite-GRATIS-46b450?style=for-the-badge&logo=wordpress&logoColor=white" alt="Descargar SAP Woo Suite Lite"></a>
+</p>
+
 ---
 
 ## Qu&eacute; es SAP Woo Suite
@@ -176,6 +180,31 @@ SAP Woo Suite se distribuye como plugin privado de WordPress (ZIP). La instalaci
 
 ---
 
+## Versi&oacute;n Lite (Gratuita)
+
+**SAP Woo Suite Lite** es la versi&oacute;n gratuita y de c&oacute;digo abierto del conector. Incluye sincronizaci&oacute;n de stock entre SAP Business One y WooCommerce, dashboard con estad&iacute;sticas y logs de actividad.
+
+Ideal para evaluar la conexi&oacute;n con tu Service Layer antes de dar el salto a PRO.
+
+| | Lite | PRO |
+|---|---|---|
+| Sincronizaci&oacute;n de stock | Si | Si |
+| Sincronizaci&oacute;n de precios | &mdash; | Si |
+| Env&iacute;o de pedidos a SAP | &mdash; | Si |
+| Importaci&oacute;n de productos | &mdash; | Si |
+| Clientes B2B | &mdash; | Si |
+| Multicanal (TikTok, Amazon) | &mdash; | Si |
+| Dashboard y logs | Si | Si |
+| Soporte y actualizaciones | Comunidad | Prioritario |
+| Precio | **Gratis** | Consultar |
+
+<p align="center">
+  <a href="https://github.com/replantadev/sap-woo-suite-lite/releases/latest">Descargar SAP Woo Suite Lite (ZIP)</a> &nbsp;&middot;&nbsp;
+  <a href="https://github.com/replantadev/sap-woo-suite-lite">Ver c&oacute;digo fuente</a>
+</p>
+
+---
+
 ## Precios
 
 | Concepto | |
@@ -209,6 +238,7 @@ El setup incluye la instalaci&oacute;n del plugin, configuraci&oacute;n de Servi
 
 | Plugin | Descripci&oacute;n | |
 |--------|------|---|
+| **[SAP Woo Suite Lite](https://github.com/replantadev/sap-woo-suite-lite)** | Sincronizaci&oacute;n de stock SAP B1 &harr; WooCommerce | Gratuito &middot; GPL |
 | **[DNIWOO Validator](https://github.com/replantadev/dniwoo)** | Validaci&oacute;n de DNI/NIE/CIF/NIF en checkout de WooCommerce | Gratuito &middot; GPL |
 | **[Sello Replanta](https://github.com/replantadev/selloreplanta)** | Sello Carbon Negative autom&aacute;tico para WooCommerce | Gratuito &middot; GPL |
 
