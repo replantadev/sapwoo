@@ -10,7 +10,7 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/versi%C3%B3n-2.11.0-0d2a1e" alt="v2.8.5">
+  <img src="https://img.shields.io/badge/versi%C3%B3n-2.11.1-0d2a1e" alt="v2.8.5">
   <img src="https://img.shields.io/badge/WooCommerce-6.0%E2%80%939.x-7f54b3" alt="WooCommerce 6.0-9.x">
   <img src="https://img.shields.io/badge/SAP%20B1-9.3%20%7C%2010.0-e97222" alt="SAP Business One">
   <img src="https://img.shields.io/badge/PHP-7.4%2B-777BB4" alt="PHP 7.4+">
