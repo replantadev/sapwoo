@@ -6,6 +6,13 @@ El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1
 y este proyecto adhiere a [Versionado Semántico](https://semver.org/lang/es/).
 
 ---
+## [2.11.3] - 2026-03-16
+
+### Corregido
+
+- **`send_order()` fallaba con reembolsos (`WC_Order_Refund`)**: al ejecutar una sincronización masiva de pedidos con estado `completed`, WooCommerce puede incluir objetos `WC_Order_Refund` en los resultados. `send_order()` llamaba a `get_order_number()` que no existe en esa clase, produciendo un `Fatal Error` que abortaba toda la sincronización. Fix: guard al inicio de `send_order()` — si el objeto es de tipo `shop_order_refund`, retorna `skipped` inmediatamente.
+
+---
 ## [2.11.2] - 2026-03-10
 
 ### Corregido
