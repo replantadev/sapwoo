@@ -6,6 +6,20 @@ El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1
 y este proyecto adhiere a [Versionado Semántico](https://semver.org/lang/es/).
 
 ---
+## [2.11.2] - 2026-03-10
+
+### Corregido
+
+- **B2B modo sin_cargo — cantidad incorrecta (12 uds)**: `unidades_caja` estaba en la cadena de fallback de `pack_size` en `build_items_sin_cargo()`, haciendo que cualquier pedido con menos unidades que `unidades_caja` (ej. 12) se forzara a ese mínimo. `unidades_caja` es info de embalaje, no cantidad mínima de pedido; eliminado de la cadena. Solo se respetan `compra_minima`, `_klb_min_quantity` y `_klb_step_quantity`.
+- **`$item->set_quantity()` mutaba el pedido WooCommerce**: al ajustar la cantidad al mínimo de compra en `build_items_sin_cargo()`, se llamaba `$item->set_quantity($quantity)` sobre el ítem real del pedido. Cuando `send_order()` completaba el envío a SAP y llamaba `$order->save()`, esa cantidad se persistía en WooCommerce. Resultado: el pedido en WooCommerce quedaba con las mismas unidades incorrectas que SAP. Fix: eliminado `set_quantity()`; el ajuste de cantidad ahora solo modifica las variables locales del payload y nunca toca los ítems del pedido., se llamaba `$item->set_quantity($quantity)` sobre el ítem real del pedido. Cuando `send_order()` completaba el envío a SAP y llamaba `$order->save()`, esa cantidad se persistía en WooCommerce. Resultado: el pedido en WooCommerce quedaba con las mismas unidades incorrectas que SAP. Fix: eliminado `set_quantity()`; el ajuste de cantidad ahora solo modifica las variables locales del payload y nunca toca los ítems del pedido.
+
+- **`check_order_in_sap` devolvía documentos cancelados**: La consulta OData `/Orders?$filter=NumAtCard eq '...'` retornaba también documentos ya cancelados en SAP. Si se cancelaba un documento y se limpiaba `_sap_exported`, `send_order()` encontraba el doc cancelado, lo marcaba como exportado de nuevo (con el DocEntry cancelado) y saltaba el envío. Fix: añadido `and Cancelled eq 'tNO'` al filtro para ignorar documentos cancelados.
+
+### Añadido
+
+- **Cron auto-recovery**: Hook `admin_init` detecta si `sapwc_cron_sync_orders` lleva más de 5 min vencido (WP-Cron no dispara por loopback bloqueado en entornos locales) y ejecuta la sincronización directamente protegida por `sapwc_cron_orders_lock`. Reprograma el cron desde ese momento para que los próximos disparos sean predecibles. Solo activo si `sapwc_sync_orders_auto = 1` y el usuario tiene permiso `edit_others_shop_orders`.
+
+---
 ## [2.10.0] - 2026-03-05
 
 ### Agregado — Design System + Dashboard + B2B Tarifa Individual
