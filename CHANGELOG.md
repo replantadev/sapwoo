@@ -6,6 +6,13 @@ El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1
 y este proyecto adhiere a [Versionado Semántico](https://semver.org/lang/es/).
 
 ---
+## [2.11.5] - 2026-03-16
+
+### Añadido
+
+- **Exclusión manual permanente de pedidos (`_sap_no_sync`)**: un pedido con la meta `_sap_no_sync=1` queda bloqueado en `send_order()` y en el resync masivo, sin importar su estado ni si el documento SAP fue cancelado. Permite a los gestores de SAP B1 excluir pedidos concretos sin modificar código. Se activa/desactiva desde el debug script con `?action=exclude_order&order_id=X` / `?action=include_order&order_id=X`.
+
+---
 ## [2.11.4] - 2026-03-16
 
 ### Corregido
