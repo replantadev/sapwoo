@@ -6,6 +6,13 @@ El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1
 y este proyecto adhiere a [Versionado Semántico](https://semver.org/lang/es/).
 
 ---
+## [2.11.4] - 2026-03-16
+
+### Corregido
+
+- **Auto-rescue de crons de stock y limpieza**: si `sapwc_cron_sync_stock` o `sapwc_log_cleanup_cron` llevan más de 10 min / 1 hora vencidos respectivamente, se reprograman automáticamente en el siguiente `admin_init`. Completa la cobertura del sistema de auto-recovery introducido en v2.11.2 (que solo rescataba el cron de pedidos).
+
+---
 ## [2.11.3] - 2026-03-16
 
 ### Corregido
