@@ -6,6 +6,18 @@ El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1
 y este proyecto adhiere a [Versionado Semántico](https://semver.org/lang/es/).
 
 ---
+## [2.11.6] - 2026-03-18
+
+### Corregido
+
+- **Error 500 (timeout) en exportacion manual a SAP**: `wc_get_orders(['limit' => -1])` cargaba todos los pedidos en una sola request AJAX, lo que provocaba que el servidor superara el tiempo limite (30 s) cuando habia muchos pedidos pendientes. Solucion: la sincronizacion ahora se procesa en lotes de 30 pedidos mediante requests AJAX secuenciales. Cada request devuelve `has_more` y `next_offset`; el JS lanza el siguiente lote hasta completar todos los pedidos.
+- **Fatal PHP en actualizacion del plugin (`TypeError: rtrim() — WP_Error`)**: el filtro `upgrader_source_selection` llamaba a `untrailingslashit($source)` cuando `$source` era un `WP_Error` (fallo de descarga), produciendo un error fatal. La guarda `is_wp_error()` ya existia en el codigo local pero no habia sido desplegada.
+
+### Mejorado
+
+- **Control de timeout por lote**: se anade `@set_time_limit(120)` e `ignore_user_abort(true)` al handler AJAX de sincronizacion para garantizar que cada lote tenga margen suficiente independientemente del `max_execution_time` del servidor.
+
+---
 ## [2.11.5] - 2026-03-16
 
 ### Añadido
