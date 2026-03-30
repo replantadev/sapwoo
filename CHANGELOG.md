@@ -6,6 +6,20 @@ El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1
 y este proyecto adhiere a [Versionado Semántico](https://semver.org/lang/es/).
 
 ---
+## [2.13.0] - 2026-03-30
+
+### Añadido
+
+- **Autoloader por class-map**: sustituye 29 `require_once` manuales por `spl_autoload_register` con mapa de clases. Las clases sin side-effects se cargan bajo demanda (lazy-load). Los ficheros con hooks a nivel de archivo (ajax, cron, columns) se cargan explícitamente via `class_exists()`.
+- **`wp_cache` para field mappings**: `SAPWC_Sync_Handler::get_cached_mapping()` centraliza la lectura de `sapwc_field_mapping` con capa `wp_cache_get/set` (grupo `sapwc`). Beneficia sitios con object cache persistente (Redis/Memcached). Se invalida automáticamente al guardar el mapeo.
+
+### Eliminado
+
+- 29 líneas de `require_once` en `sapwc_load_dependencies()` → 2 `require_once` (autoloader + helper.php) + 5 `class_exists()`.
+- `require_once` redundantes de `helper.php` en `class-sap-sync.php`, `class-orders-page.php`, `class-sap-orders-table.php` y `class-customers-import-page.php`.
+- Fallbacks de `SAPWC_PLUGIN_PATH` en ficheros individuales (ya innecesarios con el autoloader).
+
+---
 ## [2.12.1] - 2026-03-30
 
 ### Corregido
