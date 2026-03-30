@@ -6,6 +6,14 @@ El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1
 y este proyecto adhiere a [Versionado Semántico](https://semver.org/lang/es/).
 
 ---
+## [2.12.1] - 2026-03-30
+
+### Corregido
+
+- **Ajuste de redondeo fallaba en servidores SAP que no soportan $expand**: el GET `/Orders(X)?$expand=DocumentLines` devuelve HTTP 400 en algunas versiones de SAP B1 Service Layer. Ahora hace fallback automatico: GET del pedido + GET de `/Orders(X)/DocumentLines` por separado. Tambien corrige la extraccion de lineas cuando SAP las devuelve bajo la key `DocumentLines` en vez de `value`.
+- **Log de error de ajuste mejorado**: ahora incluye el detalle real del error SAP en vez de un mensaje generico.
+
+---
 ## [2.12.0] - 2025-07-08
 
 ### Anadido
