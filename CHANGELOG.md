@@ -6,6 +6,21 @@ El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1
 y este proyecto adhiere a [Versionado Semántico](https://semver.org/lang/es/).
 
 ---
+## [2.12.0] - 2025-07-08
+
+### Anadido
+
+- **Site Profile y Health Check**: cada instalacion genera un `site_id` unico y expone `/wp-json/sapwc/v1/health` (autenticado por webhook secret) para monitoreo remoto.
+- **Feature Flags con kill-switch**: sistema de flags remotos servidos desde GitHub Pages con cache de 12 h. Permite deshabilitar crons, endpoints y features por sitio o globalmente sin deploy.
+- **API Secret auto-generado**: `sapwc_webhook_secret` se genera automaticamente en activacion y en `plugins_loaded` (para installs existentes que actualicen sin reactivar).
+- **Seccion "Conexion Control Center"** en el dashboard multicanal: muestra Site ID, API Secret y Health URL siempre visible (no requiere WP_DEBUG).
+- **Config Export/Import**: exporta e importa la configuracion completa del plugin en JSON desde el dashboard.
+
+### Corregido
+
+- **Version mismatch**: header del plugin decia 2.11.11 pero la constante SAPWC_VERSION era 2.11.6. Sincronizado.
+
+---
 ## [2.11.6] - 2026-03-18
 
 ### Corregido

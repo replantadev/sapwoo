@@ -1,0 +1,27 @@
+{
+    "_schema": "sapwc-flags-v1",
+    "_updated": "2026-03-30",
+    "_docs": "Flags remotos para SAP Woo Suite. Prioridad: sites > global > default (true).",
+    "global": {
+        "cron_sapwc_cron_sync_orders": false,
+        "cron_sapwc_cron_sync_stock": true,
+        "cron_sapwc_cron_sync_products": true,
+        "cron_sapwc_cron_sync_categories": true,
+        "endpoint_sync-order": true,
+        "endpoint_sync-products": true,
+        "endpoint_stock-update": true,
+        "realtime_order_sync": true,
+        "tiktok_channel": true
+    },
+    "sites": [],
+    "notices": [
+        {
+            "id": "fase3-welcome",
+            "type": "info",
+            "message": "Feature Flags v1 activo. El plugin ahora soporta desactivación remota de crons y endpoints.",
+            "dismissible": true,
+            "min_version": "2.12.0",
+            "expires": "2025-09-01"
+        }
+    ]
+}
