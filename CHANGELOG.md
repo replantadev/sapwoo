@@ -6,6 +6,26 @@ El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1
 y este proyecto adhiere a [Versionado Semántico](https://semver.org/lang/es/).
 
 ---
+## [2.14.0] - 2026-03-31
+
+### Añadido
+
+- **Campos UDF de pedidos 100% configurables**: todos los User Defined Fields que se envían en el payload de pedidos a SAP son ahora configurables desde la página de Ajustes de Sincronización. Se eliminan 45+ referencias hardcodeadas a campos específicos de un partner (U_ARTES_*, U_DRA_*, U_DNI).
+- **Sección «Campos UDF de Pedidos» en admin**: nueva tabla en Ajustes de Sincronización donde el usuario mapea cada función (portes, ruta, nombre comercial, teléfono, DNI, alerta, observaciones agencia, observaciones pedido, comentarios almacén, cantidad regalo) al nombre UDF de su instancia SAP, con valor por defecto configurable.
+- **Funciones helper `sapwc_inject_udf()`, `sapwc_udf_field()`, `sapwc_udf_value()`**: API interna para inyectar UDFs al payload condicionalmente según la configuración.
+- **Migración automática**: al actualizar, las instalaciones existentes reciben los valores legados pre-populados (sin pérdida de funcionalidad). Las nuevas instalaciones arrancan con campos vacíos.
+- **Defaults de extensiones persistidos**: la migración guarda explícitamente los defaults de extensiones para que no dependan de valores hardcodeados en código.
+
+### Cambiado
+
+- El default del campo UDF de cliente web (`sapwc_customer_udf_field`) pasa de `U_ARTES_CLIW` a vacío. Las instalaciones existentes ya tienen el valor almacenado; las nuevas deben configurarlo.
+- Los defaults de la página de Extensiones pasan de valores ARTES a vacíos (las instalaciones existentes conservan sus valores gracias a la migración).
+
+### Eliminado
+
+- 45+ literales hardcodeados de `U_ARTES_*`, `U_DRA_*` y `U_DNI` en `class-sap-sync.php`, `class-channel-detector.php`, `class-extensions-page.php`, `sap-woo-suite.php`, `class-sync-options-page.php`, `class-customers-import-page.php`, `class-customer-sync.php` y `class-selective-import-page.php`.
+
+---
 ## [2.13.0] - 2026-03-30
 
 ### Añadido
