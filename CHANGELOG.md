@@ -6,6 +6,46 @@ El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1
 y este proyecto adhiere a [Versionado Semántico](https://semver.org/lang/es/).
 
 ---
+## [2.15.1] - 2026-03-31
+
+### Añadido
+
+- **Control API (5 endpoints REST)**: nuevo `class-control-api.php` con endpoints bajo `/sapwc/v1/control/` para gestión remota desde el Control Center:
+  - `GET /control/logs` — consulta del log de sincronización (filtro por nivel y límite)
+  - `POST /control/clear-cache` — limpieza de transients SAPWC + WP cache + WC product transients
+  - `POST /control/run-cron` — ejecución inmediata de crons permitidos (orders, stock, products, categories)
+  - `POST /control/maintenance` — activar/desactivar modo mantenimiento WordPress
+  - `GET /control/update-check` — verificar actualizaciones disponibles via PUC
+- **Autenticación**: todos los endpoints usan `SAPWC_REST_API::auth()` (header X-SAPWC-Secret)
+
+---
+## [2.15.0] - 2026-03-31
+
+### Añadido
+
+- **Plan-based feature gating**: nuevo sistema de planes (Starter / Business / Enterprise) con enforcement tecnico real. Las funcionalidades se bloquean tanto a nivel de UI como en server-side (sanitize_callbacks, cron guards, menu ocultacion).
+- **7 plan features controladas**: `multi_warehouse`, `catalog_import`, `b2b_mode`, `multichannel`, `miravia`, `extension_hooks`, `volume_pricing`.
+- **Asignacion remota de plan**: el plan se asigna desde `flags.json` (GitHub Pages) con resolucion en 3 niveles: override por sitio > plan del sitio > fallback local.
+- **flags.json schema v2**: nueva seccion `plans` con matriz de features por plan + `sites` como objeto con `plan` y `overrides` por site_id.
+- **Metodos en SAPWC_Feature_Flags**: `get_plan()`, `is_plan_feature()`, `get_plan_label()`, `get_plan_features()`, constante `PLAN_FEATURES_FALLBACK`.
+- **Plan visible en Control Center**: etiqueta coloreada (azul Starter, verde Business, morado Enterprise) en el dashboard por sitio.
+
+### Cambiado
+
+- `sapwc_support_tier` renombrado a `sapwc_plan` (migracion automatica: 'pro' existente -> 'business', nuevas instalaciones -> 'starter').
+- Health check devuelve `plan` en lugar de `tier`.
+- Site Profile usa `OPTION_PLAN` en lugar de `OPTION_SUPPORT_TIER`.
+
+### Enforcement por plan
+
+- **B2B mode** (Business+): selector deshabilitado en UI + sanitize_callback bloquea guardar 'b2b' sin plan.
+- **Catalog import** (Business+): menu oculto + callbacks de cron bloqueados.
+- **Multi-warehouse** (Business+): checkboxes extra deshabilitados + sanitize limita a 1 almacen.
+- **Multichannel** (Business+): TikTok, Amazon, eBay no se auto-registran sin plan.
+- **Miravia** (Enterprise): `register()` bloqueado en channel-manager.
+- **Extension hooks** (Enterprise): `sapwc_loaded` y `sapwc_admin_menu` gated.
+
+---
 ## [2.14.0] - 2026-03-31
 
 ### Añadido
