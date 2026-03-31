@@ -1,7 +1,7 @@
 {
-    "_schema": "sapwc-flags-v1",
-    "_updated": "2026-03-30",
-    "_docs": "Flags remotos para SAP Woo Suite. Prioridad: sites > global > default (true).",
+    "_schema": "sapwc-flags-v2",
+    "_updated": "2026-03-31",
+    "_docs": "Flags remotos para SAP Woo Suite. Prioridad: sites[].overrides > plans[plan] > global > default (true). Cada site tiene un 'plan' que determina qué features están disponibles.",
     "global": {
         "cron_sapwc_cron_sync_orders": false,
         "cron_sapwc_cron_sync_stock": true,
@@ -13,15 +13,44 @@
         "realtime_order_sync": true,
         "tiktok_channel": true
     },
-    "sites": [],
+    "plans": {
+        "starter": {
+            "multi_warehouse": false,
+            "catalog_import": false,
+            "b2b_mode": false,
+            "multichannel": false,
+            "miravia": false,
+            "extension_hooks": false,
+            "volume_pricing": false
+        },
+        "business": {
+            "multi_warehouse": true,
+            "catalog_import": true,
+            "b2b_mode": true,
+            "multichannel": true,
+            "miravia": false,
+            "extension_hooks": false,
+            "volume_pricing": true
+        },
+        "enterprise": {
+            "multi_warehouse": true,
+            "catalog_import": true,
+            "b2b_mode": true,
+            "multichannel": true,
+            "miravia": true,
+            "extension_hooks": true,
+            "volume_pricing": true
+        }
+    },
+    "sites": {},
     "notices": [
         {
-            "id": "fase3-welcome",
+            "id": "plans-v2",
             "type": "info",
-            "message": "Feature Flags v1 activo. El plugin ahora soporta desactivación remota de crons y endpoints.",
+            "message": "Plan-based feature gating activo desde v2.15.0. Contacta soporte si necesitas cambiar tu plan.",
             "dismissible": true,
-            "min_version": "2.12.0",
-            "expires": "2025-09-01"
+            "min_version": "2.15.0",
+            "expires": "2026-06-30"
         }
     ]
 }
