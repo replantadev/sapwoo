@@ -6,6 +6,16 @@ El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1
 y este proyecto adhiere a [Versionado Semántico](https://semver.org/lang/es/).
 
 ---
+## [2.15.2] - 2026-04-01
+
+### Corregido
+
+- **AJAX handler pedidos SAP**: el handler `sapwc_get_sap_orders` estaba registrado en `class-sap-orders-table.php` (carga por autoloader) pero durante `admin-ajax.php` la clase nunca se referenciaba, provocando que WordPress devolviera "0" (HTTP 400). Movido el registro del handler al archivo principal `sap-woo-suite.php` donde se ejecuta siempre.
+- **Output buffering en AJAX**: añadido `ob_start()`/`ob_end_clean()` para capturar warnings/notices de otros plugins que corrompian la respuesta JSON, causando "Error de red" en el dashboard.
+- **Errores descriptivos**: el handler ahora devuelve el error SAP real (HTTP code + body) en vez del genérico "Error al obtener pedidos".
+- **DataTables JS**: inicialización movida dentro del callback `.done()` para evitar crash cuando se ejecutaba antes de tener datos en la tabla.
+
+---
 ## [2.15.1] - 2026-03-31
 
 ### Añadido
