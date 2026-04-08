@@ -6,6 +6,17 @@ El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1
 y este proyecto adhiere a [Versionado Semántico](https://semver.org/lang/es/).
 
 ---
+## [2.15.3] - 2026-04-09
+
+### Añadido
+
+- **Panel Plan & Features en Dashboard**: nueva sección visual en el panel de control que muestra el plan activo (Starter/Business/Enterprise), site ID y el estado de cada feature del plan, facilitando la verificación sin acceder al Control Center.
+
+### Corregido
+
+- **Consistencia de plan en health reports**: `SAPWC_Site_Profile::get_profile()` ahora usa `SAPWC_Feature_Flags::get_plan()` (que respeta la jerarquía flags.json > opción local) en lugar de leer directamente `get_option('sapwc_plan')`, eliminando las alertas de inconsistencia de plan entre Control Center y los sitios remotos.
+
+---
 ## [2.15.2] - 2026-04-01
 
 ### Corregido
