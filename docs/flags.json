@@ -1,9 +1,7 @@
 {
-    "_schema": "sapwc-flags-v2",
-    "_updated": "2026-03-31",
-    "_docs": "Flags remotos para SAP Woo Suite. Prioridad: sites[].overrides > plans[plan] > global > default (true). Cada site tiene un 'plan' que determina qué features están disponibles.",
+    "_updated": "2026-04-08",
     "global": {
-        "cron_sapwc_cron_sync_orders": false,
+        "cron_sapwc_cron_sync_orders": true,
         "cron_sapwc_cron_sync_stock": true,
         "cron_sapwc_cron_sync_products": true,
         "cron_sapwc_cron_sync_categories": true,
@@ -15,12 +13,12 @@
     },
     "plans": {
         "starter": {
-            "multi_warehouse": false,
-            "catalog_import": false,
+            "multi_warehouse": true,
+            "catalog_import": true,
             "b2b_mode": false,
-            "multichannel": false,
+            "multichannel": true,
             "miravia": false,
-            "extension_hooks": false,
+            "extension_hooks": true,
             "volume_pricing": false
         },
         "business": {
@@ -28,9 +26,9 @@
             "catalog_import": true,
             "b2b_mode": true,
             "multichannel": true,
-            "miravia": false,
-            "extension_hooks": false,
-            "volume_pricing": true
+            "miravia": true,
+            "extension_hooks": true,
+            "volume_pricing": false
         },
         "enterprise": {
             "multi_warehouse": true,
@@ -42,15 +40,17 @@
             "volume_pricing": true
         }
     },
-    "sites": {},
-    "notices": [
-        {
-            "id": "plans-v2",
-            "type": "info",
-            "message": "Plan-based feature gating activo desde v2.15.0. Contacta soporte si necesitas cambiar tu plan.",
-            "dismissible": true,
-            "min_version": "2.15.0",
-            "expires": "2026-06-30"
+    "notices": [],
+    "_schema": "sapwc-flags-v2",
+    "sites": {
+        "sapwc_72e93100_3c03cf29": {
+            "plan": "business"
+        },
+        "sapwc_4e56830e_290294d9": {
+            "plan": "starter"
+        },
+        "sapwc_5a56f5bc_9df84197": {
+            "plan": "starter"
         }
-    ]
+    }
 }
