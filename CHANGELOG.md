@@ -6,6 +6,13 @@ El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1
 y este proyecto adhiere a [Versionado Semántico](https://semver.org/lang/es/).
 
 ---
+## [2.15.5] - 2026-05-12
+
+### Corregido
+
+- **BOM UTF-8 en class-sap-sync.php**: el archivo tenía una marca BOM al inicio que provocaba pantalla en blanco ("headers already sent"). Eliminado.
+
+---
 ## [2.15.4] - 2026-05-12
 
 ### Corregido
