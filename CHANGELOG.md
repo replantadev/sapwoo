@@ -6,6 +6,15 @@ El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1
 y este proyecto adhiere a [Versionado Semántico](https://semver.org/lang/es/).
 
 ---
+## [2.15.4] - 2026-05-12
+
+### Corregido
+
+- **Race condition en BPAddresses (ecommerce)**: cuando dos pedidos del mismo cliente llegaban simultáneamente (p.ej. doble callback de Redsys), ambos leían el mismo array de direcciones SAP y el PATCH del segundo sobreescribía la dirección del primero, borrándola. Se añade un mutex via `add_transient()` (INSERT IGNORE atómico) por CardCode en `add_shipping_address_to_bp()` y `add_shipping_address_to_bp_b2b()`. Si el lock no se adquiere, se registra en log y la nota del pedido advierte del conflicto en vez de afirmar éxito.
+- **Descuento como línea AJUSTE en SAP**: los pedidos con cupón WooCommerce generaban una línea `AJUSTE` negativa en SAP en lugar de reflejarse en el campo "Dto Cliente" (DiscPrcnt). `build_payload_ecommerce()` ahora calcula y envía `DiscPrcnt = descuento / bruto_pre_descuento × 100` en la cabecera del documento.
+- **Guard en ajuste de redondeo**: `add_rounding_adjustment_if_needed()` no añade la línea AJUSTE si la diferencia supera `max(€0.10, 0.2% del subtotal)`, evitando que descuentos grandes se conviertan en líneas de ajuste incorrectas con código EX.
+
+---
 ## [2.15.3] - 2026-04-09
 
 ### Añadido
