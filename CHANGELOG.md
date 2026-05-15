@@ -6,6 +6,13 @@ El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1
 y este proyecto adhiere a [Versionado Semántico](https://semver.org/lang/es/).
 
 ---
+## [2.15.9] - 2026-05-15
+
+### Corregido
+
+- **Notice HMAC inestable en paneles con supresión de admin_notices**: extraído a función nombrada `sapwc_hmac_notice()` para poder re-registrarse tras `remove_all_actions('admin_notices')` en `admin_head`. Ya no se pierde el aviso cuando otros plugins o temas limpian todos los notices.
+
+---
 ## [2.15.8] - 2026-05-15
 
 ### Corregido
