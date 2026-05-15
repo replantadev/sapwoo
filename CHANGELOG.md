@@ -6,7 +6,19 @@ El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1
 y este proyecto adhiere a [Versionado Semántico](https://semver.org/lang/es/).
 
 ---
+## [2.15.10] - 2026-05-15
+
+### Corregido
+
+- **Versión disponible incorrecta en `control/update-check` y `control/update`**: PUC almacena su estado (última versión consultada, timestamp de check) en una opción de base de datos `external_updates-sap-woo-suite`. Si este estado no se resetea, `wp_update_plugins()` no fuerza una nueva consulta a GitHub Releases aunque se borre el transient de core `update_plugins`, devolviendo una versión obsoleta. Ahora ambas operaciones borran primero el estado PUC antes de llamar a `wp_update_plugins()`, garantizando que siempre se consulta el último release real de GitHub.
+
+---
 ## [2.15.9] - 2026-05-15
+
+### Añadido
+
+- **Control API — `POST /control/update`**: permite al Control Center ejecutar la actualización del plugin en el sitio remoto sin acceso al WP Admin. Usa `Plugin_Upgrader` con `FS_METHOD=direct` para evitar prompts de FTP en contexto REST. Devuelve 409 si ya está en la última versión.
+- **Control API — `POST /control/rotate-secret`**: genera un nuevo `sapwc_webhook_secret` criptográficamente seguro y lo devuelve al Control Center para que actualice su copia local automáticamente. El secret antiguo sigue siendo válido para la petición de rotación (la autenticación ocurre antes de la rotación).
 
 ### Corregido
 
