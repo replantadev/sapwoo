@@ -6,16 +6,12 @@ El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1
 y este proyecto adhiere a [Versionado Semántico](https://semver.org/lang/es/).
 
 ---
-## [2.15.6] - 2026-05-14
+## [2.15.7] - 2026-05-15
 
-### Seguridad
+### Corregido
 
-- **Admin notice — falso positivo tras aprovisionamiento**: el aviso de HMAC por defecto ahora verifica también que no exista un secret auto-generado en `wp_options`. Una vez que el Control Center registra el sitio, el aviso desaparece.
-- **Admin notices con scope de página**: los avisos de HMAC solo se muestran en páginas del propio plugin (`screen->id` contiene `sapwc`), evitando ruido en el resto del panel de administración.
-- **`sapwc_get_flags_hmac_secret()`**: nueva función helper con cadena de prioridad: constante `wp-config` → secret auto-generado en `wp_options` → vacío. Conectada en `class-feature-flags.php`.
-- **Endpoint `POST /control/set-flags-hmac-secret`**: permite al Control Center empujar un secret HMAC único por sitio al registrarlo, con rate limiting e IP allowlist.
-- **`set-cc-ip` — no permite vaciado via REST**: previene que un atacante con el secret robado desactive el allowlist de IP; la opción solo se puede borrar desde el panel WP admin.
-- **Auto-generación de secret en `activation_hook` y `plugins_loaded`**: si el plugin se activa sin Control Center, genera un secret aleatorio cifrado localmente hasta que el CC lo sobreescriba.
+- **`_sap_address_synced` falso positivo**: la meta se marcaba como `1` antes de ejecutar el PATCH de dirección (al hacer `update_status()`), lo que daba la impresión de que la dirección estaba sincronizada aunque el PATCH hubiera fallado. Ahora solo se establece `1` si `add_shipping_address_to_bp()` devuelve `true`.
+- **Excepción silenciosa en PATCH de dirección**: si `add_shipping_address_to_bp()` lanzaba una excepción (p.ej. timeout o error inesperado del cliente SAP), el bloque de éxito no capturaba el error — ni se añadía nota de pedido ni se escribía en los logs SAPWC. Añadido `try/catch Throwable` alrededor de la llamada: ahora siempre se escribe una nota y un log, independientemente del resultado.
 
 ---
 ## [2.15.5] - 2026-05-12
