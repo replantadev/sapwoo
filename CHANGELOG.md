@@ -6,6 +6,14 @@ El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1
 y este proyecto adhiere a [Versionado Semántico](https://semver.org/lang/es/).
 
 ---
+## [2.15.8] - 2026-05-15
+
+### Corregido
+
+- **Silencio total en fallo de re-login SAP (401)**: si la sesión SAP expiraba entre el POST del pedido y el GET del Business Partner, el re-login fallaba sin dejar ninguna traza en los logs (solo se registraba con `WP_DEBUG=true`). Ahora el fallo de re-login siempre escribe en `error_log`, independientemente de WP_DEBUG.
+- **Riesgo de sobreescribir BPAddresses con respuesta inesperada**: si SAP devolvía un 401 con body vacío o no-JSON, `request()` retornaba `['raw' => '', 'http_code' => 401]` sin clave `error`. La función `add_shipping_address_to_bp()` no detectaba el error, continuaba con `BPAddresses = []` y habría ejecutado el PATCH borrando todas las direcciones existentes del BP. Añadida validación explícita de `CardCode` en la respuesta antes de proceder; si no está presente se aborta con log de error.
+
+---
 ## [2.15.7] - 2026-05-15
 
 ### Corregido
