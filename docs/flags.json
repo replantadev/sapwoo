@@ -1,5 +1,16 @@
 {
-    "_updated": "2026-04-08",
+    "sites": {
+        "sapwc_4e56830e_290294d9": {
+            "plan": "starter"
+        },
+        "sapwc_72e93100_3c03cf29": {
+            "plan": "business"
+        },
+        "sapwc_5a56f5bc_9df84197": {
+            "plan": "starter"
+        }
+    },
+    "_updated": "2026-05-15",
     "global": {
         "cron_sapwc_cron_sync_orders": true,
         "cron_sapwc_cron_sync_stock": true,
@@ -19,16 +30,16 @@
             "multichannel": true,
             "miravia": false,
             "extension_hooks": true,
-            "volume_pricing": false
+            "volume_pricing": true
         },
         "business": {
             "multi_warehouse": true,
             "catalog_import": true,
             "b2b_mode": true,
             "multichannel": true,
-            "miravia": true,
+            "miravia": false,
             "extension_hooks": true,
-            "volume_pricing": false
+            "volume_pricing": true
         },
         "enterprise": {
             "multi_warehouse": true,
@@ -42,15 +53,5 @@
     },
     "notices": [],
     "_schema": "sapwc-flags-v2",
-    "sites": {
-        "sapwc_72e93100_3c03cf29": {
-            "plan": "business"
-        },
-        "sapwc_4e56830e_290294d9": {
-            "plan": "starter"
-        },
-        "sapwc_5a56f5bc_9df84197": {
-            "plan": "starter"
-        }
-    }
+    "_hmac": "db815cb2ac14b6d017a55c09bdc3e8677adb3988f72af58418d2b5ac2d4026c4"
 }
