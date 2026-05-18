@@ -6,7 +6,14 @@ El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1
 y este proyecto adhiere a [Versionado Semántico](https://semver.org/lang/es/).
 
 ---
-## [2.15.11] - 2026-05-16
+## [2.15.12] - 2026-05-18
+
+### Corregido
+
+- **`POST /control/update` devuelve 409 "ya en la última versión" incorrectamente**: el endpoint dependía de `wp_update_plugins()` + PUC para detectar si había actualización disponible, pero PUC aplica throttling interno en contexto REST y devolvía datos obsoletos. Reescrito para consultar directamente la GitHub Releases API (`/repos/replantadev/sap-woo-suite/releases/latest`), obtener la URL del ZIP asset y pasarla directamente a `Plugin_Upgrader->install()`, sin depender de PUC ni de transients.
+
+---
+## [2.15.11] - 2026-05-18
 
 ### Corregido
 
