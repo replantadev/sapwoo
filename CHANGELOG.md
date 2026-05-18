@@ -6,6 +6,15 @@ El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1
 y este proyecto adhiere a [Versionado Semántico](https://semver.org/lang/es/).
 
 ---
+## [2.15.13] - 2026-05-18
+### Added
+- Sistema de ayuda contextual: icono ℹ en cada sección del admin que abre un popup con descripción detallada, badge de estado (Estable/Beta/En desarrollo) y lista de características.
+- `sapwc_help_btn()` helper PHP para renderizar el botón de info.
+- `sapwc_get_help_texts()` con textos de ayuda para todas las secciones del plugin.
+- CSS: componente `.sapwc-help-btn` + `.sapwc-help-overlay` / `.sapwc-help-box` integrado en el design system.
+- JS: lógica del modal (apertura, cierre con Esc, clic fuera, animación).
+
+---
 ## [2.15.12] - 2026-05-18
 
 ### Corregido
