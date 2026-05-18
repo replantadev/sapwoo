@@ -6,6 +6,21 @@ El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1
 y este proyecto adhiere a [Versionado Semántico](https://semver.org/lang/es/).
 
 ---
+## [2.15.14] - 2026-05-19
+
+### Añadido
+
+- **Auto-Sync Catálogo: botón Ejecutar Ahora** — Nueva UI en la pestaña de opciones para lanzar inmediatamente la sincronización de productos y categorías sin esperar al cron. Incluye spinner, feedback de última ejecución actualizado en tiempo real y manejo de errores de red.
+- **Delta sync de catálogo (UpdateDate)** — `SAPWC_Product_Sync::fetch_from_sap()` acepta parámetro `$since` que añade filtro OData `UpdateDate ge 'YYYY-MM-DD'`. `cron_callback()` calcula automáticamente la ventana desde la última sincronización (con buffer de 1 día) para importar solo artículos modificados en lugar de todo el catálogo SAP.
+- **Extensión Etiquetas — backend funcional** — Cuando la extensión `etiquetas` está activa y los campos SAP están configurados, aparecen las acciones "SAP: Imprimir etiqueta de envío" y "SAP: Imprimir albarán" en el dropdown de acciones del pedido WooCommerce. Al ejecutar la acción se hace PATCH al `Orders($docentry)` de SAP con el UDF configurado = 'Y'. Escribe nota de pedido y entrada en el log SAPWC con resultado.
+
+### Corregido
+
+- **Cron rescue de catálogo en `admin_init`** — El bloque de rescate de crons en `admin_init` solo recuperaba los crons de stock y limpieza de logs. Tras una desactivación/reactivación del plugin, los crons `sapwc_cron_sync_products` y `sapwc_cron_sync_categories` no se recuperaban. Ahora se incluyen en el bloque de rescate con las mismas condiciones (opción activa + desfase > 10 min).
+- **Dashboard KPI Tasa de Sync — estado neutral cuando no hay pedidos** — El KPI mostraba 0% con color rojo cuando no había pedidos en los últimos 30 días. Ahora muestra `—` sin clase de color cuando `total_orders_30 === 0`.
+- **Dashboard Ecosistema Multicanal — empty state** — El diagrama de flujo de datos mostraba iconos de canales apagados cuando no había addons activos. Ahora muestra un estado vacío explícito ("Sin canales adicionales") con indicación de cómo expandir el ecosistema.
+
+---
 ## [2.15.13] - 2026-05-18
 ### Added
 - Sistema de ayuda contextual: icono ℹ en cada sección del admin que abre un popup con descripción detallada, badge de estado (Estable/Beta/En desarrollo) y lista de características.
