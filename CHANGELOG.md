@@ -6,6 +6,20 @@ El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1
 y este proyecto adhiere a [Versionado Semántico](https://semver.org/lang/es/).
 
 ---
+## [2.15.15] - 2026-05-19
+
+### Corregido
+
+- **Chunked AJAX run-now** — Los botones "Sincronizar ahora" de productos y categorías ya no ejecutan `import_all()` en un único request HTTP (bomba de timeout). Cada clic lanza batches de 20/50 ítems en loop (`skip` → `has_more` → `next_skip`) con progreso en tiempo real. Elimina el cuelgue con catálogos >500 artículos y el bloqueo del mutex durante 30 min.
+- **`has_more` off-by-one** — `fetch_from_sap()` en product-sync y category-sync ahora solicita `$top + 1` ítems a SAP y hace `array_slice()` a `$top`. Evita la batch vacía extra cuando el total es múltiplo exacto del tamaño de lote.
+- **Idempotencia etiquetas** — `patch_sap_label_field()` guarda `_sapwc_label_{field}_sent` con timestamp UTC tras cada PATCH exitoso. Si se reintenta antes de 5 minutos, bloquea el reenvío con nota y minutos restantes.
+- **DocumentStatus check antes de PATCH etiqueta** — Antes del PATCH a SAP, ahora se consulta `GET /Orders($docentry)?$select=DocumentStatus`. Si el pedido está en `bost_Close` (cerrado), muestra nota explicativa y evita el error críptico de SAP.
+- **Hooks etiquetas solo en admin** — Las acciones de WooCommerce para etiquetas/albaranes se registraban en todas las peticiones (frontend incluido). Ahora envueltos en `is_admin()`.
+- **Log distingue fuente cron vs manual** — `import_all()` acepta `$options['source']`. El cron pasa `'cron'`; el botón admin pasa `'manual'`. El mensaje en el log ahora incluye el prefijo `[cron]` / `[manual]`.
+- **`wp_cache_flush()` eliminado del loop de import** — En sitios con Object Cache externo (Redis/Memcached), el flush global en cada batch de 20 productos vaciaba toda la caché del sitio. Eliminado; PHP libera objetos al final de cada iteración.
+- **Mutex TTL productos reducido** — `sapwc_product_sync_lock` bajado de 30 a 15 minutos. Reduce el tiempo de bloqueo del cron tras crash inesperado de PHP.
+
+---
 ## [2.15.14] - 2026-05-19
 
 ### Añadido
