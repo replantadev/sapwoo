@@ -6,6 +6,14 @@ El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1
 y este proyecto adhiere a [Versionado Semántico](https://semver.org/lang/es/).
 
 ---
+## [2.15.11] - 2026-05-16
+
+### Corregido
+
+- **Error 400 en "Previsualizar categorías" (modo ecommerce)**: `SAPWC_Import_Page` no estaba en la lista de clases de carga forzada (`class_exists()`) del arranque del plugin. Durante peticiones `admin-ajax.php`, el autoloader lazy nunca incluía `class-import-page.php`, así que el hook `wp_ajax_sapwc_preview_categories` no se registraba y WordPress devolvía "0" (HTTP 400). Añadido `class_exists('SAPWC_Import_Page')` junto al resto de clases con handlers AJAX.
+- **Admin notice HMAC persistente en instalaciones co-ubicadas**: el aviso de secret por defecto ya no aparece cuando el Control Center está instalado en el mismo sitio (`sapwcc_get_flags_hmac_secret` existe en el mismo proceso). En ese setup comparten BD y no hay auto-registro cliente.
+
+---
 ## [2.15.10] - 2026-05-15
 
 ### Corregido
