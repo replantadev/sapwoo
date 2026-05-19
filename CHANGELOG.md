@@ -6,6 +6,13 @@ El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1
 y este proyecto adhiere a [Versionado Semántico](https://semver.org/lang/es/).
 
 ---
+## [2.15.18] - 2026-05-19
+
+### Corregido
+
+- **`/control/update` — reemplaza archivos correctamente** — `Plugin_Upgrader->install()` usaba `copy_dir` sin limpiar el directorio existente, por lo que actualizaciones sucesivas no reemplazaban archivos ni eliminaban los obsoletos. Cambiado a `run()` con `clear_destination: true` (semántica de upgrade). Se añade `opcache_reset()` tras la instalación para que el próximo request ejecute el código nuevo en servidores con PHP OPcache.
+
+---
 ## [2.15.17] - 2026-05-19
 
 ### Añadido
