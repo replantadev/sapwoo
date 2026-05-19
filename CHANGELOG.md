@@ -6,6 +6,26 @@ El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1
 y este proyecto adhiere a [Versionado Semántico](https://semver.org/lang/es/).
 
 ---
+## [2.15.17] - 2026-05-19
+
+### Añadido
+
+- **Vigilante 24/7 — integración en dashboard** — El dashboard multichannel muestra ahora el estado del Vigilante (ultima vez escaneado por SAP Woo Control Center). `get_pending_issues()` almacena `sapwc_last_vigilante_scan` al final de cada scan exitoso, y `class-multichannel-dashboard.php` lo lee para mostrar badge "Monitorizado" / "Sin monitorizar" con fecha y hora del ultimo scan.
+
+---
+## [2.15.16] - 2026-05-18
+
+### Corregido / Mejorado
+
+- **Rate limiter — ventana fija y sin spoofing IP** — `check_rate_limit()` ya no confía en el header `X-Forwarded-For` (controlable por el cliente). Usa solo `REMOTE_ADDR`. La clave de transient ahora incluye el slot de tiempo (`floor(time()/60)`) para una ventana fija anclada, en lugar de una ventana deslizante que se reiniciaba con cada petición.
+- **Rate limiter en `/stock-update`** — El endpoint de webhook de stock carecía de rate limiting. Ahora aplica 100 req/60s (superior al límite de 30 de los otros endpoints para tolerar alertas SAP en batch). `check_rate_limit()` acepta un `$limit` opcional.
+- **UTC en `sapwc_orders_last_sync`** — `class-sap-sync.php` y `class-orders-page.php` guardaban la marca de última sincronización de pedidos con hora local WP en lugar de UTC, a diferencia de productos/categorías. Corregido con `current_time('mysql', true)`.
+- **UTC en `sapwc_customers_last_sync`** — Las tres llamadas a `update_option('sapwc_customers_last_sync', ...)` en `class-customer-sync.php` usaban hora local. Corregido con `current_time('mysql', true)`.
+- **Log cleanup — cutoff coherente con `created_at`** — El DELETE de logs usaba `DATE_SUB(NOW(), ...)` donde `NOW()` es hora del servidor MySQL (potencialmente UTC), mientras `created_at` se almacena en hora local WP. Ahora el cutoff se calcula en PHP con `gmdate('Y-m-d H:i:s', current_time('timestamp') - $days * DAY_IN_SECONDS)`, garantizando coherencia independientemente del timezone del servidor MySQL.
+- **`has_more` en respuesta REST `/sync-products`** — El endpoint de paginación devolvía `next_skip` y `batch_size` pero no un booleano `has_more`. Los clientes debían inferir la existencia de más páginas comparando `batch_size < top`. Ahora incluye `has_more` directamente desde `fetch_from_sap()`.
+- **UTC en `last_sync` del return de `SAPWC_Category_Sync::import_all()`** — El array de retorno usaba `current_time('mysql')` (hora local) mientras la opción almacenada usaba UTC. Corregido para consistencia.
+
+---
 ## [2.15.15] - 2026-05-19
 
 ### Corregido
