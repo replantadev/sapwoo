@@ -6,6 +6,13 @@ El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1
 y este proyecto adhiere a [Versionado Semántico](https://semver.org/lang/es/).
 
 ---
+## [2.15.20] - 2026-05-20
+
+### Corregido
+
+- **`/control/update` — filtro `filesystem_method` activo durante todo `run()`** — el filtro que fuerza `direct` se eliminaba antes de llamar a `Plugin_Upgrader::run()`, pero éste invoca `fs_connect()→WP_Filesystem()` internamente. En hosts sin `FS_METHOD=direct` en wp-config, WordPress revertía a FTP y fallaba con un `WP_Error` de mensaje vacío. El filtro ahora se mantiene activo hasta después de `run()` y se limpia junto al filtro `http_request_args` (que tampoco se eliminaba antes). Mensaje de error mejorado para el caso de mensaje vacío: indica el código de error y la solución (`FS_METHOD=direct`).
+
+---
 ## [2.15.19] - 2026-05-20
 
 ### Añadido
