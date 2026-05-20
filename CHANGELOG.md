@@ -6,6 +6,13 @@ El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1
 y este proyecto adhiere a [Versionado Semántico](https://semver.org/lang/es/).
 
 ---
+## [2.15.19] - 2026-05-20
+
+### Añadido
+
+- **Soporte cupones WooCommerce** — `DiscountPercent` por línea calculado desde `get_subtotal()` vs `get_total()` de cada item; elimina el bloque `DiscPrcnt` de cabecera que usaba nombre de campo DI API incorrecto. El porcentaje de descuento total del pedido se inyecta además como UDF configurable (`coupon_discount`) para instalaciones con campo SAP propio (p. ej. `U_ARTES_DtoIC1`).
+
+---
 ## [2.15.18] - 2026-05-19
 
 ### Corregido
