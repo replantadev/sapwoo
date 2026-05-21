@@ -6,6 +6,24 @@ El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1
 y este proyecto adhiere a [Versionado Semántico](https://semver.org/lang/es/).
 
 ---
+## [2.16.0] - 2026-05-21
+
+### Añadido
+
+- **Vigilante — Ventana de silencio para cron_gap** — nuevo sistema de dos capas para suprimir falsos positivos por apagado programado del servidor SAP. Capa manual: campos `SAP offline desde/hasta` por sitio en el Control Center. Capa automática: detección de patrones mediante histograma circular de 24h (requiere ≥5 eventos con ≥65% de cobertura).
+- **Vigilante — Auto-resolución de cron_gap** — cuando el gap es SEV_WARNING (90–240 min) se llama automáticamente a `/control/run-cron` del sitio afectado, marcando el issue como `auto_resolved`.
+- **Vigilante — ROI report semanal** — el digest incluye tabla con incidencias detectadas, recuperadas y auto-resueltas en los últimos 7 días.
+- **Alertas SAP** — nueva página de admin `Alertas SAP` con tareas dirigidas al equipo que gestiona SAP B1 (clientes inactivos, pedidos agotados), con pasos predefinidos, marcado de resolución y posibilidad de deshacer en 72h.
+- **Email SAP contact** — campo configurable para enviar alertas de tipo `sap_user` al equipo de operaciones SAP (independiente de las alertas técnicas al admin del Control Center).
+- **Compatibilidad WordPress 7.0 y PHP 8.x** — cabeceras `Tested up to: 7.0`, `Requires PHP: 8.0`, `WC tested up to: 9.9`.
+
+### Corregido
+
+- **Email de bienvenida** — `extract()` usa `EXTR_SKIP` para evitar sobreescritura de variables en plantillas de tema.
+- **Vigilante** — eliminada variable muerta `$prev_ids` en `scan_site()`.
+- **Alertas** — emojis reemplazados por Dashicons en templates de admin; pasos SAP centralizados en `SAPWC_Sap_Tasks::get_steps()`.
+
+---
 ## [2.15.20] - 2026-05-20
 
 ### Corregido
