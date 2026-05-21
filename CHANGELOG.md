@@ -6,6 +6,19 @@ El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1
 y este proyecto adhiere a [Versionado Semántico](https://semver.org/lang/es/).
 
 ---
+## [2.16.1] - 2026-05-21
+
+### Corregido
+
+- **ShipToCode en pedidos e-commerce** — el pedido SAP ya recibe `ShipToCode` apuntando a la dirección `WEB-{numero}` que se crea en el BP. Antes se creaba la dirección en el BP pero el pedido quedaba sin referenciarla.
+- **Detección de fallo de dirección** — cuando el PATCH de dirección o de ShipToCode falla, se marca `_sap_address_synced = 0` en el pedido WooCommerce para que el Vigilante lo detecte.
+
+### Añadido
+
+- **Vigilante Rule 9 — `missing_ship_to`** — detecta pedidos exportados a SAP sin ShipToCode en los últimos 30 días y los repara automáticamente en cada ciclo de scan.
+- **Endpoint `POST /control/repair-ship-to`** — reparación autónoma: busca pedidos con `_sap_exported=1` y `_sap_address_synced!=1`, parchea cada uno en SAP con el ShipToCode correcto y registra en logs.
+
+---
 ## [2.16.0] - 2026-05-21
 
 ### Añadido
