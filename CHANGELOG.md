@@ -6,6 +6,13 @@ El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1
 y este proyecto adhiere a [Versionado Semántico](https://semver.org/lang/es/).
 
 ---
+## [2.16.4] - 2026-05-22
+
+### Corregido
+
+- **`run_update()` — actualización remota via CC** — reemplaza `Plugin_Upgrader::run()` con extracción directa via `ZipArchive` + `rename()`. `Plugin_Upgrader` ejecuta el hook `upgrader_pre_download` que plugins de seguridad (Wordfence, iThemes Security, WP Cerber…) pueden interceptar y devolver un `WP_Error('download_failed')` vacío, bloqueando la actualización silenciosamente. El nuevo método descarga el ZIP con token GitHub, valida magic bytes PK, extrae a `wp-content/upgrade/sapwc-{timestamp}/` y hace swap atómico del directorio del plugin — todo sin pasar por el sistema de upgrader de WordPress y sus hooks.
+
+---
 ## [2.16.3] - 2026-05-22
 
 ### Añadido
