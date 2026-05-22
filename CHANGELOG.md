@@ -6,7 +6,19 @@ El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1
 y este proyecto adhiere a [Versionado Semántico](https://semver.org/lang/es/).
 
 ---
-## [2.16.1] - 2026-05-21
+## [2.16.2] - 2026-05-22
+
+### Corregido
+
+- **Actualización remota desde CC** — el endpoint `POST /control/update` ahora descarga el ZIP usando la API de assets de GitHub (`api.github.com/repos/.../releases/assets/{id}` + `Accept: application/octet-stream`) en lugar de `browser_download_url`. Esto resuelve los fallos silenciosos con repositorios privados donde la redirección autenticada no transfería correctamente el token al destino final.
+- **Validación del ZIP descargado** — se verifica la firma `PK\x03\x04` antes de pasar el archivo a `Plugin_Upgrader`. Si GitHub devuelve HTML (401/404), se muestra un error claro indicando que hay que configurar `SAPWC_GITHUB_TOKEN`.
+- **Diagnóstico de errores de instalación** — en caso de fallo en `Plugin_Upgrader`, el mensaje devuelto al CC ahora incluye todos los códigos y mensajes de `WP_Error` más la salida del skin (`get_upgrade_messages()`), con entradas en `error_log` para trazabilidad.
+
+### Añadido
+
+- **Segunda fila en footer de cards del CC** — los botones "Rotar Secret", timestamp y eliminar se muestran en una segunda línea separada para evitar el amontonamiento cuando el botón de Actualizar está visible.
+
+
 
 ### Corregido
 
