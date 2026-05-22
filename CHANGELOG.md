@@ -6,6 +6,21 @@ El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1
 y este proyecto adhiere a [Versionado Semántico](https://semver.org/lang/es/).
 
 ---
+## [2.16.3] - 2026-05-22
+
+### Añadido
+
+- **`SAPWC_Error_Library`** — biblioteca con 17 tipos de error SAP clasificados por regex (first-match). Cada tipo incluye: `audience` (sap_user/admin), `severity`, `auto_fix`, `title`, `detail`, `steps_sap`. Categorías: artículo (item_not_sales, item_inactive, item_not_found, insufficient_stock), socio de negocio (inactive_bp, bp_blocked, bp_not_found, credit_limit), documento SAP (duplicate_document, price_list_error, warehouse_not_found, tax_code_error, currency_mismatch, mandatory_field), sistema (auth_expired, connection_error), datos WC (missing_sku, payload_error).
+- **`classified_failures`** en `/control/pending-issues` — todos los pedidos con `_sap_sync_failed=1` clasificados por tipo y agrupados. Permite al Vigilante crear reglas dirigidas por error type en lugar de la regla genérica `retry_exhausted`.
+- **Endpoint `POST /control/repair-duplicates`** — busca pedidos fallidos con error de "documento duplicado", consulta SAP por `NumAtCard`, y si el pedido ya existe en SAP lo marca como exportado y limpia los flags de fallo. Usado por el Vigilante (A4 auto-repair).
+- **Columna "Tipo" en Pedidos Fallidos** — cada fila muestra un badge de color: azul para errores que requieren acción SAP, gris para errores de configuración WC/admin.
+
+### Corregido
+
+- **Vigilante Rule 1** — ahora usa `classified_failures` cuando está disponible (plugin ≥ 2.16.3), creando una alerta por tipo de error con `audience` correcto. Para sitios con plugin antiguo, sigue usando `retry_exhausted` como fallback.
+- **ROI recovered** — los issue types con prefijo `failure_type_` también incrementan `pedidos_recuperados` cuando desaparecen en el siguiente scan.
+
+---
 ## [2.16.2] - 2026-05-22
 
 ### Corregido
