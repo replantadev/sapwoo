@@ -6,11 +6,16 @@ El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1
 y este proyecto adhiere a [Versionado Semántico](https://semver.org/lang/es/).
 
 ---
-## [2.16.4] - 2026-05-22
+## [2.16.5] - 2026-05-23
+
+### Añadido
+
+- **`AddressExtension` en payload ecommerce** — la dirección de envío se incluye directamente en el POST del pedido a SAP (`ShipToStreet`, `ShipToCity`, `ShipToZipCode`, `ShipToCountry`, `ShipToState`, `ShipToBuilding`). Esto garantiza que la dirección quede grabada en el documento SAP en una única llamada, independientemente de si los PATCHes posteriores (BP address + ShipToCode) tienen éxito. Elimina el caso donde la sesión SAP expiraba entre el POST y los PATCHes dejando el campo "Enviar a" con la dirección genérica del BP.
 
 ### Corregido
 
-- **`run_update()` — actualización remota via CC** — reemplaza `Plugin_Upgrader::run()` con extracción directa via `ZipArchive` + `rename()`. `Plugin_Upgrader` ejecuta el hook `upgrader_pre_download` que plugins de seguridad (Wordfence, iThemes Security, WP Cerber…) pueden interceptar y devolver un `WP_Error('download_failed')` vacío, bloqueando la actualización silenciosamente. El nuevo método descarga el ZIP con token GitHub, valida magic bytes PK, extrae a `wp-content/upgrade/sapwc-{timestamp}/` y hace swap atómico del directorio del plugin — todo sin pasar por el sistema de upgrader de WordPress y sus hooks.
+- **`run_update()` — actualización remota via CC** — reemplaza `Plugin_Upgrader::run()` con extracción directa via `ZipArchive` + `rename()`. Elimina la interferencia de plugins de seguridad (Wordfence, iThemes Security, WP Cerber…) que interceptaban el hook `upgrader_pre_download` devolviendo `WP_Error('download_failed')` vacío.
+- **Aviso HMAC secret** — texto actualizado: "Guarda la configuración del Control Center (Settings → Save) para propagarlo automáticamente" en lugar de "registra este sitio", que era confuso cuando el sitio ya estaba registrado.
 
 ---
 ## [2.16.3] - 2026-05-22
