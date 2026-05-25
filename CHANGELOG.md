@@ -6,6 +6,13 @@ El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1
 y este proyecto adhiere a [Versionado Semántico](https://semver.org/lang/es/).
 
 ---
+## [2.16.6] - 2026-05-25
+
+### Corregido
+
+- **Mutex BP address — `Call to undefined function add_transient()`** — el bloque de mutex en `add_shipping_address_to_bp()` llamaba a `add_transient()` y `delete_transient()` sin comprobar si estaban disponibles. En ciertos contextos de ejecución (Action Scheduler vía Redsys IPN, WP-Cron con carga atípica) PHP lanzaba `\Error: Call to undefined function add_transient()`, que era capturado por el `\Throwable` de `send_order()` abortando silenciosamente todo el PATCH de dirección. Fix: se guarda `$mutex_ok = function_exists('add_transient') && function_exists('delete_transient')` antes del bloque y se condiciona la adquisición y liberación del lock a ese flag. Si las funciones no están disponibles se omite el mutex (best-effort) y el PATCH continúa normalmente.
+
+---
 ## [2.16.5] - 2026-05-23
 
 ### Añadido
