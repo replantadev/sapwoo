@@ -6,6 +6,13 @@ El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1
 y este proyecto adhiere a [Versionado Semántico](https://semver.org/lang/es/).
 
 ---
+## [2.16.8] - 2026-05-25
+
+### Corregido
+
+- **`add_shipping_address_to_bp_b2b` — mutex sin guard** — el método B2B tenía las mismas llamadas a `add_transient()`/`delete_transient()` sin `function_exists()` que causaron el bug de v2.16.5. Corregido con el mismo patrón `$mutex_ok` que el método ecommerce.
+
+---
 ## [2.16.7] - 2026-05-25
 
 ### Corregido
@@ -14,7 +21,7 @@ y este proyecto adhiere a [Versionado Semántico](https://semver.org/lang/es/).
 - **`repair_ship_to` — dirección BP no se creaba antes de parchear ShipToCode** — si el PATCH de dirección del BP había fallado durante la sincronización original (p.ej. por el bug `add_transient` de v2.16.5), el ShipToCode apuntaba a un nombre que no existía en el BP y SAP lo ignoraba silenciosamente. Ahora `repair_ship_to` ejecuta primero `add_shipping_address_to_bp()` para crear/actualizar la dirección en el BP y después aplica el ShipToCode. Los pedidos históricos con "Enviar a" vacío se repararán en el próximo scan del Vigilante.
 - **`repair_duplicates` — mismo bug de cliente SAP** — corregido al mismo patrón `get_connected_instance()`.
 - **`add_shipping_address_to_bp` / `add_shipping_address_to_bp_b2b`** — declarados `public` para permitir su uso desde endpoints de reparación.
-- **`SAPWC_Sync_Handler::resolve_card_code()`** — nuevo método estático que resuelve el CardCode (Península/Canarias/Portugal) a partir de un pedido, sin reejecutar el sync completo.
+- **`add_shipping_address_to_bp_b2b` — mismo bug de mutex** — el método B2B tenía las mismas llamadas a `add_transient()`/`delete_transient()` sin guard `function_exists`. Corregido al mismo patrón `$mutex_ok` que el método ecommerce.
 
 ---
 ## [2.16.6] - 2026-05-25
