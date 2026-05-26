@@ -6,7 +6,14 @@ El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1
 y este proyecto adhiere a [Versionado Semántico](https://semver.org/lang/es/).
 
 ---
-## [2.16.10] - 2026-05-26
+## [2.16.11] - 2026-05-26
+
+### Corregido
+
+- **`repair_ship_to` — SAP -5002 TaxExtension** — el PATCH de `ShipToCode` en pedidos abiertos fallaba con `-5002 "Update of Address field is not possible [TaxExtension.ShipToStreet]"` porque SAP exige que los campos de dirección del `TaxExtension` (calle, ciudad, CP, país, estado) se envíen junto con `ShipToCode`. Resuelve los 9 pedidos pendientes de ShipToCode en ecommerce y B2B.
+
+---
+
 
 ### Corregido
 
