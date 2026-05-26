@@ -6,6 +6,24 @@ El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1
 y este proyecto adhiere a [Versionado Semántico](https://semver.org/lang/es/).
 
 ---
+## [2.18.3] - 2026-05-26
+
+### Corregido
+
+- **Número/piso/puerta se perdían en la dirección enviada a SAP B1** (`class-sap-sync.php`). En España es habitual que el checkout reparta "Calle Marqués de Canillejas" en `address_1` y "12, 2ºB" en `address_2`, pero en SAP solo viajaba `address_1`. Sandra tenía que añadir el número manualmente en la pestaña Logística y en Comentarios.
+  - **`Street` (BPAddresses)** ahora concatena `address_1 + ", " + address_2` (con `mb_substr` a 100 chars, límite de campo SAP). Aplicado en `add_shipping_address_to_bp_b2b()` (~L1132) y `add_shipping_address_to_bp()` (~L1263).
+  - **`BuildingFloorRoom` (BPAddresses)** prioriza `address_2`; cae a `customer_note` solo si address_2 está vacío. Antes siempre escribía la nota del cliente, sobreescribiendo cualquier dato de dirección.
+  - **`ShipToStreet` (AddressExtension del pedido)** también incluye `address_2`. Garantiza que aunque los PATCHes de BP fallen, el POST inicial ya lleva la dirección completa en el documento.
+  - **`$entrega_full` (Comments del Order)** — la línea "[ADDR-WEB-X] | Nombre | Calle ZIP Ciudad" ahora incluye el número/piso. Sandra ya no necesita completarlo manualmente en "Comentarios venta".
+
+---
+## [2.18.2] - 2026-05-26
+
+### Añadido
+
+- **Endpoints REST `control/resolve-task` y `control/unresolve-task`** — Permiten al Control Center marcar/desmarcar tareas SAP del Vigilante como resueltas sin entrar al WP-Admin del cliente. `unresolve-task` respeta la ventana de 72h de `SAPWC_Sap_Tasks::can_undo()`. Auditado vía `SAPWC_Logger` (`task_resolved_remote`, `task_unresolved_remote`).
+
+---
 ## [2.18.1] - 2026-05-26
 
 ### Corregido
