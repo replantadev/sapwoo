@@ -6,7 +6,14 @@ El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1
 y este proyecto adhiere a [Versionado Semántico](https://semver.org/lang/es/).
 
 ---
-## [2.16.9] - 2026-05-26
+## [2.16.10] - 2026-05-26
+
+### Corregido
+
+- **`repair_ship_to` — fallo PATCH con error distinto a -1029** — tras cualquier fallo de PATCH, hace un GET del pedido SAP para verificar `DocStatus`. Si el documento no está en estado `bost_Open` (cerrado, facturado, entregado) o si `ShipToCode` ya tiene valor, marca `_sap_address_synced=1` localmente. Resuelve los 7 pedidos que quedaban pendientes con errores SAP distintos a -1029.
+
+---
+
 
 ### Corregido
 
