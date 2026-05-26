@@ -6,6 +6,13 @@ El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1
 y este proyecto adhiere a [Versionado Semántico](https://semver.org/lang/es/).
 
 ---
+## [2.16.12] - 2026-05-26
+
+### Corregido
+
+- **`repair_ship_to` — SAP -5002 aceptado como inmutable** — incluso enviando `TaxExtension` completo (v2.16.11), SAP rechaza el PATCH en pedidos legacy con `-5002 "Update of Address field is not possible"` cuando el documento está enlazado/progresado (entrega creada, factura emitida, copy-to ejecutado). Como la dirección de envío ya está en SAP vía el `AddressExtension` del POST original, `ShipToCode` es solo una referencia de tracking. El endpoint ahora trata `-5002` igual que `-1029`: marca `_sap_address_synced=1` localmente y deja de generar alertas. Resuelve los 7 pedidos restantes en BANBAN.
+
+---
 ## [2.16.11] - 2026-05-26
 
 ### Corregido
