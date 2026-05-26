@@ -6,6 +6,13 @@ El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1
 y este proyecto adhiere a [Versionado Semántico](https://semver.org/lang/es/).
 
 ---
+## [2.16.9] - 2026-05-26
+
+### Corregido
+
+- **`repair_ship_to` — SAP -1029 document closed** — cuando SAP devuelve -1029 ("Field cannot be updated") porque el pedido ya está cerrado/facturado, el endpoint ahora marca `_sap_address_synced=1` localmente en lugar de fallar, evitando alertas repetidas del Vigilante sobre pedidos ya completados.
+
+---
 ## [2.16.8] - 2026-05-25
 
 ### Corregido
