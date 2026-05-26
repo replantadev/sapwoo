@@ -6,6 +6,13 @@ El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1
 y este proyecto adhiere a [Versionado Semántico](https://semver.org/lang/es/).
 
 ---
+## [2.17.0] - 2026-05-26
+
+### Cambiado
+
+- **Flujo de creación de pedidos — `ShipToCode` incluido en el POST** — antes de hacer `POST /Orders` el plugin pre-crea la entrada `BPAddresses` (`WEB-{N}` o `B2B-{N}`) en el cliente y luego inyecta `ShipToCode` directamente en el payload del pedido. Resultado: el pedido SAP nace ya vinculado a la dirección con nombre y la entrega hereda el campo "Enviar a" relleno desde el primer momento. Elimina la race condition que dejaba `ShipToCode` vacío cuando SAP creaba la entrega antes de que el PATCH posterior llegara (causa del error -5002 en pedidos legacy). Si la pre-creación de BPAddresses falla, se mantiene el flujo antiguo como fallback (POST con `AddressExtension`, PATCH posterior, reparación por Vigilante).
+
+---
 ## [2.16.12] - 2026-05-26
 
 ### Corregido
