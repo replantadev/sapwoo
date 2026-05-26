@@ -6,6 +6,24 @@ El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1
 y este proyecto adhiere a [Versionado Semántico](https://semver.org/lang/es/).
 
 ---
+## [2.18.0] - 2026-05-26
+
+### Añadido
+
+- **Idempotencia POST `/Orders`** (`includes/class-sap-sync.php`) — Si el POST a SAP falla por timeout (curl error 28, "operation timed out"), antes de marcar el pedido como fallido se llama `check_order_in_sap($order_number)`. Si el documento ya existe en SAP (timeout que enmascaró un éxito), se recupera el DocEntry, se marca `_sap_exported=1` y se evita un duplicado en el siguiente reintento.
+- **Alerta Vigilante `processing_stale`** (`includes/class-control-api.php` + Control Center) — Detecta pedidos con `_sap_exported=1` que llevan >7 días en estado `processing`. Renderiza un botón por pedido (`#N`) que llama al nuevo endpoint `/control/mark-order-completed`. **Sólo avanza el estado WC; no toca SAP.** El operador confirma manualmente que la entrega salió.
+- **Retención de logs por nivel** (`sap-woo-suite.php :: sapwc_run_log_cleanup`) — Sustituye el setting único por tres opciones: `sapwc_log_retention_days_error` (90), `_warning` (60), `_info` (30). El cron diario borra cada nivel con su propio cutoff. Mantiene errores históricos para auditoría sin inflar la tabla con success/info.
+- **IA del Vigilante con contexto por tipo de issue** (`includes/class-ai.php`, Control Center) — `build_prompt()` ahora inyecta una pista específica según `issue_type` (qué espera del operador, qué auto-fixes existen, qué NO sugerir). Mejora la calidad de las recomendaciones para `processing_stale`, `missing_ship_to`, `retry_exhausted`, `cron_gap`, etc.
+- **Modal de ayuda (?) por tipo de alerta** (Vigilante, Control Center) — Botón con icono `dashicons-editor-help` junto al título de cada alerta. Abre modal con explicación, causas, acciones del operador y referencia a auto-fixes existentes. Reusa el patrón `sapwc-help-modal` del plugin principal.
+- **Ventana temporal en alertas Vigilante** (`includes/class-control-api.php`) — `inactive_customer_errors` filtrado a últimos 7 días. `pending_unsynced_old` acotado a [90min, 30 días] (pedidos más viejos son legacy abandonado, no alertas accionables).
+- **Tests PHPUnit** (`tests/class-test-idempotence.php`) — Regex de detección de timeout, formato canónico `WEB-{n}`/`B2B-{n}` del preflight v2.17.0, monotonía de defaults de retención.
+
+### Notas técnicas
+
+- Endpoint `POST /control/mark-order-completed` requiere `_sap_exported=1`. Si no, devuelve 409 (no es seguro marcar completados pedidos sin DocEntry).
+- La idempotencia sólo se activa con errores de red/timeout. Errores de negocio (BP inactivo, artículo discontinuado, duplicado) siguen el flujo normal de `_sap_sync_failed`.
+
+---
 ## [2.17.1] - 2026-05-26
 
 ### Corregido
