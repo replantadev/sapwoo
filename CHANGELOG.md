@@ -6,6 +6,13 @@ El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1
 y este proyecto adhiere a [Versionado Semántico](https://semver.org/lang/es/).
 
 ---
+## [2.18.1] - 2026-05-26
+
+### Corregido
+
+- **DocumentsOwner / "Titular del pedido" visible también en modo Ecommerce** (`admin/class-sync-options-page.php`) — El campo estaba envuelto en el bloque condicional `if ($mode === 'b2b')`, así que en ecommerce no aparecía en la admin aunque `build_payload_ecommerce()` SÍ leía `sapwc_user_sign` y lo enviaba en el POST. Movido fuera del condicional: ahora se configura una sola vez y aplica a ambos modos.
+
+---
 ## [2.18.0] - 2026-05-26
 
 ### Añadido
