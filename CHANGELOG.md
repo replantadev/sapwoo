@@ -6,6 +6,13 @@ El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1
 y este proyecto adhiere a [Versionado Semántico](https://semver.org/lang/es/).
 
 ---
+## [2.17.1] - 2026-05-26
+
+### Corregido
+
+- **Cron: query excluye pedidos ya exportados y `_sap_no_sync=1`** — antes el cron leía todos los pedidos en `processing/on-hold` y `send_order` los devolvía como "Saltados" cada ciclo, generando la falsa alerta de "pedido en limbo" en el Vigilante. Añadido `meta_query` que excluye `_sap_exported=1` y `_sap_no_sync=1` de origen.
+
+---
 ## [2.17.0] - 2026-05-26
 
 ### Cambiado
