@@ -6,6 +6,21 @@ El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1
 y este proyecto adhiere a [Versionado Semántico](https://semver.org/lang/es/).
 
 ---
+## [2.18.4] - 2026-05-28
+
+### Corregido
+
+- **`Invalid value [ORDR.ShipToCode]` en pedidos B2B con dirección reutilizada** (`class-sap-sync.php` + `class-control-api.php`) — caso real: pedido 47737 de Banban se reintentó 9 veces seguidas, todas con el mismo error. Causa raíz: `add_shipping_address_to_bp_b2b()` busca direcciones existentes por **contenido** (`Street/ZipCode/City/Country/State`), pero cuando encontraba match devolvía `true` sin importar qué `AddressName` tenía la dirección encontrada. El caller luego inyectaba ciegamente `ShipToCode='B2B-{order_number}'` en el POST. Si el BP ya tenía la dirección guardada con otro nombre (típico: una entrega anterior creada como `B2B-47200`), SAP rechazaba el POST porque `B2B-47737` no existía en BPAddresses.
+  - **`add_shipping_address_to_bp_b2b()`** ahora devuelve `string|false`: el `AddressName` real de la dirección reutilizada o creada, o `false` en error. Compat: la única función `bool : true` que antes devolvía sigue siendo truthy como string no vacío.
+  - **Preflight caller (~L196)**: usa el valor de retorno (`string` AddressName) en lugar de construir el nombre canónico. Si la función devuelve `true` (compat), construye el nombre como antes.
+  - **Post-POST PATCH caller (~L316)**: idéntico fix — usa el valor de retorno antes de mandar `PATCH /Orders(X) {ShipToCode}`.
+  - **Endpoint `control/repair-ship-to` (`class-control-api.php:1025`)**: el mismo bug existía en el reparador del Vigilante. Ahora también captura el AddressName real.
+
+### Por qué importa
+
+El Vigilante detectaba el pedido como bloqueado, intentaba reparar, fallaba con el mismo error y dejaba la alerta sin resolver. Sandra tenía que crear el pedido manualmente en SAP. Con este fix el flujo es: detectar match por contenido → reutilizar nombre real → POST/PATCH con el ShipToCode correcto → SAP acepta.
+
+---
 ## [2.18.3] - 2026-05-26
 
 ### Corregido
