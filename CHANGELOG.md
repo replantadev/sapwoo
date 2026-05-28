@@ -6,6 +6,13 @@ El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1
 y este proyecto adhiere a [Versionado Semántico](https://semver.org/lang/es/).
 
 ---
+## [2.18.5] - 2026-05-28
+
+### Corregido
+
+- **Fatal 500 al resolver tareas desde el Control Center** (`class-control-api.php`) — `resolve_task()` y `unresolve_task()` llamaban a `SAPWC_Logger::log()` con 3 argumentos cuando la firma requiere 4 (`$order_id, $action, $status, $message`). PHP 7.1+ lanza `ArgumentCountError` fatal, devolviendo 500 al CC y dejando la tarea sin resolver (aunque `SAPWC_Sap_Tasks::resolve()` sí se ejecutó antes del fatal). Añadido `0` como primer argumento (no hay order_id asociado en estas operaciones).
+
+---
 ## [2.18.4] - 2026-05-28
 
 ### Corregido
