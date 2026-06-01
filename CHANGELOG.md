@@ -6,7 +6,15 @@ El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1
 y este proyecto adhiere a [Versionado Semántico](https://semver.org/lang/es/).
 
 ---
-## [2.18.5] - 2026-05-28
+## [2.18.6] - 2026-06-01
+
+### Corregido
+
+- **Cupón WooCommerce sin descuento en SAP** — cuando el cupón es de tipo "carrito fijo" (no distribuye a líneas), `DiscountPercent` por línea era 0. Ahora se calcula el descuento no capturado y se aplica como `DiscountPercent` de cabecera en el pedido SAP.
+- **`repair_ship_to` — SAP -5002 AddressExtension conflict** — el PATCH de `ShipToCode` falla con -5002 en pedidos con `AddressExtension` embebida (v2.16.5+). La dirección ya está correcta vía `AddressExtension`, así que se marca `_sap_address_synced=1` localmente sin reintentar.
+
+---
+
 
 ### Corregido
 
