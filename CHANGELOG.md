@@ -6,6 +6,13 @@ El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1
 y este proyecto adhiere a [Versionado Semántico](https://semver.org/lang/es/).
 
 ---
+## [2.18.7] - 2026-06-02
+
+### Corregido
+
+- **Cupón — descuento siempre en cabecera del documento SAP** — el descuento de cupón ahora se envía siempre como `DiscountPercent` a nivel de cabecera (campo "Descuento %" visible en la ventana del pedido SAP), independientemente del tipo de cupón WooCommerce. Las líneas se envían a precio de tarifa completo, sin `DiscountPercent` por línea, evitando doble descuento y mostrando el campo que usa el equipo SAP.
+
+---
 ## [2.18.6] - 2026-06-01
 
 ### Corregido
