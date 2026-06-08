@@ -1,10 +1,10 @@
-# SAP Woo Suite
+# Conector de WooCommerce para SAP Business One
 
 > Plataforma multicanal para SAP Business One. Sincroniza WooCommerce y marketplaces con SAP B1 via Service Layer.
 
-## ¿Qué es SAP Woo Suite?
+## ¿Qué es el conector de WooCommerce para SAP Business One?
 
-SAP Woo Suite es un plugin premium de WordPress/WooCommerce que conecta tu tienda online con SAP Business One de forma bidireccional:
+El conector de WooCommerce para SAP Business One es un plugin premium de WordPress/WooCommerce que conecta tu tienda online con SAP Business One de forma bidireccional:
 
 - **Pedidos WC → SAP**: Sincronización automática de pedidos al procesarse
 - **Productos SAP → WC**: Importación masiva con mapeo de campos personalizable
