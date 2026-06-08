@@ -6,7 +6,7 @@ Guía completa para sincronizar pedidos de WooCommerce a SAP Business One.
 
 ### Activar sync automático
 
-1. Ve a **SAP Woo Suite → Opciones de Sincronización**
+1. Ve a **Conector de WooCommerce para SAP Business One → Opciones de Sincronización**
 2. Marca **Sincronizar pedidos automáticamente**
 3. Selecciona el estado que dispara la sincronización (ej: `processing`)
 
@@ -29,7 +29,7 @@ Guía completa para sincronizar pedidos de WooCommerce a SAP Business One.
 ### Desde un pedido individual
 
 1. Abre el pedido
-2. En el metabox de SAP Woo Suite haz clic en **Sincronizar ahora**
+2. En el metabox del conector haz clic en **Sincronizar ahora**
 
 ## Tipo de documento SAP
 

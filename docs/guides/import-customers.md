@@ -10,7 +10,7 @@ Sincroniza tus clientes de SAP Business One con usuarios de WordPress/WooCommerc
 
 ## Acceder al importador
 
-1. Ve a **SAP Woo Suite → Importar Clientes**
+1. Ve a **Conector de WooCommerce para SAP Business One → Importar Clientes**
 2. Configura los filtros
 
 ## Filtros de importación

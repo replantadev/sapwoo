@@ -32,7 +32,7 @@ El plugin soporta actualizaciones automáticas desde GitHub. Para habilitarlas:
 
 Tras activar el plugin:
 
-1. Ve a **SAP Woo Suite → Credenciales**
+1. Ve a **Conector de WooCommerce para SAP Business One → Credenciales**
 2. Configura la conexión a SAP Business One
 3. Prueba la conexión con el botón **Test**
 4. Guarda los cambios

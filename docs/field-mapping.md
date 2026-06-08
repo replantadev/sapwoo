@@ -4,7 +4,7 @@ El Field Mapper permite configurar qué campos de WooCommerce se sincronizan con
 
 ## Acceder al Field Mapper
 
-1. Ve a **SAP Woo Suite → Mapeo de Campos**
+1. Ve a **Conector de WooCommerce para SAP Business One → Mapeo de Campos**
 2. Selecciona el tipo de entidad a mapear
 
 ## Tipos de mapeo disponibles

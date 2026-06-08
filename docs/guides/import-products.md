@@ -4,7 +4,7 @@ Importa tu catálogo de SAP Business One a WooCommerce.
 
 ## Acceder al importador
 
-1. Ve a **SAP Woo Suite → Importar Productos**
+1. Ve a **Conector de WooCommerce para SAP Business One → Importar Productos**
 2. Configura los filtros de importación
 
 ## Filtros disponibles

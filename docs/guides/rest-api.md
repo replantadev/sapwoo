@@ -1,6 +1,6 @@
 # API REST
 
-SAP Woo Suite expone endpoints REST para integraciones externas.
+El conector de WooCommerce para SAP Business One expone endpoints REST para integraciones externas.
 
 ## Autenticación
 
@@ -10,7 +10,7 @@ Todas las peticiones requieren el header de autenticación:
 X-SAPWC-Secret: tu-secreto-aqui
 ```
 
-El secreto se configura en **SAP Woo Suite → Configuración → Secret para webhooks**.
+El secreto se configura en **Conector de WooCommerce para SAP Business One → Configuración → Secret para webhooks**.
 
 ## Endpoints disponibles
 
