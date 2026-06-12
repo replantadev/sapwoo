@@ -6,6 +6,17 @@ El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1
 y este proyecto adhiere a [Versionado Semántico](https://semver.org/lang/es/).
 
 ---
+## [2.19.1] - 2026-06-12
+
+### Corregido
+
+- **Iconos en botones invisibles o demasiado pequeños** (`assets/css/sapwc-admin.css`) — regla global `button span.dashicons` ajustada a 16 px y `color: inherit !important`, lo que hace que todos los iconos hereden el color del botón (blanco en primarios, azul en secundarios) independientemente del color global del admin de WordPress.
+- **`openModal is not defined`** (`admin/class-import-page.php`) — las funciones del modal (`openModal`, `showPreviewData`, `importBulk`) estaban en un closure `document.ready` inaccesible desde el segundo bloque de scripts del selector. Ahora se exponen como `window._sapwcModalOpen`, `window._sapwcShowPreviewData` y `window._sapwcImportBulk`.
+- **Sin confirmación al importar producto/categoría individualmente** — añadido sistema de toast (`window._sapwcToast`) con notificación visual de éxito/error en esquina inferior derecha.
+- **Categoría no asignada en importación individual** (`includes/class-product-sync.php`) — `import_single()` llamaba a `self::process_product()` que no existía; corregido a `self::import_product()`, que incluye la asignación de categoría por `ItemsGroupCode`.
+- **Notice de modo SAP tapaba los pedidos** (`admin/class-orders-page.php`) — movido al pie de la tabla dentro de un `<details>` plegable.
+
+---
 ## [2.19.0] - 2026-06-12
 
 ### Añadido
