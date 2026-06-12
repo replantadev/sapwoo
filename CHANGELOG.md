@@ -6,6 +6,19 @@ El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1
 y este proyecto adhiere a [Versionado Semántico](https://semver.org/lang/es/).
 
 ---
+## [2.19.0] - 2026-06-12
+
+### Añadido
+
+- **Importador PRO de productos** (`admin/class-import-page.php`) — selector paginado con búsqueda OData (`substringof`), filtro por grupo SAP, filtro por estado (Nuevo/Actualizar), badges de estado por fila, preview modal con diff de campos, importación individual y bulk con progreso en tiempo real.
+- **Importador PRO de categorías** — selector client-side con búsqueda por nombre, filtro por estado (Pendiente/Importada), preview modal, importación individual y bulk.
+- **Cola de importación en segundo plano** (`includes/class-import-queue.php`) — usa Action Scheduler (WooCommerce) para importaciones masivas sin riesgo de timeout PHP. Panel de estado con polling cada 3 s. Botón de cancelación. Se muestra solo si AS está disponible.
+- **Historial de importaciones** (`includes/class-import-history.php`) — tabla `wp_sapwc_import_log` creada con `dbDelta`. Registra cada ejecución (AJAX batch, cola AS, selectiva): tipo, origen, usuario, contadores creados/actualizados/omitidos/errores, estado y timestamp.
+- **Tab Historial** en la página de importación — muestra las últimas 30 ejecuciones con badges de estado.
+- **`SAPWC_Product_Sync::search_items()`** — método público para búsqueda paginada de artículos SAP con filtros OData, enriquecido con precio, stock, categoría e indicador `is_imported`.
+- **AJAX handlers nuevos**: `sapwc_get_sap_items_page`, `sapwc_start_import_queue`, `sapwc_get_queue_status`, `sapwc_cancel_import_queue`, `sapwc_record_import_history`.
+
+---
 ## [2.18.7] - 2026-06-02
 
 ### Corregido
