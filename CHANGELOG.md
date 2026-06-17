@@ -6,6 +6,13 @@ El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1
 y este proyecto adhiere a [Versionado Semántico](https://semver.org/lang/es/).
 
 ---
+## [2.19.2] - 2026-06-17
+
+### Corregido
+
+- **Health endpoint cuelga cuando SAP tarda >10s** (`class-health-check.php`) — `collect()` hacía login completo a SAP con timeout de 20s. Si SAP respondía lento, el endpoint tardaba >10s y el CC recibía `cURL error 28`. Ahora el login SAP en contexto health usa timeout de 5s vía `sapwc_api_login_args` filter (prioridad 99, se elimina tras el check). SAP responde lento → health devuelve `connected: false` con el tiempo real, sin bloquear.
+
+---
 ## [2.19.1] - 2026-06-12
 
 ### Corregido
