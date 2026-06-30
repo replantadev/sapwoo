@@ -6,6 +6,37 @@ El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1
 y este proyecto adhiere a [Versionado Semántico](https://semver.org/lang/es/).
 
 ---
+## [2.20.0] - 2026-06-30
+
+### Añadido
+
+- **Portal B2B — Descarga de facturas SAP para clientes** — Los clientes B2B con sesión iniciada pueden ahora consultar y descargar sus facturas directamente desde "Mi cuenta" de WooCommerce. Dos puntos de entrada:
+  - **Botón "Descargar factura"** en cada fila de "Mis pedidos" (filtro `woocommerce_my_account_my_orders_actions`). Aparece solo cuando hay una factura SAP enlazada al pedido por `NumAtCard`.
+  - **Pestaña "Mis facturas"** (`/mi-cuenta/mis-facturas/`) con listado paginado, búsqueda por número de factura/pedido, estado (Pendiente/Pagada/Anulada) y descarga directa del PDF.
+- **Resolución PDF en cadena (fallback automático)** — `SAPWC_B2B_Invoices::get_invoice_pdf()` intenta en orden: (1) `AttachmentsContent` del adjunto SAP (caso habitual cuando se adjunta el PDF a la factura), (2) `ReportLayoutsService_ExportToPdf` con `LayoutCode` configurable (`sapwc_b2b_invoice_layout_code` opcion), (3) filtro `sapwc_b2b_invoice_pdf_url` / `sapwc_b2b_invoice_pdf_bytes` para integraciones externas (URL pública o bytes binarios desde un servicio propio del cliente).
+- **REST endpoints (logueados)**:
+  - `GET /wp-json/sapwc/v1/b2b/my-invoices?page=&per_page=&search=` — listado paginado del CardCode del usuario actual.
+  - `GET /wp-json/sapwc/v1/b2b/my-invoices/{docentry}/pdf` — descarga binaria del PDF.
+- **Seguridad** — Cada descarga front-end valida nonce (`sapwc_invoice_pdf_{docentry}`) + ownership (CardCode del usuario debe coincidir con `Invoices(N).CardCode`). Aplica también al endpoint REST. Cache de listados por usuario con TTL 5 min.
+- **Cache local en pedido** — Al resolver por primera vez la factura asociada a un pedido se guarda `_sap_invoice_docentry` + `_sap_invoice_docnum` en meta para evitar consultar SAP en cada visita a "Mis pedidos".
+- **Feature flag `b2b_invoices`** — Plan-gating: incluido en Business y Enterprise (no en Starter). Override remoto vía `flags.json` (sites.{id}.overrides.b2b_invoices) y opción local `sapwc_b2b_invoices_enabled` para QA/canary.
+
+### Cambiado
+
+- **`PLAN_FEATURES_FALLBACK`** ahora incluye `b2b_invoices` con los mismos privilegios que `b2b_mode` (false starter, true business+enterprise).
+
+### Notas para integradores
+
+- Si tu cliente genera los PDFs con un servicio propio, expón la URL con:
+  ```php
+  add_filter( 'sapwc_b2b_invoice_pdf_url', function ( $url, $docentry ) {
+      return "https://mi-erp.example.com/factura/{$docentry}.pdf";
+  }, 10, 2 );
+  ```
+- Si los PDFs vienen como adjuntos SAP, no hace falta configurar nada: la estrategia 1 los detecta automáticamente.
+- Para activar la estrategia 2 (Crystal/Layout): añade el `LayoutCode` en una opción `sapwc_b2b_invoice_layout_code` (lo expondremos en UI en una revisión posterior).
+
+---
 ## [2.19.3] - 2026-06-17
 
 ### Añadido
