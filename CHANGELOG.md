@@ -6,6 +6,22 @@ El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1
 y este proyecto adhiere a [Versionado Semántico](https://semver.org/lang/es/).
 
 ---
+## [2.20.1] - 2026-07-01
+
+### Cambiado
+
+- **Docs GitHub Pages** — `docs/index.md` refrescado con la versión actual, tabla de características ampliada (Portal B2B de facturas, Control API, delta sync, cifrado AES-256-CBC) y bloque "Novedades recientes" con los hitos desde v2.15 hasta v2.20. El sitio público https://replantadev.github.io/sapwoo/ estaba anclado en v2.9.1.
+- **Docs changelog en Pages** — `docs/changelog.md` ahora es espejo directo del `CHANGELOG.md` raíz. Elimina el riesgo de drift entre lo que ven los clientes en la doc pública y el historial real del plugin.
+- **Landing `plugins-landing.html`** (SAP Woo Suite en el catálogo de plugins de replanta.net):
+  - Nuevo CTA principal "Ver planes y precios" apuntando a https://replanta.net/conector-sap-woocommerce/ (antes sólo había "Documentación" + "Solicitar demo").
+  - Enlace de documentación corregido: apuntaba a `sap-woo-suite-info` en lugar de a la doc real en `sapwoo`.
+  - Añadida 8ª tarjeta insignia en la rejilla de features: **Multicanal SAP** (TikTok Shop, Amazon, eBay y Miravia sobre el mismo ERP), rellenando el hueco visual en el grid 2×4.
+
+### Sin cambios de código del plugin
+
+Este release es únicamente de documentación y landings; el ZIP se genera para propagar los `readme.txt` / `Stable tag` a WordPress admin y para que el Control Center reporte la versión coherente en el health check.
+
+---
 ## [2.20.0] - 2026-06-30
 
 ### Añadido
