@@ -1,28 +1,28 @@
 {
     "sites": {
-        "sapwc_4e56830e_290294d9": {
-            "plan": "starter"
-        },
         "sapwc_72e93100_3c03cf29": {
             "plan": "business"
+        },
+        "sapwc_4e56830e_290294d9": {
+            "plan": "starter"
         },
         "sapwc_5a56f5bc_9df84197": {
             "plan": "starter"
         }
     },
-    "_updated": "2026-05-15",
-    "global": {
-        "cron_sapwc_cron_sync_orders": true,
-        "cron_sapwc_cron_sync_stock": true,
-        "cron_sapwc_cron_sync_products": true,
-        "cron_sapwc_cron_sync_categories": true,
-        "endpoint_sync-order": true,
-        "endpoint_sync-products": true,
-        "endpoint_stock-update": true,
-        "realtime_order_sync": true,
-        "tiktok_channel": true
+    "_updated": "2026-07-21",
+    "kill_switches": {
+        "cron_sapwc_cron_sync_orders": false,
+        "cron_sapwc_cron_sync_stock": false,
+        "cron_sapwc_cron_sync_products": false,
+        "cron_sapwc_cron_sync_categories": false,
+        "endpoint_sync-order": false,
+        "endpoint_sync-products": false,
+        "endpoint_stock-update": false,
+        "realtime_order_sync": false,
+        "tiktok_channel": false
     },
-    "plans": {
+    "plan_features": {
         "starter": {
             "multi_warehouse": true,
             "catalog_import": true,
@@ -33,7 +33,7 @@
             "volume_pricing": true
         },
         "business": {
-            "multi_warehouse": true,
+            "multi_warehouse": false,
             "catalog_import": true,
             "b2b_mode": true,
             "multichannel": true,
@@ -51,7 +51,5 @@
             "volume_pricing": true
         }
     },
-    "notices": [],
-    "_schema": "sapwc-flags-v2",
-    "_hmac": "db815cb2ac14b6d017a55c09bdc3e8677adb3988f72af58418d2b5ac2d4026c4"
+    "_hmac": "1bcda48bc4047bbf03c59cd218500399d4ea1442b4c29ab9a55b0f66d6a9e37c"
 }
