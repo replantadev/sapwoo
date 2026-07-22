@@ -40,7 +40,7 @@
             "miravia": true,
             "extension_hooks": true,
             "volume_pricing": true,
-            "b2b_invoices": false
+            "b2b_invoices": true
         }
     },
     "global": {
@@ -54,5 +54,5 @@
         "realtime_order_sync": true,
         "tiktok_channel": true
     },
-    "_hmac": "fa4504202b265e41530cfd212d90f36ffbe473c2fc23b9b6f808146bdaac118b"
+    "_hmac": "d3c852b2a0f17d9d27299561f1ac2ad048e8d61cb4121c08a238765ec90f74d5"
 }
