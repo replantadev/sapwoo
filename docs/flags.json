@@ -10,19 +10,8 @@
             "plan": "starter"
         }
     },
-    "_updated": "2026-07-21",
-    "kill_switches": {
-        "cron_sapwc_cron_sync_orders": false,
-        "cron_sapwc_cron_sync_stock": false,
-        "cron_sapwc_cron_sync_products": false,
-        "cron_sapwc_cron_sync_categories": false,
-        "endpoint_sync-order": false,
-        "endpoint_sync-products": false,
-        "endpoint_stock-update": false,
-        "realtime_order_sync": false,
-        "tiktok_channel": false
-    },
-    "plan_features": {
+    "_updated": "2026-07-22",
+    "plans": {
         "starter": {
             "multi_warehouse": true,
             "catalog_import": true,
@@ -30,7 +19,8 @@
             "multichannel": true,
             "miravia": false,
             "extension_hooks": true,
-            "volume_pricing": true
+            "volume_pricing": true,
+            "b2b_invoices": false
         },
         "business": {
             "multi_warehouse": false,
@@ -39,7 +29,8 @@
             "multichannel": true,
             "miravia": false,
             "extension_hooks": true,
-            "volume_pricing": true
+            "volume_pricing": true,
+            "b2b_invoices": true
         },
         "enterprise": {
             "multi_warehouse": true,
@@ -48,8 +39,20 @@
             "multichannel": true,
             "miravia": true,
             "extension_hooks": true,
-            "volume_pricing": true
+            "volume_pricing": true,
+            "b2b_invoices": false
         }
     },
-    "_hmac": "1bcda48bc4047bbf03c59cd218500399d4ea1442b4c29ab9a55b0f66d6a9e37c"
+    "global": {
+        "cron_sapwc_cron_sync_orders": true,
+        "cron_sapwc_cron_sync_stock": true,
+        "cron_sapwc_cron_sync_products": true,
+        "cron_sapwc_cron_sync_categories": true,
+        "endpoint_sync-order": true,
+        "endpoint_sync-products": true,
+        "endpoint_stock-update": true,
+        "realtime_order_sync": true,
+        "tiktok_channel": true
+    },
+    "_hmac": "fa4504202b265e41530cfd212d90f36ffbe473c2fc23b9b6f808146bdaac118b"
 }
