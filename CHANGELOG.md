@@ -6,6 +6,13 @@ El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1
 y este proyecto adhiere a [Versionado Semántico](https://semver.org/lang/es/).
 
 ---
+## [2.21.8] - 2026-07-24
+
+### Corregido
+
+- **`wp_sapwc_logs` ausente en instalaciones actualizadas por ZIP** — la tabla de logs se creaba solo en `register_activation_hook()`. En sitios donde el plugin se había desplegado por overwrite/upgrade sin reactivación, la tabla podía no existir nunca, dejando sin rastro los fallos de facturas B2B y otros eventos. Ahora el core ejecuta una autocuración en `plugins_loaded` y el propio logger fuerza la creación de la tabla si falta antes de insertar.
+
+---
 ## [2.21.7] - 2026-07-24
 
 ### Corregido
