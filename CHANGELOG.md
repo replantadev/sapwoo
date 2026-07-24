@@ -6,6 +6,13 @@ El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1
 y este proyecto adhiere a [Versionado Semántico](https://semver.org/lang/es/).
 
 ---
+## [2.21.7] - 2026-07-24
+
+### Corregido
+
+- **Facturas B2B sin rastro cuando falla también el logger DB** — algunos sitios podían mostrar "No se pudo obtener el PDF de la factura" y no dejar nada visible en `wp_sapwc_logs` si la inserción en esa tabla fallaba. Ahora el logger cae además a `error_log` y al logger de WooCommerce, y la descarga de factura anota explícitamente el inicio de la solicitud y el fallo final si `get_invoice_pdf()` devuelve `null`.
+
+---
 ## [2.21.6] - 2026-07-24
 
 ### Corregido
