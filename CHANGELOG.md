@@ -6,6 +6,47 @@ El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1
 y este proyecto adhiere a [Versionado Semántico](https://semver.org/lang/es/).
 
 ---
+## [2.21.4] - 2026-07-23
+
+### Corregido
+
+- **Descarga de factura B2B sin ningún log al fallar** — cuando `get_invoice_pdf()` no conseguía generar el PDF (sin adjunto en SAP y sin `sapwc_b2b_invoice_layout_code` configurado, o cualquier otro fallo de las dos estrategias), no quedaba ningún rastro en `wp_sapwc_logs`: el cliente solo veía "No se pudo obtener el PDF de la factura" sin que el operador pudiera saber por qué. Ahora cada estrategia registra en el log el motivo exacto (sin AttachmentEntry, LayoutCode no configurado, error SAP concreto, PDF inválido, etc.), filtrable por `docentry`.
+
+---
+## [2.21.3] - 2026-07-23
+
+### Corregido
+
+- **CardName incorrecto en facturas B2B** — `build_payload_b2b()` calculaba el `CardName` del pedido SAP con `get_formatted_billing_full_name()` (nombre y apellidos de quien compra), ignorando `billing_company`. Cuando el pedido traía el nombre personal en esos campos, la factura se emitía a nombre de la persona en vez de la empresa, pese a llevar el CIF de la empresa. Ahora se usa `billing_company` como `CardName` cuando existe, con el nombre personal como fallback para pedidos sin empresa.
+- **`Invalid value [ORDR.ShipToCode]` al crear pedidos** — el preflight de creación de dirección de envío (v2.17.0) puede sufrir un retraso de indexación en el Service Layer entre el PATCH que crea la `BPAddress` y el POST del pedido que la referencia, provocando el rechazo del pedido. Ahora, si SAP rechaza específicamente por `ShipToCode`, el envío reintenta automáticamente una vez sin ese campo, cayendo al mecanismo de respaldo existente (AddressExtension + PATCH posterior / reparación del Vigilante) en vez de dejar el pedido bloqueado.
+- **Vigilante no clasificaba el error de ShipToCode** — al no existir un patrón en `SAPWC_Error_Library` para "ShipToCode", estos fallos caían en `unknown` (warning fijo, sin alerta). Se añadió el patrón `shipto_invalid` con guía de resolución.
+
+### Añadido
+
+- **Portal de facturas B2B disponible en modo ecommerce** — antes requería `sapwc_mode = 'b2b'`. En modo ecommerce no existe un CardCode propio por cliente (los pedidos comparten CardCode de bucket regional), así que la titularidad de la factura se resuelve ahora por `NumAtCard` (número de pedido) contra los propios pedidos del usuario, en vez de por CardCode. Aplica tanto al botón "Descargar factura" como a la pestaña "Mis facturas" (limitada a los últimos 100 pedidos del cliente).
+- **Mensaje de indisponibilidad temporal cuando SAP no responde** — antes, si SAP estaba apagado (mantenimiento nocturno/fin de semana), el cliente veía "aún no tienes facturas" (indistinguible de no tener ninguna) o un error 502 al descargar. Ahora se distingue explícitamente y se muestra: "Las facturas no están disponibles en este momento porque nuestro sistema de gestión está fuera de servicio. Vuelve a intentarlo en horario laboral."
+
+---
+## [2.21.2] - 2026-07-22
+
+### Añadido
+
+- **Pestaña Licencia** (`admin/class-license-page.php`) — UI admin para ver/cambiar la license key asignada por Plugin Center, con estado, plan y expiración.
+- **Endpoint `flush-flags`** (`POST /wp-json/sapwc/v1/control/flush-flags`) — invalida el transient de feature flags remotamente; Plugin Center lo dispara tras actualizar `flags.json`.
+
+### Corregido
+
+- **Fix rsync vendor en CI** — `.github/workflows/deploy.yml` usaba `--exclude='vendor/'` sin anclar al root, lo que excluía también `assets/vendor/` (Chart.js, DataTables) y rompía los gráficos del dashboard B2B. Corregido a `--exclude='/vendor/'`.
+- **Endpoint de notificación al Hub apuntaba a una ruta inexistente** — usaba el slug del repo (`sap-woo-suite`) en vez del identificador de producto (`sapwoo-suite`) que el Hub tiene registrado, provocando un 404 silencioso en ese paso del CI.
+
+---
+## [2.21.1] - 2026-07-20
+
+### Corregido
+
+- **`add_transient()` fatal error** — La función `add_transient()` usada como mutex atómico en `class-sap-sync.php`, `class-product-sync.php`, `class-category-sync.php` y `class-customer-sync.php` no está en el core de WordPress (solo existe `set_transient`). Estaba siendo provista por el plugin SAPWCC (sapwc-control-center); al desactivar SAPWCC en cualquier sitio cliente la llamada causaba `PHP Fatal error: Call to undefined function add_transient()`. La función se define ahora en `includes/helper.php` con `if (!function_exists())` como polyfill propio de sap-woo-suite, implementando la semántica INSERT IGNORE atómica que requiere el patrón mutex. El MU plugin temporal `sapwc-atomic-lock.php` puede eliminarse de los sitios que ya lo tenían como workaround.
+
+---
 ## [2.20.1] - 2026-07-01
 
 ### Cambiado
