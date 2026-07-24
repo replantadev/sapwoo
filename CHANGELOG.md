@@ -6,6 +6,13 @@ El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1
 y este proyecto adhiere a [Versionado Semántico](https://semver.org/lang/es/).
 
 ---
+## [2.21.6] - 2026-07-24
+
+### Corregido
+
+- **Versión de release no actualizable en clientes** — el tag/release anterior se publicó con desalineación de versión interna (`Version`/`SAPWC_VERSION`/`Stable tag`), lo que impedía que WordPress mostrara la actualización en algunos sitios. Se sincronizan estos tres puntos en `2.21.6` para que el update checker detecte correctamente la nueva versión.
+
+---
 ## [2.21.4] - 2026-07-23
 
 ### Corregido
