@@ -6,6 +6,14 @@ El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1
 y este proyecto adhiere a [Versionado Semántico](https://semver.org/lang/es/).
 
 ---
+## [2.22.4] - 2026-08-24
+
+### Corregido
+
+- **Runtime PDF compatible con hostings gestionados** - el contenedor PHAR se distribuye con la extension neutra `pdf-runtime.dat`, ya que algunos sistemas de seguridad eliminan ficheros `.phar` despues de actualizar plugins. PHP lo abre mediante `phar://` sin perder el empaquetado atomico.
+- **Diagnostico del runtime** - si Dompdf no puede cargarse, el log indica si el contenedor existe, su tamano y la disponibilidad del wrapper PHAR.
+
+---
 ## [2.22.3] - 2026-08-24
 
 ### Corregido
