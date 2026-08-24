@@ -6,6 +6,13 @@ El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1
 y este proyecto adhiere a [Versionado Semántico](https://semver.org/lang/es/).
 
 ---
+## [2.22.6] - 2026-08-24
+
+### Corregido
+
+- **Migracion desde 2.22.3** - incluye un marcador de texto con el nombre legacy `pdf-runtime.phar` para superar la validacion del actualizador antiguo. El runtime real sigue transportandose como Base64 firmado y el generador nunca abre el marcador como PHAR.
+
+---
 ## [2.22.5] - 2026-08-24
 
 ### Corregido
