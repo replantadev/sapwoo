@@ -6,6 +6,131 @@ El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1
 y este proyecto adhiere a [Versionado Semántico](https://semver.org/lang/es/).
 
 ---
+## [2.22.0] - 2026-08-24
+
+### Añadido
+
+- **Generador PDF nativo para facturas B2B** - SAP Woo Suite puede maquetar la factura bajo demanda usando exclusivamente datos del Service Layer, sin Crystal Reports, servidor Windows, adjuntos ni almacenamiento permanente de PDFs. La primera plantilla reproduce el formato de Verdis: cabecera, cliente, albaran, lineas, descuentos, IVA, recargo de equivalencia, vencimientos, cuenta bancaria enmascarada, totales y pie legal.
+- **Fuente de PDF seleccionable** - nuevo ajuste `SAP: adjunto o layout` / `PDF nativo SAP Woo Suite - Verdis`. La opcion nativa queda desactivada por defecto y, si falla, conserva los fallbacks SAP existentes.
+- **Motor Dompdf 3.1.6 empaquetado** - renderizado PHP autocontenido compatible con PHP 7.4 o superior. La dependencia indirecta `thecodingmachine/safe` queda fijada en la rama 1.3 compatible con PHP 7.4 para evitar fallos de plataforma en instalaciones antiguas.
+- **Extensibilidad por filtros** - `sapwc_b2b_native_pdf_data`, `sapwc_b2b_native_pdf_lines`, `sapwc_b2b_native_pdf_company`, `sapwc_b2b_native_pdf_bank_names` y `sapwc_b2b_native_pdf_template_path` permiten anadir plantillas y reglas por cliente sin duplicar el motor.
+
+### Corregido
+
+- **Separacion contable de IVA y recargo** - SAP incluye ambos conceptos en `VatSum`/`TaxTotal`; el generador resta `TotalEqualizationTax` para mostrar por separado IVA y R.E. y agrupa las bases por pareja de tipos impositivos.
+- **Fechas independientes de la zona horaria** - las fechas `YYYY-MM-DD` de SAP se formatean sin pasar por timestamps, evitando que UTC reste un dia en servidores configurados con Europe/Madrid.
+
+---
+## [2.21.21] - 2026-08-19
+
+### Corregido
+
+- **Allowlist compatible con salida dual-stack** - los endpoints de control aceptan ahora hasta cuatro IPv4/IPv6 separadas por comas. Evita que una operacion legitima quede bloqueada cuando el Control Center sale por IPv6 aunque su IPv4 siga siendo la configurada.
+
+---
+## [2.21.20] - 2026-08-19
+
+### Corregido
+
+- **Telemetria fiable para el Vigilante** - `/control/pending-issues` informa ahora si la sincronizacion automatica esta habilitada, si `sapwc_cron_sync_orders` esta realmente programado en WP-Cron, cuantos minutos lleva vencido y el timestamp/estado/mensaje del ultimo intento. `cron_gap_minutes` se conserva para compatibilidad, deja de alertar cuando la sync esta desactivada y convierte correctamente los logs historicos desde la zona horaria de WordPress.
+- **Resultado real de `run-cron`** - el endpoint ya no responde `success=true` solo porque `do_action()` haya retornado: para pedidos comprueba que la ejecucion termino con estado `success` y expone el estado operativo.
+- **Trazabilidad de intentos** - la sync periodica registra inicio, bloqueo, fallo de configuracion/login, excepcion y finalizacion correcta en opciones ligeras, sin depender de que llegue a escribir la fila final de `wp_sapwc_logs`.
+- **Crons respetan los interruptores automaticos** - el hook `init` y el cambio de intervalo ya no vuelven a programar pedidos o stock cuando su opcion `*_auto` esta desactivada.
+
+---
+## [2.21.19] - 2026-08-10
+
+### Corregido
+
+- **Duplicacion de pedidos SAP en arranque en frio** - `send_order()` comprobaba si un pedido ya estaba exportado (`_sap_exported` en meta, y `check_order_in_sap()` contra SAP por NumAtCard) SIEMPRE antes de adquirir el mutex atomico introducido en 2.21.18, nunca despues. Dos invocaciones independientes para el mismo pedido - por ejemplo el hook de WooCommerce en tiempo real y `sapwc_sync_orders_with_lock()` recogiendo el mismo pedido en estado `processing`/`on-hold` durante el arranque - podian pasar ambas esa comprobacion con una diferencia de milisegundos, antes de que ninguna hubiera intentado siquiera el lock, y las dos terminaban haciendo su propio login independiente y su propio `POST /Orders`, creando dos documentos SAP reales para el mismo pedido (investigado y documentado sin modificar el producto en `FASE-A-ROOT-CAUSE.md`, laboratorio `replanta-plugin-lab`). El mutex en si nunca fallo: seguia impidiendo dos `POST` *simultaneos*, pero no protegia contra dos intentos *secuenciales muy cercanos* porque ninguna comprobacion de "ya enviado" se repetia dentro de la seccion critica. Ahora la unica comprobacion que decide si se hace el `POST /Orders` es la que se repite DENTRO del mutex, justo tras adquirirlo (o recuperarlo): relee `_sap_exported`/`_sap_docentry` via una recarga fresca del pedido y, si sigue sin constar, consulta `check_order_in_sap()` por NumAtCard para cubrir la ventana en la que un intento anterior recibio un 201 de SAP pero el proceso murio antes de persistirlo localmente. La comprobacion previa al lock se conserva solo como optimizacion (evita construir el payload y el preflight de direccion para un pedido obviamente ya exportado) pero nunca decide el envio. `_sap_exported`/`_sap_docentry` se persisten de inmediato al recibir el 201, todavia dentro de la seccion critica, antes de liberar el lock - no despues, como antes. Una excepcion en cualquier punto de ese re-chequeo o de la persistencia (incluida una caida justo tras el 201) ya no se propaga sin control: se trata como un fallo recuperable, se programa reintento via Action Scheduler, y ese reintento repetira el `check_order_in_sap()` dentro de un lock nuevo antes de considerar un segundo `POST`. Sin refactor de `sapwc_sync_orders_with_lock()` (no autorizado en este sprint): al canalizar ambos llamadores por el mismo `send_order()` corregido, queda cubierto igualmente. Limite conocido y documentado, no asumido: la re-comprobacion depende de que el Service Layer de SAP refleje un `POST /Orders` anterior de inmediato ante una consulta `GET` desde una sesion distinta; el codigo no afirma ni depende de que SAP imponga una restriccion de unicidad propia sobre NumAtCard.
+
+---
+## [2.21.18] - 2026-08-10
+
+### Corregido
+
+- **Mutex de `send_order()` sin recuperacion real ante un crash** - el "TTL de 90s via expiracion de transient" que documentaba el codigo nunca funciono: escribia una transient real bajo una clave DISTINTA (sufijo `_timeout`, no el prefijo `_transient_timeout_` que WordPress espera para emparejar con la fila del lock), y nada volvia a leer esa clave para decidir liberar el lock original. Un worker que muriera (OOM, timeout, kill) entre adquirir el lock y liberarlo dejaba la fila bloqueada para siempre, impidiendo el reenvio de ese pedido de forma permanente. Ahora la expiracion vive dentro del propio valor de la fila (token + `expires_at` real), con recuperacion segura via compare-and-swap (dos workers no pueden recuperar el mismo lock expirado a la vez) y liberacion exclusiva por propietario (comparando el token completo, no solo el nombre de la opcion, para que un worker antiguo nunca pueda borrar el lock de uno mas nuevo). La adquisicion sigue siendo atomica (`INSERT IGNORE`, sin cambios). El envio en si ahora esta envuelto en `try/finally` para liberar el lock tambien ante una excepcion no relacionada con un crash del proceso.
+
+---
+## [2.21.17] - 2026-08-10
+
+### Corregido
+
+- **`SAPWC_Category_Sync::import_single()` lanzaba un fatal error de PHP** - llamaba a `self::process_category()`, un metodo que no existe en la clase. Reutiliza ahora `import_category()` (el mismo metodo que ya usa el manejador AJAX de importacion individual) y adapta correctamente su contrato real: `success`, `action` (`created`/`updated`/`linked`), `term_id`, `name`, o `success=false` con `message` ante datos incompletos o un `WP_Error` de `wp_insert_term()`.
+
+---
+## [2.21.16] - 2026-08-10
+
+### Corregido
+
+- **Tabla de historial de importaciones nunca se creaba en la activacion** - `SAPWC_Import_History::create_table()` solo se llamaba de forma perezosa en el primer `insert()`, pese a que el docblock de la clase afirmaba que se creaba al activar el plugin. Ahora se registra en `register_activation_hook()` (instalacion limpia) y en un auto-rescate en `plugins_loaded` (instalaciones existentes actualizadas por sobrescritura de ZIP, que nunca disparan el hook de activacion) - mismo patron ya usado para `wp_sapwc_logs`. El ensure perezoso en `insert()` se conserva como defensa adicional. Migracion idempotente (`CREATE TABLE IF NOT EXISTS`), nunca borra filas existentes.
+
+---
+## [2.21.15] - 2026-07-28
+
+### Corregido
+
+- **Descarga de lineas secundarias de adjuntos SAP** - `Attachments2/$value` ahora selecciona el PDF mediante `filename='nombre.pdf'`, que es el contrato oficial de Service Layer. Antes se enviaba `lineNumber`, parametro no soportado que podia devolver el primer adjunto o fallar cuando el PDF no era la primera linea.
+- **Validacion estricta del binario** - el contenido descargado debe comenzar por `%PDF` incluso si SAP declara extension `pdf`, evitando entregar respuestas de error u otros archivos con cabecera `application/pdf`.
+- **Errores operativos visibles en logs del servidor** - las entradas con estado `error` se reflejan siempre en `error_log`, incluso cuando se guardan correctamente en `wp_sapwc_logs`.
+- **Deploy bloqueado sin lint PHP** - `build.ps1 -Deploy` aborta si no encuentra `php.exe`; el build local puede seguir generando un ZIP con una advertencia explicita.
+
+---
+## [2.21.14] - 2026-07-24
+
+### Corregido
+
+- **Diagnóstico inequívoco en exportación de layouts** — si todas las variantes probadas de `ReportLayoutsService_*` responden `Command Not Found`, ahora el log lo indica explícitamente para evitar falsos positivos de compatibilidad.
+- **Mensajes de trazas más precisos** — la línea de sondeo pasa a reportar comandos "candidatos tras sondeo" en lugar de asumir que están activos.
+
+---
+## [2.21.13] - 2026-07-24
+
+### Corregido
+
+- **Sondeo previo de comandos ReportLayoutsService** — antes de intentar exportar, el plugin ahora prueba qué comandos están realmente disponibles en ese SAP y descarta automáticamente los que devuelven `Command Not Found`.
+- **Menos reintentos inútiles y más diagnósticos accionables** — si ningún comando está soportado, se registra explícitamente ese estado en logs en lugar de fallar tras múltiples intentos indistinguibles.
+
+### Añadido
+
+- **Compatibilidad extendida de comandos** — se añaden variantes frecuentes (`ExportReport`, `ExportAsPdf`, `ExportReportToPdf`) y filtro `sapwc_b2b_invoice_report_layout_paths` para override por cliente.
+
+---
+## [2.21.12] - 2026-07-24
+
+### Corregido
+
+- **Compatibilidad de exportación PDF con SAP heterogéneo** — cuando `ReportLayoutsService_ExportToPdf` devolvía `Command Not Found`, ahora el plugin detecta comandos `ReportLayoutsService_*` disponibles desde `/$metadata` y reintenta automáticamente con los endpoints reales del entorno.
+- **Fallback sin LayoutCode** — si hay `LayoutCode` configurado y SAP no devuelve PDF, ahora también prueba exportación con layout por defecto del documento, evitando bloqueos por layouts no válidos para una serie/factura concreta.
+
+---
+## [2.21.11] - 2026-07-24
+
+### Corregido
+
+- **Descarga de adjuntos PDF SAP con auto-relogin** — la estrategia de descarga por `Attachments2/$value` ahora usa el cliente HTTP interno con retry automático en `401` (sesión SAP expirada), evitando falsos fallos de "No se pudo obtener el PDF" cuando el adjunto sí existe.
+- **Diagnóstico de error más útil** — cuando SAP responde error al descargar adjuntos o en exportación, se conserva un mensaje más legible en log para acelerar soporte en producción.
+
+---
+## [2.21.10] - 2026-07-24
+
+### Corregido
+
+- **Updater Replanta más fiable** — el chequeo forzado ahora ejecuta `wp_update_plugins()` inmediatamente y el estado del plugin se publica de forma consistente en `response/no_update`, evitando casos en los que no aparecía como actualizable.
+- **Backoff de errores del endpoint de updates** — cuando el endpoint remoto falla, el cache vacío ya no bloquea 12h; se reduce a 5 minutos para reintentar y recuperar visibilidad de updates más rápido.
+
+### Ajustado
+
+- **Retirada del parche forense temporal** (`sapwc_b2b_invoice_last_failure`) para no dejar telemetría adicional en producción.
+
+---
+## [2.21.9] - 2026-07-24
+
+### Corregido
+
+- **Diagnóstico forense de fallos PDF B2B** — cuando la descarga de factura terminaba en el mensaje genérico y no había rastro útil en `debug.log` o en `wp_sapwc_logs`, era difícil identificar el motivo real en producción. Ahora el plugin persiste siempre el último fallo en la opción `sapwc_b2b_invoice_last_failure` (timestamp, docentry, user_id, modo, layout y versión), además de emitirlo por `error_log`.
+
+---
 ## [2.21.8] - 2026-07-24
 
 ### Corregido

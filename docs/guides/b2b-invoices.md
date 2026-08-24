@@ -22,7 +22,12 @@ La relación se cachea en el meta del pedido (`_sap_invoice_docentry`, `_sap_inv
 
 ## Fuente del PDF (cadena de fallback)
 
-El plugin intenta obtener el PDF en este orden:
+El ajuste **Fuente del PDF** permite elegir entre:
+
+- **SAP: adjunto o layout** (predeterminado): conserva el comportamiento historico y no genera documentos en WordPress.
+- **PDF nativo SAP Woo Suite - Verdis**: consulta la factura completa y sus entidades relacionadas en Service Layer y genera el PDF bajo demanda en PHP. No requiere Crystal Reports, Windows, adjuntos ni un servicio externo. Si el render nativo falla, se intentan automaticamente los fallbacks SAP.
+
+Antes de aplicar la estrategia seleccionada, las integraciones externas pueden devolver bytes o una URL mediante los filtros. El orden completo es:
 
 1. **Filtro `sapwc_b2b_invoice_pdf_bytes`** — Para clientes que generan los PDFs en un servicio propio y quieren devolver bytes binarios:
 
@@ -41,9 +46,11 @@ El plugin intenta obtener el PDF en este orden:
    }, 10, 2 );
    ```
 
-3. **Adjunto SAP (`AttachmentsContent`)** — Si la factura tiene un PDF adjunto en SAP (`Invoices(N).AttachmentEntry`), el plugin lo descarga vía Service Layer reutilizando la cookie de sesión.
+3. **PDF nativo** - solo cuando se selecciona esa fuente. Obtiene factura, Business Partner, condiciones de pago y albaran base desde Service Layer, separa IVA y recargo de equivalencia y renderiza la plantilla configurada.
 
-4. **`ReportLayoutsService_ExportToPdf`** — Como último recurso, exporta el layout (Crystal/PLD) configurado en **SAP Woo Suite > Ajustes > B2B > Portal B2B: Descarga de facturas > LayoutCode**. Si está vacío, SAP usa el layout por defecto del documento.
+4. **Adjunto SAP (`AttachmentsContent`)** — Si la factura tiene un PDF adjunto en SAP (`Invoices(N).AttachmentEntry`), el plugin lo descarga vía Service Layer reutilizando la cookie de sesión.
+
+5. **`ReportLayoutsService_ExportToPdf`** — Como último recurso, exporta el layout (Crystal/PLD) configurado en **SAP Woo Suite > Ajustes > B2B > Portal B2B: Descarga de facturas > LayoutCode**. Si está vacío, SAP usa el layout por defecto del documento.
 
 ## Seguridad
 
