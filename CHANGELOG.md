@@ -6,6 +6,13 @@ El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1
 y este proyecto adhiere a [Versionado Semántico](https://semver.org/lang/es/).
 
 ---
+## [2.22.2] - 2026-08-24
+
+### Corregido
+
+- **Runtime PDF resistente a instaladores que eliminan `vendor/`** - el paquete distribuible coloca una unica copia de las dependencias Composer bajo `includes/pdf-runtime/`. El generador prueba primero esa ruta y conserva `vendor/autoload.php` como fallback para desarrollo, evitando que Dompdf desaparezca tras una actualizacion remota en determinados hostings gestionados.
+
+---
 ## [2.22.1] - 2026-08-24
 
 ### Corregido
