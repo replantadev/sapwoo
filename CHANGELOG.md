@@ -6,6 +6,15 @@ El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1
 y este proyecto adhiere a [Versionado Semántico](https://semver.org/lang/es/).
 
 ---
+## [2.22.3] - 2026-08-24
+
+### Corregido
+
+- **Runtime PDF atomico** - Dompdf y sus dependencias se distribuyen dentro de un unico `includes/pdf-runtime.phar`, evitando instalaciones parciales causadas por limites de archivos o inodos del hosting.
+- **Actualizacion valida el paquete extraido** - el endpoint remoto comprueba el resultado de `ZipArchive::extractTo()` y la presencia del plugin, generador y runtime PDF antes del intercambio atomico. Si falta algo, conserva la version anterior.
+- **Descargas de factura sin cache** - cada enlace incorpora un identificador de cache y el manejador envia cabeceras `no-cache` desde el inicio, evitando reutilizar paginas de error antiguas con el mismo nonce.
+
+---
 ## [2.22.2] - 2026-08-24
 
 ### Corregido
