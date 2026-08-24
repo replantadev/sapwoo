@@ -6,6 +6,14 @@ El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1
 y este proyecto adhiere a [Versionado Semántico](https://semver.org/lang/es/).
 
 ---
+## [2.22.5] - 2026-08-24
+
+### Corregido
+
+- **Runtime PDF transportado como texto validado** - el paquete incluye el motor codificado en Base64 y su SHA-256. En el primer uso se reconstruye atomicamente en la cache escribible, evitando que los filtros del hosting eliminen archivos que detectan como PHAR durante la instalacion.
+- **Instalacion segura** - el actualizador exige tanto el runtime codificado como su firma y conserva la version anterior si la extraccion queda incompleta.
+
+---
 ## [2.22.4] - 2026-08-24
 
 ### Corregido
