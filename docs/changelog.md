@@ -6,6 +6,14 @@ El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1
 y este proyecto adhiere a [Versionado Semántico](https://semver.org/lang/es/).
 
 ---
+## [2.22.1] - 2026-08-24
+
+### Corregido
+
+- **Dompdf compatible con permisos de hosting** - la cache de fuentes y los temporales del PDF nativo se escriben ahora en `wp-content/uploads/sapwc-pdf-cache`, en lugar de depender del directorio temporal del sistema o de permisos dentro del plugin.
+- **Diagnostico real del render PDF** - se capturan excepciones de Dompdf y se registran de forma segura la ausencia del autoloader, clase o extensiones PHP requeridas, asi como longitud y cabecera de una salida invalida. El fallback SAP se conserva sin mostrar detalles internos al cliente.
+
+---
 ## [2.22.0] - 2026-08-24
 
 ### Añadido
