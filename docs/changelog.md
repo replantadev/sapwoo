@@ -6,6 +6,15 @@ El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1
 y este proyecto adhiere a [Versionado Semántico](https://semver.org/lang/es/).
 
 ---
+## [2.22.12] - 2026-08-25
+
+### Corregido
+
+- **Portal de facturas independiente del modo** - sus ajustes se muestran tanto en ecommerce como en B2B; solo la tarifa individual permanece condicionada al modo B2B.
+- **Disponible en todos los planes** - el flag `b2b_invoices` queda activo por defecto tambien en Starter, manteniendo los overrides por sitio como autoridad superior.
+- **Etiquetas coherentes** - la administracion deja de presentar esta funcion compartida como exclusiva del portal B2B.
+
+---
 ## [2.22.11] - 2026-08-25
 
 ### Corregido

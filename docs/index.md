@@ -12,7 +12,7 @@ El conector de WooCommerce para SAP Business One es un plugin premium de WordPre
 - **Productos SAP → WC**: importación masiva con delta sync (UpdateDate) y mapeo de campos personalizable.
 - **Stock SAP → WC**: webhook para actualizaciones en tiempo real.
 - **Clientes SAP → WC**: importación con Action Scheduler + emails de bienvenida.
-- **Portal B2B de facturas**: los clientes B2B descargan sus PDFs de SAP desde Mi cuenta de WooCommerce.
+- **Portal de facturas**: los clientes ecommerce y B2B descargan sus PDFs de SAP desde Mi cuenta de WooCommerce.
 - **Multicanal**: soporte para TikTok Shop, Amazon, eBay y Miravia.
 - **Control Center remoto**: gestión, health check, logs, actualizaciones y rotación de secretos desde un panel central.
 
@@ -24,7 +24,7 @@ El conector de WooCommerce para SAP Business One es un plugin premium de WordPre
 | **Retry inteligente** | Action Scheduler con back-off exponencial y cola de reintentos |
 | **Idempotencia** | Evita duplicados verificando en SAP antes de crear |
 | **Delta sync de catálogo** | Solo importa artículos modificados (`UpdateDate`) |
-| **Portal B2B de facturas** | Botón de descarga en Mis pedidos + pestaña Mis facturas |
+| **Portal de facturas** | Botón de descarga en Mis pedidos + pestaña Mis facturas |
 | **Dashboard multicanal** | Vista unificada de WooCommerce + marketplaces |
 | **REST API** | Endpoints públicos para integraciones externas |
 | **Control API** | Cinco endpoints REST para el Control Center (logs, cache, cron, mantenimiento, update) |
@@ -52,7 +52,7 @@ Ver el [changelog completo](changelog.md) para todas las versiones.
 - [Sincronización de pedidos](guides/sync-orders.md)
 - [Importación de productos](guides/import-products.md)
 - [Importación de clientes](guides/import-customers.md)
-- [Portal B2B — descarga de facturas](guides/b2b-invoices.md)
+- [Portal de facturas](guides/b2b-invoices.md)
 - [REST API](guides/rest-api.md)
 
 ## Soporte

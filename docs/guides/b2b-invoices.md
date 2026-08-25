@@ -1,4 +1,6 @@
-# Portal B2B: Descarga de facturas SAP
+# Portal de facturas SAP
+
+Esta funcion esta disponible en los modos ecommerce y B2B. En ecommerce la titularidad se valida contra los pedidos WooCommerce del usuario mediante `NumAtCard`; en B2B se valida mediante el `CardCode` asociado al cliente.
 
 > Disponible desde **v2.20.0**. Requiere plan **Business** o **Enterprise** y modo **B2B** activo.
 
@@ -50,7 +52,7 @@ Antes de aplicar la estrategia seleccionada, las integraciones externas pueden d
 
 4. **Adjunto SAP (`AttachmentsContent`)** — Si la factura tiene un PDF adjunto en SAP (`Invoices(N).AttachmentEntry`), el plugin lo descarga vía Service Layer reutilizando la cookie de sesión.
 
-5. **`ReportLayoutsService_ExportToPdf`** — Como último recurso, exporta el layout (Crystal/PLD) configurado en **SAP Woo Suite > Ajustes > B2B > Portal B2B: Descarga de facturas > LayoutCode**. Si está vacío, SAP usa el layout por defecto del documento.
+5. **`ReportLayoutsService_ExportToPdf`** — Como último recurso, exporta el layout (Crystal/PLD) configurado en **SAP Woo Suite > Ajustes > Sincronización > Portal de facturas > LayoutCode**. Si está vacío, SAP usa el layout por defecto del documento.
 
 ## Seguridad
 
@@ -67,7 +69,7 @@ Antes de aplicar la estrategia seleccionada, las integraciones externas pueden d
 1. **Ajustes > SAP Woo Suite > Sincronización > B2B**:
    - Asegúrate de que el modo está en `B2B`.
    - Confirma que el `Campo Meta de Usuario para CardCode` apunta al campo correcto (por defecto `user_login`).
-2. **Portal B2B: Descarga de facturas** (mismo tab):
+2. **Portal de facturas** (mismo tab):
    - Activa "Activar portal de facturas" (por defecto ya está ON).
    - (Opcional) Indica un `LayoutCode` si quieres forzar un layout concreto para la exportación PDF.
 3. Visita `/mi-cuenta/` con un usuario B2B y comprueba que aparece la pestaña **Mis facturas**.
