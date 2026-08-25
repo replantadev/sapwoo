@@ -6,6 +6,15 @@ El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1
 y este proyecto adhiere a [Versionado Semántico](https://semver.org/lang/es/).
 
 ---
+## [2.22.16] - 2026-08-25
+
+### Corregido
+
+- **Identidad fiscal en pedidos B2B** - el payload deja de sobrescribir `CardName`; SAP recupera el nombre fiscal directamente del Business Partner identificado por `CardCode`.
+- **Nombre comercial B2B** - el UDF semantico `company_name` usa primero el meta importado desde `CardForeignName`, con compatibilidad para clientes antiguos mediante `billing_company`.
+- **Regresion 2.21.3** - se deshace la mezcla entre nombre fiscal y empresa de facturacion que colocaba el nombre comercial en ambos campos del pedido SAP.
+
+---
 ## [2.22.15] - 2026-08-25
 
 ### Corregido
