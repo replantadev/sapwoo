@@ -6,6 +6,16 @@ El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1
 y este proyecto adhiere a [Versionado Semántico](https://semver.org/lang/es/).
 
 ---
+## [2.22.15] - 2026-08-25
+
+### Corregido
+
+- **Destinatario real en ecommerce** - la factura nativa usa el nombre, empresa, NIF y direcciones del pedido WooCommerce, manteniendo el cliente generico exclusivamente como socio interno de SAP.
+- **Snapshot documental en SAP** - los nuevos pedidos ecommerce conservan el `CardCode` generico, pero envian el comprador real en `CardName` y la direccion de facturacion en `AddressExtension`.
+- **Maquetacion del PDF** - el pie se integra en la ultima pagina, se elimina la hoja vacia adicional, las fechas se muestran en espanol y se corrigen subtotal y forma de pago.
+- **Compatibilidad B2B** - el portal B2B conserva los datos fiscales y direcciones procedentes de SAP sin alterar su comportamiento.
+
+---
 ## [2.22.14] - 2026-08-25
 
 ### Corregido
