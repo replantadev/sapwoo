@@ -6,6 +6,15 @@ El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1
 y este proyecto adhiere a [Versionado Semántico](https://semver.org/lang/es/).
 
 ---
+## [2.22.11] - 2026-08-25
+
+### Corregido
+
+- **Configuracion propia de facturas** - los selectores de logo y de imagen de pie pertenecen ahora a SAP Woo Suite y no dependen de Replanta Care.
+- **Datos del emisor** - la direccion se obtiene de WooCommerce, traduciendo provincia y pais, y admite overrides para nombre, tres lineas de direccion, telefono, fax, web, correo y CIF.
+- **Plantilla distribuible** - conserva valores vacios o genericos cuando una tienda no configura datos fiscales; no incluye nombres ni datos de ninguna empresa cliente.
+
+---
 ## [2.22.10] - 2026-08-25
 
 ### Anadido
