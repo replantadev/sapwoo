@@ -6,13 +6,23 @@ El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1
 y este proyecto adhiere a [Versionado Semántico](https://semver.org/lang/es/).
 
 ---
+## [2.22.9] - 2026-08-25
+
+### Corregido
+
+- **Identidad de factura distribuible** - elimina nombres, datos fiscales, rutas, assets y plantillas vinculados a una empresa concreta. Los datos del emisor proceden de WordPress/WooCommerce y siguen siendo personalizables mediante filtros.
+- **Logo gestionado por Care** - utiliza el adjunto configurado en Replanta Care y lo coloca proporcionalmente en la cabecera de todas las paginas. Admite PNG, PNG con transparencia y JPEG sin dependencias externas.
+- **Plantilla generica** - renombra la plantilla y la herramienta de inspeccion Crystal, elimina assets particulares y conserva un fallback al logo general del sitio cuando Care no esta disponible.
+- **Asset de actualizacion determinista** - si un release contiene ZIP duplicados, el actualizador selecciona expresamente `sap-woo-suite-vX.Y.Z.zip` en lugar de depender del orden devuelto por GitHub.
+
+---
 ## [2.22.8] - 2026-08-25
 
 ### Corregido
 
 - **PDF sin dependencias externas** - las facturas B2B se generan con un motor PDF escrito en PHP e incluido como codigo fuente normal. No requiere Dompdf, Composer, PHAR, Base64, binarios ni directorios temporales, evitando los filtros del hosting que eliminaban el runtime durante la instalacion.
 - **Actualizacion verificable** - el paquete valida la presencia del nuevo motor PHP y conserva marcadores minimos para permitir la migracion desde los contratos de actualizacion de las versiones 2.22.3 a 2.22.7.
-- **Maquetacion Verdis** - el escritor reproduce cabecera, cliente, lineas, impuestos, vencimientos, totales y pagina legal en A4 con primitivas PDF estandar.
+- **Maquetacion de factura** - el escritor reproduce cabecera, cliente, lineas, impuestos, vencimientos, totales y pagina legal en A4 con primitivas PDF estandar.
 
 ---
 ## [2.22.7] - 2026-08-25
@@ -74,8 +84,8 @@ y este proyecto adhiere a [Versionado Semántico](https://semver.org/lang/es/).
 
 ### Añadido
 
-- **Generador PDF nativo para facturas B2B** - SAP Woo Suite puede maquetar la factura bajo demanda usando exclusivamente datos del Service Layer, sin Crystal Reports, servidor Windows, adjuntos ni almacenamiento permanente de PDFs. La primera plantilla reproduce el formato de Verdis: cabecera, cliente, albaran, lineas, descuentos, IVA, recargo de equivalencia, vencimientos, cuenta bancaria enmascarada, totales y pie legal.
-- **Fuente de PDF seleccionable** - nuevo ajuste `SAP: adjunto o layout` / `PDF nativo SAP Woo Suite - Verdis`. La opcion nativa queda desactivada por defecto y, si falla, conserva los fallbacks SAP existentes.
+- **Generador PDF nativo para facturas B2B** - SAP Woo Suite puede maquetar la factura bajo demanda usando exclusivamente datos del Service Layer, sin Crystal Reports, servidor Windows, adjuntos ni almacenamiento permanente de PDFs. La plantilla incluye cabecera, cliente, albaran, lineas, descuentos, IVA, recargo de equivalencia, vencimientos, cuenta bancaria enmascarada, totales y pie legal.
+- **Fuente de PDF seleccionable** - nuevo ajuste `SAP: adjunto o layout` / `PDF nativo SAP Woo Suite`. La opcion nativa queda desactivada por defecto y, si falla, conserva los fallbacks SAP existentes.
 - **Motor Dompdf 3.1.6 empaquetado** - renderizado PHP autocontenido compatible con PHP 7.4 o superior. La dependencia indirecta `thecodingmachine/safe` queda fijada en la rama 1.3 compatible con PHP 7.4 para evitar fallos de plataforma en instalaciones antiguas.
 - **Extensibilidad por filtros** - `sapwc_b2b_native_pdf_data`, `sapwc_b2b_native_pdf_lines`, `sapwc_b2b_native_pdf_company`, `sapwc_b2b_native_pdf_bank_names` y `sapwc_b2b_native_pdf_template_path` permiten anadir plantillas y reglas por cliente sin duplicar el motor.
 

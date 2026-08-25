@@ -25,7 +25,7 @@ La relación se cachea en el meta del pedido (`_sap_invoice_docentry`, `_sap_inv
 El ajuste **Fuente del PDF** permite elegir entre:
 
 - **SAP: adjunto o layout** (predeterminado): conserva el comportamiento historico y no genera documentos en WordPress.
-- **PDF nativo SAP Woo Suite - Verdis**: consulta la factura completa y sus entidades relacionadas en Service Layer y genera el PDF bajo demanda en PHP. No requiere Crystal Reports, Windows, adjuntos ni un servicio externo. Si el render nativo falla, se intentan automaticamente los fallbacks SAP.
+- **PDF nativo SAP Woo Suite**: consulta la factura completa y sus entidades relacionadas en Service Layer y genera el PDF bajo demanda en PHP. No requiere Crystal Reports, Windows, adjuntos ni un servicio externo. Si el render nativo falla, se intentan automaticamente los fallbacks SAP.
 
 Antes de aplicar la estrategia seleccionada, las integraciones externas pueden devolver bytes o una URL mediante los filtros. El orden completo es:
 
