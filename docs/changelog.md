@@ -6,6 +6,18 @@ El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1
 y este proyecto adhiere a [Versionado Semántico](https://semver.org/lang/es/).
 
 ---
+## [2.22.17] - 2026-08-25
+
+### Corregido
+
+- **Publicador unico** - GitHub Actions queda limitado a lint y PHPUnit en PHP 8.1/8.2; solo `build.ps1 -Deploy` puede crear tags, releases, ZIPs y registros en License API.
+- **Contrato de release** - el deploy ejecuta PHPUnit obligatoriamente y aborta si GitHub no contiene exactamente un ZIP canonico `sap-woo-suite-vX.Y.Z.zip`.
+- **Compatibilidad real** - se declara PHP 8.1 como minimo y se alinean Composer, updater, License API, WordPress 7.1 y WooCommerce 11.0.1 con los entornos verificados.
+- **Contratos SAP** - pruebas completas fijan la identidad/UDF B2B, las lineas del documento, el comprador ecommerce y el reintento sin `ShipToCode` tras rechazo de SAP.
+- **Cache UDF** - el mapeo `sapwc_order_udf_mapping` usa object cache invalidable al guardar la opcion, evitando valores obsoletos dentro del proceso.
+- **Runbook para agentes** - `DEPLOYMENT.md` documenta versionado, gates, hashes, Plugin Center, salud, smoke tests y rollback.
+
+---
 ## [2.22.16] - 2026-08-25
 
 ### Corregido

@@ -4,7 +4,7 @@
 
 - WordPress 5.8 o superior
 - WooCommerce 6.0 o superior
-- PHP 7.4 o superior
+- PHP 8.1 o superior
 - SAP Business One con Service Layer habilitado
 - Acceso HTTPS al servidor SAP (puerto 50000 por defecto)
 
