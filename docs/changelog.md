@@ -6,6 +6,14 @@ El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1
 y este proyecto adhiere a [Versionado Semántico](https://semver.org/lang/es/).
 
 ---
+## [2.22.7] - 2026-08-25
+
+### Corregido
+
+- **Runtime PDF dividido en bloques** - el motor codificado se distribuye en bloques de texto de 512 KiB con manifiesto y SHA-256 global. Evita el limite por archivo del hosting que omitio el `runtime.b64` de 24 MB, manteniendo la reconstruccion atomica y verificada en la cache.
+- **Migracion desde 2.22.6** - conserva marcadores pequenos para satisfacer el contrato del actualizador instalado mientras el generador utiliza exclusivamente el manifiesto y los bloques.
+
+---
 ## [2.22.6] - 2026-08-24
 
 ### Corregido
