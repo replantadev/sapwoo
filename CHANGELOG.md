@@ -6,6 +6,15 @@ El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1
 y este proyecto adhiere a [Versionado Semántico](https://semver.org/lang/es/).
 
 ---
+## [2.22.8] - 2026-08-25
+
+### Corregido
+
+- **PDF sin dependencias externas** - las facturas B2B se generan con un motor PDF escrito en PHP e incluido como codigo fuente normal. No requiere Dompdf, Composer, PHAR, Base64, binarios ni directorios temporales, evitando los filtros del hosting que eliminaban el runtime durante la instalacion.
+- **Actualizacion verificable** - el paquete valida la presencia del nuevo motor PHP y conserva marcadores minimos para permitir la migracion desde los contratos de actualizacion de las versiones 2.22.3 a 2.22.7.
+- **Maquetacion Verdis** - el escritor reproduce cabecera, cliente, lineas, impuestos, vencimientos, totales y pagina legal en A4 con primitivas PDF estandar.
+
+---
 ## [2.22.7] - 2026-08-25
 
 ### Corregido
