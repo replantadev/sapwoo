@@ -6,6 +6,14 @@ El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1
 y este proyecto adhiere a [Versionado Semántico](https://semver.org/lang/es/).
 
 ---
+## [2.22.13] - 2026-08-25
+
+### Corregido
+
+- **Endpoint de facturas en ecommerce** - regenera una sola vez las reglas de enlaces permanentes cuando el portal queda disponible, evitando el error 404 en `/mi-cuenta/mis-facturas/` tras habilitar la funcion mediante flags.
+- **Sin paginas manuales** - el endpoint sigue perteneciendo a Mi cuenta de WooCommerce y no requiere crear una pagina de WordPress ni guardar manualmente los enlaces permanentes.
+
+---
 ## [2.22.12] - 2026-08-25
 
 ### Corregido
