@@ -6,6 +6,14 @@ El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1
 y este proyecto adhiere a [Versionado Semántico](https://semver.org/lang/es/).
 
 ---
+## [2.22.10] - 2026-08-25
+
+### Anadido
+
+- **Imagen de pie configurable** - utiliza la segunda imagen seleccionada en Replanta Care y la coloca proporcionalmente, sin marco, en el pie derecho de la ultima pagina de la factura.
+- **Motor PDF integrado** - incrusta la imagen de pie en PNG o JPEG sin dependencias externas y sin textos o recursos vinculados a una empresa concreta.
+
+---
 ## [2.22.9] - 2026-08-25
 
 ### Corregido
