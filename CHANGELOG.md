@@ -6,6 +6,14 @@ El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1
 y este proyecto adhiere a [Versionado Semántico](https://semver.org/lang/es/).
 
 ---
+## [2.22.14] - 2026-08-25
+
+### Corregido
+
+- **Enlace resistente a caches 404** - el menu de Mi cuenta usa la forma equivalente `?mis-facturas=1`, compatible con los parametros de geolocalizacion de WooCommerce y sin depender de una URL limpia que el navegador pudiera conservar como 404.
+- **Compatibilidad** - se mantienen el endpoint y sus reglas de enlaces permanentes para que las URLs limpias existentes sigan funcionando.
+
+---
 ## [2.22.13] - 2026-08-25
 
 ### Corregido
