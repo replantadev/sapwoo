@@ -10,7 +10,7 @@
             "plan": "starter"
         }
     },
-    "_updated": "2026-07-22",
+    "_updated": "2026-08-25",
     "plans": {
         "starter": {
             "multi_warehouse": true,
@@ -20,7 +20,7 @@
             "miravia": false,
             "extension_hooks": true,
             "volume_pricing": true,
-            "b2b_invoices": false
+            "b2b_invoices": true
         },
         "business": {
             "multi_warehouse": false,
@@ -54,5 +54,5 @@
         "realtime_order_sync": true,
         "tiktok_channel": true
     },
-    "_hmac": "d3c852b2a0f17d9d27299561f1ac2ad048e8d61cb4121c08a238765ec90f74d5"
+    "_hmac": "9e9cea205cc4890ff4a269bf62333e3462e0c2b504419eb8332cff4de3f0f14f"
 }
