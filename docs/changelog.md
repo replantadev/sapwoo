@@ -6,6 +6,15 @@ El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1
 y este proyecto adhiere a [Versionado Semántico](https://semver.org/lang/es/).
 
 ---
+## [2.22.18] - 2026-08-26
+
+### Corregido
+
+- **Descripciones largas en facturas** - el motor PDF integrado calcula el ancho real de cada texto con las metricas de Helvetica y evita que las descripciones invadan la columna Cantidad.
+- **Legibilidad sin perdida de datos** - las descripciones reducen su tamano solo cuando es necesario, conservan completo el contenido de las lineas reales de la factura y usan puntos suspensivos unicamente para valores patologicamente largos.
+- **Cobertura de regresion** - una prueba fija el limite de 183 puntos de la columna y garantiza que el texto renderizado nunca exceda ese espacio.
+
+---
 ## [2.22.17] - 2026-08-25
 
 ### Corregido
