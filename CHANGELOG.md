@@ -6,6 +6,16 @@ El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1
 y este proyecto adhiere a [Versionado Semántico](https://semver.org/lang/es/).
 
 ---
+## [2.22.19] - 2026-08-27
+
+### Corregido
+
+- **Descarga segun estado** - las facturas pendientes siguen visibles en el portal, pero solo las cerradas y no anuladas en SAP ofrecen el PDF.
+- **Proteccion real** - la misma regla se valida en el boton de pedidos, la descarga web y el endpoint REST para impedir el acceso mediante enlaces antiguos o copiados.
+- **Texto del portal** - la introduccion pasa a ser generica y deja de exponer al cliente referencias internas como el CardCode de SAP.
+- **Promociones sin cargo** - las lineas con base y cuota fiscal cero muestran precio `0,00` e importe `SIN CARGO`, omiten el porcentaje de IVA visual y no crean desgloses fiscales vacios, sin alterar los datos contables de SAP.
+
+---
 ## [2.22.18] - 2026-08-26
 
 ### Corregido
