@@ -6,6 +6,18 @@ El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1
 y este proyecto adhiere a [Versionado Semántico](https://semver.org/lang/es/).
 
 ---
+## [2.22.20] - 2026-09-10
+
+### Corregido
+
+- Dirección B2B derivada de la instantánea Woo con fallback por campo a facturación y `AddressExtension` en el documento SAP.
+- Verificación posterior de `ShipToCode` con una reparación controlada y sin falsos positivos en `_sap_address_synced`.
+- Consolidación de líneas YITH pagadas/gratuitas del mismo SKU en `Quantity` + UDF configurable `gift_quantity`.
+- Regalos de otro SKU exportados como línea de inventario al 100% de descuento; promociones del mismo SKU mediante `Quantity` + UDF de unidades sin cargo.
+- Descuentos YITH porcentuales, fijos, por cantidad, categoría/rol y cupones derivados de la instantánea financiera de cada línea WooCommerce.
+- Verificación de lectura posterior para cantidades pagadas, descuentos y unidades sin cargo, con la incidencia persistente `line_semantics_failures`.
+
+---
 ## [2.22.19] - 2026-08-27
 
 ### Corregido

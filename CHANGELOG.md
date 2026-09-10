@@ -6,6 +6,19 @@ El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1
 y este proyecto adhiere a [Versionado Semántico](https://semver.org/lang/es/).
 
 ---
+## [2.22.20] - 2026-09-10
+
+### Corregido
+
+- **Dirección de entrega B2B** - el pedido SAP lleva siempre una instantánea `AddressExtension`; si Woo no tiene una dirección de envío distinta, cada campo usa la dirección de facturación del pedido.
+- **Confirmación real en SAP** - tras crear el pedido se vuelve a leer el `ShipToCode`; si falta se repara una vez y solo se marca `_sap_address_synced=1` cuando SAP devuelve exactamente el código esperado.
+- **Promociones YITH sin cargo** - las líneas gratuitas separadas se detectan por el total cero y se consolidan con la línea pagada del mismo SKU, almacén y tarifa usando el UDF configurable `gift_quantity`.
+- **Regalos de otro SKU** - cuando YITH añade un producto gratuito distinto al comprado, se exporta como línea de inventario con `DiscountPercent=100`; los 3x2/BOGO del mismo SKU conservan `Quantity=pagadas` + UDF de unidades sin cargo.
+- **Descuentos YITH completos** - los modos porcentual, fijo, por cantidad, categoría/rol y cupón se derivan de `subtotal`/`total` guardados en cada línea Woo y se envían mediante `DiscountPercent`, sin depender de APIs privadas ni del precio actual del catálogo.
+- **Postcondición de líneas** - las cantidades pagadas, unidades sin cargo y descuentos se leen de nuevo desde SAP y se comparan con el payload; cualquier diferencia queda persistida en `_sap_line_semantics_verified=0` y se publica en `pending-issues`.
+- **Vigilante reparador** - `repair-ship-to` también comprueba el valor devuelto por SAP antes de marcar una dirección como reparada.
+
+---
 ## [2.22.19] - 2026-08-27
 
 ### Corregido
