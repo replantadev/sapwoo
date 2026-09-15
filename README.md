@@ -1,19 +1,19 @@
 <p align="center">
-  <img src="https://replanta.net/wp-content/uploads/2026/03/sapwoosuite-ico.png" alt="SAP Woo Suite" width="100">
+  <img src="https://replanta.net/wp-content/uploads/2023/10/replantav3-ico.svg" alt="Replanta" width="100">
 </p>
 
 <h1 align="center">SAP Woo Suite</h1>
 
 <p align="center">
   <strong>Conector profesional entre WooCommerce y SAP Business One</strong><br>
-  Pedidos, stock, precios, clientes y cat&aacute;logo &mdash; sincronizados autom&aacute;ticamente v&iacute;a Service Layer.
+  Pedidos, stock, precios, clientes y cat&aacute;logo sincronizados autom&aacute;ticamente mediante Service Layer.
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/versi%C3%B3n-2.22.28-0d2a1e" alt="v2.8.5">
-  <img src="https://img.shields.io/badge/WooCommerce-6.0%E2%80%939.x-7f54b3" alt="WooCommerce 6.0-9.x">
+  <img src="https://img.shields.io/badge/versi%C3%B3n-2.22.28-0d2a1e" alt="SAP Woo Suite 2.22.28">
+  <img src="https://img.shields.io/badge/WooCommerce-6.0%2B-7f54b3" alt="WooCommerce 6.0 o superior">
   <img src="https://img.shields.io/badge/SAP%20B1-9.3%20%7C%2010.0-e97222" alt="SAP Business One">
-  <img src="https://img.shields.io/badge/PHP-7.4%2B-777BB4" alt="PHP 7.4+">
+  <img src="https://img.shields.io/badge/PHP-8.1%2B-777BB4" alt="PHP 8.1 o superior">
   <img src="https://img.shields.io/badge/HPOS-Compatible-46b450" alt="HPOS Compatible">
   <img src="https://img.shields.io/badge/multicanal-TikTok%20%C2%B7%20Amazon-41999F" alt="Multicanal">
   <img src="https://img.shields.io/badge/licencia-GPLv2-green" alt="GPLv2">
@@ -21,7 +21,7 @@
 
 <p align="center">
   <a href="https://replanta.net/conector-sap-woocommerce/"><strong>Informaci&oacute;n del producto</strong></a> &nbsp;&middot;&nbsp;
-  <a href="https://replantadev.github.io/sap-woo-suite-info/"><strong>Especificaciones t&eacute;cnicas</strong></a> &nbsp;&middot;&nbsp;
+  <a href="https://replantadev.github.io/sapwoo/"><strong>Especificaciones t&eacute;cnicas</strong></a> &nbsp;&middot;&nbsp;
   <a href="https://replanta.net/wordpress-plugins/"><strong>Todos los plugins</strong></a> &nbsp;&middot;&nbsp;
   <a href="https://replanta.net/contacto"><strong>Solicitar demo</strong></a>
 </p>
@@ -40,7 +40,7 @@ Cada pedido que entra en WooCommerce se env&iacute;a autom&aacute;ticamente a SA
 
 Desde la versi&oacute;n 2.0, SAP Woo Suite incluye una **arquitectura multicanal** con Channel Manager extensible. Desde la 2.1, **detecci&oacute;n autom&aacute;tica de canal** por metadata: los pedidos de TikTok Shop y Amazon se etiquetan y documentan en SAP sin configuraci&oacute;n adicional.
 
-> **Este repositorio es la p&aacute;gina p&uacute;blica del proyecto.** El c&oacute;digo fuente del plugin se distribuye de forma privada con la instalaci&oacute;n. Consulta las [especificaciones completas](https://replantadev.github.io/sap-woo-suite-info/) o la [p&aacute;gina del producto](https://replanta.net/conector-sap-woocommerce/) para m&aacute;s informaci&oacute;n.
+> **Este repositorio es la p&aacute;gina p&uacute;blica del proyecto.** El c&oacute;digo fuente del plugin se distribuye de forma privada con la instalaci&oacute;n. Consulta las [especificaciones completas](https://replantadev.github.io/sapwoo/) o la [p&aacute;gina del producto](https://replanta.net/conector-sap-woocommerce/) para m&aacute;s informaci&oacute;n.
 
 ---
 
@@ -72,11 +72,14 @@ Desde la versi&oacute;n 2.0, SAP Woo Suite incluye una **arquitectura multicanal
 - Email de bienvenida personalizado con enlace para establecer contrase&ntilde;a
 - Detecci&oacute;n de usuarios existentes por email (vinculaci&oacute;n sin duplicados)
 - Cola de emails v&iacute;a Action Scheduler (no sobrecarga el servidor)
+- Portal privado para consultar y descargar facturas
+- Tarifas individuales y promociones con unidades sin cargo
+- Compatibilidad estructurada con YITH Dynamic Pricing & Discounts
 
 ### Multicanal (desde v2.1)
 - **Channel Manager** extensible con clase base para addons
 - Detecci&oacute;n autom&aacute;tica de canal por metadata del pedido
-- TikTok Shop y Amazon v&iacute;a plugins oficiales &mdash; sin configuraci&oacute;n extra
+- TikTok Shop y Amazon mediante plugins oficiales, sin configuraci&oacute;n adicional en el pedido
 - Miravia disponible como addon
 - Cada pedido queda etiquetado en SAP con su canal de origen
 
@@ -85,6 +88,8 @@ Desde la versi&oacute;n 2.0, SAP Woo Suite incluye una **arquitectura multicanal
 - Panel de pedidos fallidos con vista directa del error y opci&oacute;n de reintento
 - Validaci&oacute;n de campos UDF en SAP desde el panel de WordPress
 - Vista de documentos SAP desde el admin de WooCommerce
+- Reintentos autom&aacute;ticos e idempotencia para evitar pedidos duplicados
+- Vigilancia operativa desde Plugin Center
 
 ---
 
@@ -95,7 +100,7 @@ Desde la versi&oacute;n 2.0, SAP Woo Suite incluye una **arquitectura multicanal
 | **Ecommerce (B2C)** | Clientes gen&eacute;ricos por regi&oacute;n geogr&aacute;fica | Tiendas abiertas al p&uacute;blico con pedidos de consumidor final |
 | **B2B (Mayorista)** | Cada usuario WooCommerce = un CardCode en SAP | Portales de distribuidores con precios por tarifa personalizada |
 
-Cambia de modo en cualquier momento desde el panel de administraci&oacute;n.
+El modo se configura durante la implantaci&oacute;n seg&uacute;n el modelo comercial y la estructura de clientes en SAP.
 
 ---
 
@@ -132,7 +137,7 @@ Personaliza cada aspecto de la sincronizaci&oacute;n sin modificar el c&oacute;d
 
 | Hook | Tipo | Descripci&oacute;n |
 |------|------|------|
-| `sapwc_loaded` | action | Plugin cargado &mdash; registrar canales |
+| `sapwc_loaded` | action | Plugin cargado: registrar canales |
 | `sapwc_order_payload` | filter | Modificar payload antes de enviar a SAP |
 | `sapwc_before_send_order` | action | Antes de enviar pedido |
 | `sapwc_after_send_order` | action | Despu&eacute;s de enviar pedido |
@@ -147,7 +152,7 @@ Personaliza cada aspecto de la sincronizaci&oacute;n sin modificar el c&oacute;d
 | `sapwc_channel_payload` | filter | Modificar payload tras inyectar info de canal |
 | `sapwc_builtin_channels_registered` | action | Canales built-in registrados |
 
-Documentaci&oacute;n completa de hooks en las [especificaciones t&eacute;cnicas](https://replantadev.github.io/sap-woo-suite-info/#developers).
+Documentaci&oacute;n completa en las [especificaciones t&eacute;cnicas](https://replantadev.github.io/sapwoo/).
 
 ---
 
@@ -155,12 +160,12 @@ Documentaci&oacute;n completa de hooks en las [especificaciones t&eacute;cnicas]
 
 ### WordPress / WooCommerce
 - WordPress 5.8+
-- WooCommerce 6.0+ (hasta 9.x)
-- PHP 7.4+ (recomendado 8.0+)
+- WooCommerce 6.0+ (probado hasta WooCommerce 11.0.1)
+- PHP 8.1+
 - Compatible con HPOS (High-Performance Order Storage)
 
 ### SAP Business One
-- SAP B1 9.3 PL14+ o 10.0+
+- SAP B1 9.3 PL14+ o 10.0+, incluido SAP Business One 10.0 FP 2202
 - Service Layer activo (`/b1s/v1` accesible v&iacute;a HTTPS)
 - Permisos en Orders, BusinessPartners, Items, ItemGroups, PriceLists
 - UDFs opcionales para funcionalidades avanzadas (clientes B2B, canales)
@@ -171,10 +176,10 @@ Documentaci&oacute;n completa de hooks en las [especificaciones t&eacute;cnicas]
 
 SAP Woo Suite se distribuye como plugin privado de WordPress (ZIP). La instalaci&oacute;n incluye:
 
-1. **Configuraci&oacute;n asistida** &mdash; conectamos tu Service Layer, definimos modo de operaci&oacute;n y mapeamos almacenes/tarifas
-2. **Importaci&oacute;n inicial** &mdash; cat&aacute;logo, categor&iacute;as y clientes B2B si aplica
-3. **Verificaci&oacute;n** &mdash; primer pedido de prueba sincronizado con SAP
-4. **Actualizaciones autom&aacute;ticas** &mdash; el plugin se actualiza desde GitHub como cualquier plugin de WordPress
+1. **Configuraci&oacute;n asistida**: conectamos Service Layer, definimos el modo de operaci&oacute;n y mapeamos almacenes y tarifas
+2. **Importaci&oacute;n inicial**: cat&aacute;logo, categor&iacute;as y clientes B2B cuando corresponda
+3. **Verificaci&oacute;n controlada**: validamos el primer pedido en una sociedad de pruebas o con un procedimiento acordado
+4. **Actualizaciones gestionadas**: las versiones se publican mediante License API y se supervisan desde Plugin Center
 
 > No se requiere middleware, servidores intermedios ni integraciones de terceros.
 
@@ -184,16 +189,16 @@ SAP Woo Suite se distribuye como plugin privado de WordPress (ZIP). La instalaci
 
 **SAP Woo Suite Lite** es la versi&oacute;n gratuita y de c&oacute;digo abierto del conector. Incluye sincronizaci&oacute;n de stock entre SAP Business One y WooCommerce, dashboard con estad&iacute;sticas y logs de actividad.
 
-Ideal para evaluar la conexi&oacute;n con tu Service Layer antes de dar el salto a PRO.
+Permite conocer la interfaz y las funciones b&aacute;sicas. Por seguridad, no recomendamos conectar una prueba directamente al SAP de producci&oacute;n sin revisar antes permisos, sociedad, UDF y alcance. Podemos preparar una demostraci&oacute;n guiada o una prueba controlada.
 
 | | Lite | PRO |
 |---|---|---|
 | Sincronizaci&oacute;n de stock | Si | Si |
-| Sincronizaci&oacute;n de precios | &mdash; | Si |
-| Env&iacute;o de pedidos a SAP | &mdash; | Si |
-| Importaci&oacute;n de productos | &mdash; | Si |
-| Clientes B2B | &mdash; | Si |
-| Multicanal (TikTok, Amazon) | &mdash; | Si |
+| Sincronizaci&oacute;n de precios | No incluida | Si |
+| Env&iacute;o de pedidos a SAP | No incluido | Si |
+| Importaci&oacute;n de productos | No incluida | Si |
+| Clientes B2B | No incluidos | Si |
+| Multicanal (TikTok, Amazon) | No incluido | Si |
 | Dashboard y logs | Si | Si |
 | Soporte y actualizaciones | Comunidad | Prioritario |
 | Precio | **Gratis** | Consultar |
@@ -227,7 +232,7 @@ El setup incluye la instalaci&oacute;n del plugin, configuraci&oacute;n de Servi
 | | |
 |---|---|
 | Producto | [replanta.net/conector-sap-woocommerce](https://replanta.net/conector-sap-woocommerce/) |
-| Especificaciones | [replantadev.github.io/sap-woo-suite-info](https://replantadev.github.io/sap-woo-suite-info/) |
+| Especificaciones | [replantadev.github.io/sapwoo](https://replantadev.github.io/sapwoo/) |
 | Todos los plugins | [replanta.net/wordpress-plugins](https://replanta.net/wordpress-plugins/) |
 | Contacto | [replanta.net/contacto](https://replanta.net/contacto) |
 | Email | [info@replanta.net](mailto:info@replanta.net) |

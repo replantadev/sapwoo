@@ -10,8 +10,8 @@
 
 | Plugin | Versión | Estado | Repositorio |
 |--------|---------|--------|-------------|
-| **SAP Woo Suite PRO** | `2.10.1` | Estable | [replantadev/sap-woo-suite](https://github.com/replantadev/sap-woo-suite) (privado) |
-| **SAP Woo Suite Lite** | `1.2.3` | Estable / WP.org pendiente | [replantadev/sap-woo-suite-lite](https://github.com/replantadev/sap-woo-suite-lite) (publico) |
+| **SAP Woo Suite PRO** | `2.22.28` | Estable | [replantadev/sap-woo-suite](https://github.com/replantadev/sap-woo-suite) (privado) |
+| **SAP Woo Suite Lite** | `1.2.88` | Desarrollo | [replantadev/sap-woo-suite-lite](https://github.com/replantadev/sap-woo-suite-lite) (público) |
 
 ---
 
@@ -19,8 +19,8 @@
 
 | Asset | URL |
 |-------|-----|
-| **Plugin Icon** | `https://replanta.net/wp-content/uploads/2026/03/sapwoosuite-ico.png` |
-| **Replanta Logo** | `https://replanta.net/wp-content/uploads/2025/12/icono.png` |
+| **Plugin Icon** | `https://replanta.net/wp-content/uploads/2023/10/replantav3-ico.svg` |
+| **Replanta Logo** | `https://replanta.net/wp-content/uploads/2023/10/replantav3-ico.svg` |
 | **SAP Logo** | `https://replanta.net/wp-content/uploads/2026/03/sap.svg` |
 | **WooCommerce Logo** | `https://replanta.net/wp-content/uploads/2026/03/woocommerce.svg` |
 
@@ -147,4 +147,4 @@ Luego haz push a:
 
 ---
 
-*Ultima actualizacion: 2026-03-05*
+*Última actualización: 2026-09-15*

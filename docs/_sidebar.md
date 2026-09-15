@@ -6,8 +6,8 @@
   * [Changelog](changelog.md)
 
 * **Versiones**
-  * [Lite v1.2.3](https://github.com/replantadev/sap-woo-suite-lite)
-  * [PRO v2.10.1](https://github.com/replantadev/sap-woo-suite)
+  * [Lite](https://github.com/replantadev/sap-woo-suite-lite)
+  * [PRO](https://replanta.net/conector-sap-woocommerce/)
 
 * **Configuración**
   * [Conexión SAP](configuration.md)
@@ -20,6 +20,6 @@
   * [API REST](guides/rest-api.md)
 
 * **Enlaces**
-  * [GitHub PRO](https://github.com/replantadev/sap-woo-suite)
+  * [Página pública](https://github.com/replantadev/sapwoo)
   * [GitHub Lite](https://github.com/replantadev/sap-woo-suite-lite)
-  * [Soporte](mailto:info@replanta.dev)
+  * [Soporte](mailto:info@replanta.net)

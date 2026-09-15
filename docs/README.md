@@ -1,101 +1,68 @@
 # SAP Woo Suite
 
 <p align="center">
-  <img src="https://replanta.net/wp-content/uploads/2026/03/sapwoosuite-ico.png" alt="SAP Woo Suite" width="120">
+  <img src="https://replanta.net/wp-content/uploads/2023/10/replantav3-ico.svg" alt="Replanta" width="120">
 </p>
 
 <p align="center">
-  <strong>Integración WooCommerce con SAP Business One</strong>
+  <strong>Integración profesional entre WooCommerce y SAP Business One</strong>
 </p>
 
 <p align="center">
-  <a href="https://github.com/replantadev/sap-woo-suite-lite"><img src="https://img.shields.io/badge/Lite-v1.2.3-41999f?style=for-the-badge&logo=wordpress" alt="Lite v1.2.3"></a>
-  <a href="https://github.com/replantadev/sap-woo-suite"><img src="https://img.shields.io/badge/PRO-v2.10.1-1e2f23?style=for-the-badge&logo=sap" alt="PRO v2.10.1"></a>
+  <a href="https://github.com/replantadev/sap-woo-suite-lite"><img src="https://img.shields.io/badge/Lite-disponible-41999f?style=for-the-badge&logo=wordpress" alt="SAP Woo Suite Lite"></a>
+  <a href="https://replanta.net/conector-sap-woocommerce/"><img src="https://img.shields.io/badge/PRO-v2.22.28-1e2f23?style=for-the-badge&logo=sap" alt="SAP Woo Suite PRO 2.22.28"></a>
 </p>
 
 ---
 
-## ¿Qué es SAP Woo Suite?
+## Qué es SAP Woo Suite
 
-SAP Woo Suite es un plugin de WordPress que conecta tu tienda WooCommerce con SAP Business One a través del Service Layer, permitiendo:
+SAP Woo Suite conecta WooCommerce con SAP Business One mediante Service Layer. Automatiza el intercambio de pedidos, catálogo, existencias, precios y clientes sin exigir un middleware externo.
 
-- **Sincronización de pedidos** → Envía pedidos de WC a SAP automáticamente
-- **Importación de productos** → Trae tu catálogo de SAP a WooCommerce
-- **Sincronización de stock** → Mantén el inventario actualizado en tiempo real
-- **Gestión de clientes** → Sincroniza clientes entre ambas plataformas
-- **Tarifas regionales** → Precios diferentes por zona geográfica
+## Funciones principales
+
+- Envío automático o manual de pedidos WooCommerce a SAP
+- Sincronización de productos, precios y stock por almacén
+- Modos Ecommerce y B2B
+- Clientes B2B vinculados mediante CardCode y tarifas individuales
+- Direcciones de entrega verificadas después de crear el documento SAP
+- Portal privado para consultar y descargar facturas
+- Promociones y unidades sin cargo, incluida integración con YITH Dynamic Pricing & Discounts
+- Reintentos seguros e idempotencia para evitar pedidos duplicados
+- Supervisión operativa y actualizaciones gestionadas desde Plugin Center
+- Canales adicionales para Amazon, TikTok Shop y Miravia
 
 ## Versiones disponibles
 
-### SAP Woo Suite Lite (Gratis)
+### SAP Woo Suite Lite
 
-Version gratuita disponible en WordPress.org con funcionalidad basica:
+Edición gratuita con funciones básicas para conocer el producto. Por seguridad, no recomendamos conectar una evaluación directamente al SAP de producción sin revisar antes permisos, sociedad, campos UDF y alcance.
 
-- Conexion a SAP Business One via Service Layer
-- Sincronizacion de stock desde SAP
-- Sincronizacion de precios por tarifa
-- Logs basicos de sincronizacion
-
-<a href="https://github.com/replantadev/sap-woo-suite-lite">Descargar Lite</a>
+[Ver SAP Woo Suite Lite](https://github.com/replantadev/sap-woo-suite-lite)
 
 ### SAP Woo Suite PRO
 
-Version completa con todas las caracteristicas para empresas:
+Edición completa con implantación asistida, soporte, actualizaciones gestionadas y validación del flujo real de cada empresa.
 
-- Todo lo incluido en Lite
-- Importacion completa de productos
-- Sincronizacion de pedidos a SAP
-- Sincronizacion de clientes
-- Mapeo de campos personalizable
-- Multiple warehouses y tarifas
-- REST API para integraciones
-- Soporte multicanal (TikTok, Amazon, eBay)
+[Solicitar información o una demostración](https://replanta.net/contacto)
 
-<a href="https://replanta.net/conector-sap-woocommerce/">Obtener PRO</a>
+## Compatibilidad
 
----
+| Componente | Versión compatible |
+|------------|--------------------|
+| WordPress | 5.8 o superior |
+| WooCommerce | 6.0 o superior, probado hasta 11.0.1 |
+| PHP | 8.1 o superior |
+| SAP Business One | 9.3 PL14 o superior y 10.0, incluido FP 2202 |
+| API SAP | Service Layer mediante HTTPS |
 
-## Características principales
-
-### Sincronización bidireccional
-
-- Pedidos WooCommerce → Documentos SAP
-- Stock SAP → Disponibilidad WooCommerce
-- Productos SAP → Catálogo WooCommerce
-
-### Configuración flexible
-
-- Modos B2B y B2C
-- Mapeo de campos personalizable
-- Soporte para UDFs (User Defined Fields)
-- Múltiples almacenes y tarifas
-
-### API REST
-
-Endpoints públicos para integraciones externas:
-- `/wp-json/sapwc/v1/sync-order`
-- `/wp-json/sapwc/v1/sync-products`
-
-### Seguridad
-
-- Autenticación segura con Service Layer
-- Reconexión automática (Retry 401)
-- Validación de datos antes de sincronizar
-
-## Requisitos
-
-| Componente | Versión mínima |
-|------------|----------------|
-| WordPress | 5.8+ |
-| WooCommerce | 6.0+ |
-| PHP | 7.4+ |
-| SAP Business One | 9.3+ (Service Layer) |
+La compatibilidad final se valida con una prueba de conexión y una revisión de permisos, UDF, almacenes, tarifas y reglas de negocio.
 
 ## Empezar
 
-→ [Guía de inicio rápido](getting-started.md)
+[Guía de inicio](getting-started.md)
 
 ## Soporte
 
-- **Email**: info@replanta.dev
-- **GitHub**: [Issues](https://github.com/replantadev/sap-woo-suite/issues)
+- Web: [replanta.net](https://replanta.net)
+- Email: [info@replanta.net](mailto:info@replanta.net)

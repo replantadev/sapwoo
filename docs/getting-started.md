@@ -17,16 +17,11 @@
 3. Selecciona el archivo ZIP y haz clic en **Instalar ahora**
 4. Activa el plugin
 
-### Opción 2: Actualizaciones automáticas
+### Opción 2: Actualizaciones gestionadas
 
-El plugin soporta actualizaciones automáticas desde GitHub. Para habilitarlas:
+Las versiones se distribuyen mediante la License API de Replanta y se supervisan desde Plugin Center. El cliente no necesita crear ni guardar tokens personales de GitHub. La licencia y el canal de actualización se configuran durante la implantación.
 
-1. Añade tu token de GitHub en `wp-config.php`:
-   ```php
-   define('SAPWC_GITHUB_TOKEN', 'ghp_tu_token_aqui');
-   ```
-
-2. Las actualizaciones aparecerán en **Plugins** como cualquier otro plugin
+Antes de actualizar una instalación en producción se comprueba la versión disponible, la conectividad con SAP, el estado del cron y los pedidos pendientes.
 
 ## Configuración inicial
 
