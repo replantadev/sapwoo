@@ -6,6 +6,15 @@ El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1
 y este proyecto adhiere a [Versionado Semántico](https://semver.org/lang/es/).
 
 ---
+## [2.22.22] - 2026-09-15
+
+### Corregido
+
+- El health check de SAP amplía a 15 segundos el login del Service Layer para no confundir latencia de arranque con una desconexión real.
+- El filtro temporal del health se elimina de forma selectiva, sin afectar filtros de terceros en la misma prioridad.
+- El endpoint autenticado de salud informa de la política operativa no sensible para auditar el modo de promociones y la presencia de comercial después de un despliegue.
+
+---
 ## [2.22.21] - 2026-09-15
 
 ### Corregido

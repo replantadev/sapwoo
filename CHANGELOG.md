@@ -6,6 +6,15 @@ El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1
 y este proyecto adhiere a [Versionado Semántico](https://semver.org/lang/es/).
 
 ---
+## [2.22.22] - 2026-09-15
+
+### Corregido
+
+- **Health SAP sin falsos negativos por latencia** - el login de comprobación admite 15 segundos, dentro del límite de Plugin Center, en lugar de declarar SAP caído a los 5 segundos.
+- **Filtros aislados** - el health retira únicamente su filtro temporal y no elimina filtros de terceros registrados con la misma prioridad.
+- **Auditoría remota de política** - el health autenticado informa del modo operativo, la política de descuentos y si existe un comercial configurado, sin exponer credenciales ni datos de clientes.
+
+---
 ## [2.22.21] - 2026-09-15
 
 ### Corregido
