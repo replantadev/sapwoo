@@ -6,6 +6,13 @@ El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1
 y este proyecto adhiere a [Versionado Semántico](https://semver.org/lang/es/).
 
 ---
+## [2.22.28] - 2026-09-15
+
+### Corregido
+
+- **YITH Special Offer en B2B** - las promociones con unidades gratuitas se obtienen del metadato estructurado `_ywdpd_discounts` de YITH 4.x, usando su precio base B2B y exigiendo un número entero de unidades pagadas. Ya no se confunden con descuentos por la diferencia entre PVP retail y tarifa B2B.
+
+---
 ## [2.22.27] - 2026-09-15
 
 ### Añadido

@@ -6,6 +6,13 @@ El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1
 y este proyecto adhiere a [Versionado Semántico](https://semver.org/lang/es/).
 
 ---
+## [2.22.28] - 2026-09-15
+
+### Corregido
+
+- Compatibilidad estructurada con las reglas `special_offer` de YITH Dynamic Pricing 4.x en pedidos B2B, separando unidades pagadas y gratuitas con el precio base real de la regla.
+
+---
 ## [2.22.27] - 2026-09-15
 
 ### Añadido
