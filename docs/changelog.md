@@ -6,6 +6,15 @@ El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1
 y este proyecto adhiere a [Versionado Semántico](https://semver.org/lang/es/).
 
 ---
+## [2.22.23] - 2026-09-15
+
+### Corregido
+
+- Resolución B2B segura mediante el meta canónico `sapwc_cardcode`, rechazando correos electrónicos como identificador SAP.
+- Interpretación de reglas N+M desde los metadatos públicos de la línea Woo/YITH, compatible con tarifas individuales diferentes del PVP retail.
+- La interfaz de pedidos conserva y presenta el error real de backend en envíos manuales.
+
+---
 ## [2.22.22] - 2026-09-15
 
 ### Corregido

@@ -6,6 +6,15 @@ El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1
 y este proyecto adhiere a [Versionado Semántico](https://semver.org/lang/es/).
 
 ---
+## [2.22.23] - 2026-09-15
+
+### Corregido
+
+- **CardCode B2B resistente** - nunca se usa un correo de inicio de sesión como socio de negocio; cuando el selector antiguo está vacío se recupera el meta canónico `sapwc_cardcode` creado por la importación SAP.
+- **YITH 5+1 con tarifa B2B** - las ofertas N+M se leen de los metadatos públicos de la línea del pedido, por lo que no dependen del PVP retail ni de APIs privadas de YITH.
+- **Error administrativo preciso** - el envío manual muestra el mensaje real devuelto por SAP o WordPress en lugar de etiquetar cualquier fallo como error de red.
+
+---
 ## [2.22.22] - 2026-09-15
 
 ### Corregido
