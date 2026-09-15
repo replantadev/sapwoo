@@ -6,6 +6,18 @@ El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1
 y este proyecto adhiere a [Versionado Semántico](https://semver.org/lang/es/).
 
 ---
+## [2.22.21] - 2026-09-15
+
+### Corregido
+
+- Promociones YITH 4+2/9+4 detectadas tambien cuando Woo guarda una sola linea con subtotal y total ya reducidos.
+- Una unica normalizacion economica compartida por los modos existentes `rebaja` y `sin_cargo`, sin nuevas opciones ni constructores paralelos.
+- Preflight bloqueante cuando el payload no representa una reduccion detectada y postcheck de todas las lineas devueltas por SAP.
+- Persistencia segura de opciones condicionales y checkboxes del admin, sin perder comercial SAP, titular, tarifas ni configuracion del modo oculto.
+- Selectores dependientes de SAP capaces de conservar el valor configurado durante desconexiones de Service Layer.
+- Perfil exportable ampliado con toda la configuracion del portal y la identidad visual de facturas.
+
+---
 ## [2.22.20] - 2026-09-10
 
 ### Corregido

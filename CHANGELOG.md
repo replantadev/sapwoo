@@ -6,6 +6,19 @@ El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1
 y este proyecto adhiere a [Versionado Semántico](https://semver.org/lang/es/).
 
 ---
+## [2.22.21] - 2026-09-15
+
+### Corregido
+
+- **YITH 4+2/9+4 en una sola linea** - se conserva el precio base al crear el pedido y se detectan promociones aunque Woo guarde `subtotal` y `total` ya rebajados.
+- **Una sola politica B2B** - los dos resultados siguen dependiendo exclusivamente de `sapwc_discount_mode`: descuento unitario o `Quantity` pagada mas UDF `gift_quantity`.
+- **Bloqueo preventivo** - si existe una reduccion economica que el payload final no representa, el pedido no se crea en SAP y queda una incidencia `b2b_pricing` accionable.
+- **Verificacion completa** - el postcheck compara todas las lineas y cantidades devueltas por SAP, incluidas las que no llevan descuento, eliminando falsos positivos.
+- **Ajustes persistentes** - guardar una pantalla condicional ya no vacia opciones de otro modo o plan; los checkboxes pueden desactivarse expresamente sin borrar campos ausentes.
+- **Selectores SAP resistentes** - comercial responsable, titular y tarifas conservan el valor configurado cuando Service Layer no esta disponible o no devuelve ese registro.
+- **Perfil exportable completo** - el respaldo de configuracion incluye portal, estrategia, identidad e imagenes de facturas.
+
+---
 ## [2.22.20] - 2026-09-10
 
 ### Corregido
