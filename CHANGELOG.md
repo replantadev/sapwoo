@@ -6,6 +6,13 @@ El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1
 y este proyecto adhiere a [Versionado Semántico](https://semver.org/lang/es/).
 
 ---
+## [2.22.27] - 2026-09-15
+
+### Añadido
+
+- **Diagnóstico de promociones por pedido** - inspección remota, autenticada y de solo lectura de precios y señales YITH guardadas en hasta 50 líneas. Excluye identidad, direcciones, notas y datos de pago del cliente.
+
+---
 ## [2.22.26] - 2026-09-15
 
 ### Añadido

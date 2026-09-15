@@ -6,6 +6,13 @@ El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1
 y este proyecto adhiere a [Versionado Semántico](https://semver.org/lang/es/).
 
 ---
+## [2.22.27] - 2026-09-15
+
+### Añadido
+
+- Diagnóstico remoto y acotado de la evidencia de promociones Woo/YITH almacenada en un pedido, sin exponer datos personales del cliente.
+
+---
 ## [2.22.26] - 2026-09-15
 
 ### Añadido
