@@ -6,6 +6,13 @@ El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1
 y este proyecto adhiere a [Versionado Semántico](https://semver.org/lang/es/).
 
 ---
+## [2.22.24] - 2026-09-15
+
+### Añadido
+
+- Operación autenticada e idempotente para recuperar un único pedido fallido cuando la cola de Action Scheduler no se ejecuta. Devuelve `DocEntry` y las postcondiciones de dirección y promociones.
+
+---
 ## [2.22.23] - 2026-09-15
 
 ### Corregido

@@ -6,6 +6,13 @@ El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1
 y este proyecto adhiere a [Versionado Semántico](https://semver.org/lang/es/).
 
 ---
+## [2.22.24] - 2026-09-15
+
+### Añadido
+
+- **Recuperación remota de un pedido** - nuevo endpoint autenticado `retry-order` para reintentar un pedido fallido desde Plugin Center aunque Action Scheduler esté detenido. Reutiliza el mutex y la consulta `NumAtCard`, cancela reintentos pendientes tras el éxito e informa de dirección y semántica de líneas.
+
+---
 ## [2.22.23] - 2026-09-15
 
 ### Corregido
