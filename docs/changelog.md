@@ -6,6 +6,13 @@ El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1
 y este proyecto adhiere a [Versionado Semántico](https://semver.org/lang/es/).
 
 ---
+## [2.22.26] - 2026-09-15
+
+### Añadido
+
+- Reintento operativo con un CardCode autorizado y validado contra SAP para un único pedido, sin alterar la identidad persistente del usuario Woo.
+
+---
 ## [2.22.25] - 2026-09-15
 
 ### Añadido

@@ -6,6 +6,13 @@ El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1
 y este proyecto adhiere a [Versionado Semántico](https://semver.org/lang/es/).
 
 ---
+## [2.22.26] - 2026-09-15
+
+### Añadido
+
+- **Recuperación con cliente autorizado** - el reintento operativo puede utilizar un CardCode explícito para un único pedido, después de comprobar en SAP que corresponde a un cliente activo. La sustitución existe solo durante esa petición y no modifica la vinculación del usuario Woo.
+
+---
 ## [2.22.25] - 2026-09-15
 
 ### Añadido
