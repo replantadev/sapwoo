@@ -6,6 +6,13 @@ El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1
 y este proyecto adhiere a [Versionado Semántico](https://semver.org/lang/es/).
 
 ---
+## [2.22.25] - 2026-09-15
+
+### Añadido
+
+- **Diagnóstico de clientes SAP** - búsqueda remota autenticada y de solo lectura por CardCode, nombre fiscal o nombre comercial. La consulta está limitada a 20 clientes y no admite OData suministrado por el operador.
+
+---
 ## [2.22.24] - 2026-09-15
 
 ### Añadido

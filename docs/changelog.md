@@ -6,6 +6,13 @@ El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1
 y este proyecto adhiere a [Versionado Semántico](https://semver.org/lang/es/).
 
 ---
+## [2.22.25] - 2026-09-15
+
+### Añadido
+
+- Consulta diagnóstica autenticada, acotada y de solo lectura para localizar clientes SAP por código, nombre fiscal o nombre comercial desde Plugin Center.
+
+---
 ## [2.22.24] - 2026-09-15
 
 ### Añadido
