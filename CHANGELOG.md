@@ -6,6 +6,14 @@ El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1
 y este proyecto adhiere a [Versionado Semántico](https://semver.org/lang/es/).
 
 ---
+## [2.22.29] - 2026-09-19
+
+### Corregido
+
+- **Promociones YITH 4+2 multirreferencia** - el subtotal inmutable de cada linea Woo tiene prioridad sobre `price_adjusted` cuando YITH 4.20 guarda valores contradictorios. El pedido 47962 queda representado como `8+4`, `8+4` y `4+2`, en vez de `10+2`, `10+2` y `5+1`.
+- **Metadatos internos en pedidos** - las instantaneas `_sapwc_catalog_*` y `_sapwc_pricing_schema` permanecen disponibles para validar promociones, pero dejan de mostrarse en el editor de pedidos WooCommerce.
+
+---
 ## [2.22.28] - 2026-09-15
 
 ### Corregido

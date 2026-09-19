@@ -31,7 +31,7 @@ El ajuste **Fuente del PDF** permite elegir entre:
 
 Antes de aplicar la estrategia seleccionada, las integraciones externas pueden devolver bytes o una URL mediante los filtros. El orden completo es:
 
-1. **Filtro `sapwc_b2b_invoice_pdf_bytes`**: para clientes que generan los PDFs en un servicio propio y quieren devolver bytes binarios:
+1. **Filtro `sapwc_b2b_invoice_pdf_bytes`** — Para clientes que generan los PDFs en un servicio propio y quieren devolver bytes binarios:
 
    ```php
    add_filter( 'sapwc_b2b_invoice_pdf_bytes', function ( $bytes, $docentry ) {
@@ -40,7 +40,7 @@ Antes de aplicar la estrategia seleccionada, las integraciones externas pueden d
    }, 10, 2 );
    ```
 
-2. **Filtro `sapwc_b2b_invoice_pdf_url`**: para devolver una URL pública (HTTP 30x):
+2. **Filtro `sapwc_b2b_invoice_pdf_url`** — Para devolver una URL pública (HTTP 30x):
 
    ```php
    add_filter( 'sapwc_b2b_invoice_pdf_url', function ( $url, $docentry ) {
@@ -50,9 +50,9 @@ Antes de aplicar la estrategia seleccionada, las integraciones externas pueden d
 
 3. **PDF nativo** - solo cuando se selecciona esa fuente. Obtiene factura, Business Partner, condiciones de pago y albaran base desde Service Layer, separa IVA y recargo de equivalencia y renderiza la plantilla configurada.
 
-4. **Adjunto SAP (`AttachmentsContent`)**: si la factura tiene un PDF adjunto en SAP (`Invoices(N).AttachmentEntry`), el plugin lo descarga vía Service Layer reutilizando la cookie de sesión.
+4. **Adjunto SAP (`AttachmentsContent`)** — Si la factura tiene un PDF adjunto en SAP (`Invoices(N).AttachmentEntry`), el plugin lo descarga vía Service Layer reutilizando la cookie de sesión.
 
-5. **`ReportLayoutsService_ExportToPdf`**: como último recurso, exporta el layout (Crystal/PLD) configurado en **SAP Woo Suite > Ajustes > Sincronización > Portal de facturas > LayoutCode**. Si está vacío, SAP usa el layout por defecto del documento.
+5. **`ReportLayoutsService_ExportToPdf`** — Como último recurso, exporta el layout (Crystal/PLD) configurado en **SAP Woo Suite > Ajustes > Sincronización > Portal de facturas > LayoutCode**. Si está vacío, SAP usa el layout por defecto del documento.
 
 ## Seguridad
 

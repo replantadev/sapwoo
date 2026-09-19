@@ -6,6 +6,14 @@ El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1
 y este proyecto adhiere a [Versionado Semántico](https://semver.org/lang/es/).
 
 ---
+## [2.22.29] - 2026-09-19
+
+### Corregido
+
+- Las promociones YITH 4+2 que abarcan varias referencias se calculan desde el subtotal definitivo de cada linea Woo cuando contradice al `price_adjusted` auxiliar de YITH.
+- Los metadatos internos usados para conservar el precio de catalogo dejan de mostrarse en las lineas del editor de pedidos.
+
+---
 ## [2.22.28] - 2026-09-15
 
 ### Corregido
