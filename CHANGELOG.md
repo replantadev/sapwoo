@@ -6,6 +6,13 @@ El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1
 y este proyecto adhiere a [Versionado Semántico](https://semver.org/lang/es/).
 
 ---
+## [2.22.30] - 2026-09-19
+
+### Aniadido
+
+- **Auditoria segura de promociones** - nuevo diagnostico remoto, autenticado y de solo lectura que inventaria las reglas activas de YITH y los callbacks que intervienen en precios. Acota resultados, oculta rutas del servidor y no incluye pedidos ni datos de clientes.
+
+---
 ## [2.22.29] - 2026-09-19
 
 ### Corregido

@@ -6,6 +6,13 @@ El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1
 y este proyecto adhiere a [Versionado Semántico](https://semver.org/lang/es/).
 
 ---
+## [2.22.30] - 2026-09-19
+
+### Aniadido
+
+- Diagnostico remoto y de solo lectura para inventariar reglas YITH y callbacks de precios antes de migrar promociones personalizadas.
+
+---
 ## [2.22.29] - 2026-09-19
 
 ### Corregido
