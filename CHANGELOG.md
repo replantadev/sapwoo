@@ -6,6 +6,17 @@ El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1
 y este proyecto adhiere a [Versionado Semántico](https://semver.org/lang/es/).
 
 ---
+## [2.22.31] - 2026-09-28
+
+### Corregido
+
+- **Contrato de precios B2B** - el PVP publico deja de utilizarse como precio base de una tarifa B2B. Las lineas ordinarias conservan el subtotal economico de Woo y las promociones usan la evidencia estructurada de YITH, evitando descuentos ficticios cuando el PVP difiere de la tarifa del cliente.
+- **Validacion bloqueante independiente** - el pedido no se envia si el payload introduce descuentos o unidades gratuitas que no existen en WooCommerce.
+- **Compatibilidad con promociones YITH** - las reglas porcentuales y fijas usan `price_base`, mientras las ofertas N+M mantienen su separacion de unidades pagadas y sin cargo.
+- **Lectura posterior de SAP** - las unidades sin cargo materializadas por un add-on SAP como lineas adicionales a precio cero ya no se contabilizan dos veces.
+- **Pruebas de regresion** - cobertura del pedido 47972, PVP con punto o coma decimal, YITH porcentual, 4+2 y materializacion posterior en SAP. El entorno de PHPUnit incorpora los stubs de WordPress que faltaban.
+
+---
 ## [2.22.30] - 2026-09-19
 
 ### Aniadido

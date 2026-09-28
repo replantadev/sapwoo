@@ -6,6 +6,17 @@ El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1
 y este proyecto adhiere a [Versionado Semántico](https://semver.org/lang/es/).
 
 ---
+## [2.22.31] - 2026-09-28
+
+### Corregido
+
+- El precio base de pedidos B2B procede del contrato economico de WooCommerce o de la evidencia estructurada de YITH, nunca del PVP publico del catalogo.
+- El preflight bloquea descuentos y unidades sin cargo inventados por instantaneas antiguas o filtros de payload.
+- Las reglas YITH porcentuales, fijas y N+M conservan su semantica al enviarse a SAP.
+- El postcheck reconoce las lineas gratuitas que un add-on SAP materializa despues de crear el pedido sin duplicar cantidades.
+- Se incorpora una prueba de regresion integral basada en el pedido 47972.
+
+---
 ## [2.22.30] - 2026-09-19
 
 ### Aniadido
